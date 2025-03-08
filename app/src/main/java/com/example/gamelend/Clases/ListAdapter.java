@@ -46,24 +46,21 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     }
 
     public  class ViewHolder extends RecyclerView.ViewHolder{
-        TextView TextViewNombre, TextViewCiudad;
-        ImageView imageViewUsuario;
-        ImageButton imageButtonJuegos;
+        TextView textViewNombre, textViewCiudad;
+//        ImageView imageViewUsuario;
+//        ImageButton imageButtonJuegos;
         ViewHolder(View itemView){
             super(itemView);
-            TextViewNombre = itemView.findViewById(R.id.TextViewNombre);
-            TextViewCiudad = itemView.findViewById(R.id.TextViewCiudad);
-            imageViewUsuario = itemView.findViewById(R.id.imageViewUsuario);
-            imageButtonJuegos = itemView.findViewById(R.id.imageButtonJuegos);
+            textViewNombre = itemView.findViewById(R.id.textViewNombre);
+            textViewCiudad = itemView.findViewById(R.id.textViewCiudad);
+//            imageViewUsuario = itemView.findViewById(R.id.imageViewUsuario);
+//            imageButtonJuegos = itemView.findViewById(R.id.imageButtonJuegos);
         }
 
         void bindData(final Usuario item){
-            TextViewNombre.setText(item.getNombre());
-            TextViewCiudad.setText(item.getCiudad());
-            imageViewUsuario.setImageResource(item.getImagen());
+            textViewNombre.setText(item.getNombre());
+            textViewCiudad.setText(item.getCiudad());
+//            imageViewUsuario.setImageResource(item.getImagen());
         }
     }
-
-
-
 }
