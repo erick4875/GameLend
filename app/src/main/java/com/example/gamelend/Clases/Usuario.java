@@ -1,7 +1,11 @@
 package com.example.gamelend.Clases;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Usuario {
+
     private String usuario , contrasena,nombre,ciudad;
+
 
     public Usuario(String usuario, String contrasena, String nombre, String ciudad){
         this.nombre = nombre;
@@ -12,6 +16,10 @@ public class Usuario {
 
     public String getUsuario(){
         return usuario;
+    }
+
+    public void setUsuario(String usuario){
+        this.usuario = usuario;
     }
 
     public String getContrasena(){
@@ -26,8 +34,16 @@ public class Usuario {
         return nombre;
     }
 
+    public void setNombre(String nombre){
+        this.nombre = nombre;
+    }
+
     public String getCiudad(){
         return ciudad;
+    }
+
+    public void setCiudad(String ciudad){
+        this.ciudad = ciudad;
     }
 
 }

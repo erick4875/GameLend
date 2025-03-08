@@ -1,6 +1,7 @@
 package com.example.gamelend.Activitys;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -8,15 +9,23 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
+import com.example.gamelend.Clases.Usuario;
+import com.example.gamelend.Conexion.ApiService;
+import com.example.gamelend.Conexion.ApiClient;
+import com.example.gamelend.Conexion.interceptor.*;
 import com.example.gamelend.R;
+import com.example.gamelend.dto.*;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private EditText editTextUsuario, editTextContrasena;
     private Button buttonEntrar;
+
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
         editTextUsuario = findViewById(R.id.editTextUsuario);
         editTextContrasena = findViewById(R.id.editTextContrasena);
         buttonEntrar = findViewById(R.id.buttonEntrar);
+
+        apiService = ApiClient.getConexion(this).create(ApiService.class);
 
         buttonEntrar.setOnClickListener(v -> {
             ValidarUsuario();
@@ -46,5 +57,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //CONTROLAMOS USUARIO Y CONTRASEÑA
+
     }
+
 }
