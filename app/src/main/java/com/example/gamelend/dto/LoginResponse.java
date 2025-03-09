@@ -1,6 +1,8 @@
 package com.example.gamelend.dto;
 
 public class LoginResponse {
+    private String NombreUsuario;
+    private String Token;
     private String tipo;
     private int respuesta;
     private String mensaje;
@@ -10,10 +12,18 @@ public class LoginResponse {
     // Constructor vacío necesario para Gson
     public LoginResponse() {}
 
+    public String getNombreUsuario() {
+        return NombreUsuario;
+    }
+
+    public String getToken() {
+        return Token;
+    }
+
     public static class LoginResponseBody {
         private String token;
         private String nombrePublico;
-        private long userId;  // Cambiado de usuarioId a userId para coincidir con API
+        private long userId;
 
         public String getToken() { return token; }
         public void setToken(String token) { this.token = token; }

@@ -3,27 +3,32 @@ package com.example.gamelend.Conexion;
 
 import android.content.Context;
 
-import java.util.concurrent.TimeUnit;
+import com.example.gamelend.Conexion.interceptor.AuthInterceptor;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
+    private static final String BASE_URL = "http://10.0.2.2:8080/"; // Localhost desde emulador
     private static Retrofit retrofit = null;
+    private static OkHttpClient client;
 
-    public static Retrofit getConexion(Context context) {
+    public static Retrofit getRetrofitInstance(Context context) {
         if (retrofit == null) {
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)  // Ajusta los tiempos de espera si es necesario
-                    .writeTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+            client = new OkHttpClient.Builder()
+                    .addInterceptor(loggingInterceptor)
+                    .addInterceptor(new AuthInterceptor(context))
                     .build();
 
             retrofit = new Retrofit.Builder()
-                    .baseUrl("http://10.0.2.2:8080/")  // URL base del servidor Spring Boot
+                    .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .client(client)  // Usa el cliente personalizado
+                    .client(client)
                     .build();
         }
         return retrofit;

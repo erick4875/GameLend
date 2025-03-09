@@ -1,22 +1,17 @@
 package com.example.gamelend.dto;
 
 public class RespuestaGeneral<T> {
-    // Campos existentes
     private String tipo;
     private int respuesta;  // Cambiado a int (en lugar de String)
     private String mensaje;
     private T cuerpo;
-    private boolean exito;  // Este campo determina el éxito
+    private boolean exito;
 
-    // Constantes actualizadas
-    public static final int RESP_OK = 1;      // Valor numérico
-    public static final int RESP_ERROR = -1;  // Valor numérico
+    public static final int RESP_OK = 1;
+    public static final int RESP_ERROR = -1;
 
-    // Constructor y otros métodos...
-
-    // Método corregido para verificar éxito
     public boolean isExito() {
-        return exito;  // Usar directamente el campo boolean
+        return exito;
     }
 
     // Getters y setters actualizados

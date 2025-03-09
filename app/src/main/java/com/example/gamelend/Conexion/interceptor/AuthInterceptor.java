@@ -13,6 +13,7 @@ public class AuthInterceptor implements Interceptor {
     private Context context;
 
     public AuthInterceptor(Context context) {
+
         this.context = context;
     }
 

@@ -17,6 +17,6 @@ public interface ApiService {
     @POST("api/auth/login")
     Call<LoginResponse> login(@Body LoginRequest loginRequest);
 
-    @GET("usuarios")  // Endpoint de la API
-    Call<List<Usuario>> obtenerUsuarios();
+    @GET("api/usuarios")
+    Call<RespuestaGeneral<List<UsuarioResponseDTO>>> getUsuarios();
 }

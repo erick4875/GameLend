@@ -8,61 +8,78 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gamelend.R;
+import com.example.gamelend.dto.UsuarioResponseDTO;
 
 import java.util.List;
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
-    private List<Usuario> mData;
-    private LayoutInflater mInflater;
+
+    private List<UsuarioResponseDTO> usuarios;
     private Context context;
+    private OnItemClickListener listener;
 
-    public ListAdapter(List<Usuario> itemList, Context context){
-        this.mInflater = LayoutInflater.from(context);
+    public ListAdapter(List<UsuarioResponseDTO> usuarios, Context context, OnItemClickListener listener) {
+        this.usuarios = usuarios;
         this.context = context;
-        this.mData = itemList;
+        this.listener = listener;
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.usuario_cardview, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public  int getItemCount(){
-
-        return mData.size();
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        UsuarioResponseDTO usuario = usuarios.get(position);
+        holder.bind(usuario, listener);
     }
 
     @Override
-    public ListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
-        View view = mInflater.inflate(R.layout.usuario_cardview, null);
-        return new ListAdapter.ViewHolder(view);
+    public int getItemCount() {
+        return usuarios.size();
     }
 
-    @Override
-    public void onBindViewHolder(final ListAdapter.ViewHolder holder, final  int position){
-        holder.bindData(mData.get(position));
-    }
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
-    public void setItems(List<Usuario> items) {
+        private TextView tvNombre;
+        private TextView tvCiudad;
+        private ImageView ivFoto;
+        private ImageButton ibJuegos;
 
-        mData = items;
-    }
-
-    public  class ViewHolder extends RecyclerView.ViewHolder{
-        TextView textViewNombre, textViewCiudad;
-//        ImageView imageViewUsuario;
-//        ImageButton imageButtonJuegos;
-        ViewHolder(View itemView){
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            textViewNombre = itemView.findViewById(R.id.textViewNombre);
-            textViewCiudad = itemView.findViewById(R.id.textViewCiudad);
-//            imageViewUsuario = itemView.findViewById(R.id.imageViewUsuario);
-//            imageButtonJuegos = itemView.findViewById(R.id.imageButtonJuegos);
+            // Vinculamos las vistas con los IDs del layout
+            tvNombre = itemView.findViewById(R.id.textViewNombre);
+            tvCiudad = itemView.findViewById(R.id.textViewLocalidad);
+            ivFoto = itemView.findViewById(R.id.imageViewUsuario);
+            ibJuegos = itemView.findViewById(R.id.imageButtonJuegos);
         }
 
-        void bindData(final Usuario item){
-            textViewNombre.setText(item.getNombre());
-            textViewCiudad.setText(item.getCiudad());
-//            imageViewUsuario.setImageResource(item.getImagen());
+        public void bind(final UsuarioResponseDTO usuario, final OnItemClickListener listener) {
+            // Asignamos los datos del usuario a las vistas
+            tvNombre.setText(usuario.getNombrePublico());
+            tvCiudad.setText(usuario.getLocalidad());
+            ivFoto.setImageResource(R.drawable.perfil_usuario);
+
+            // Asignamos el comportamiento de los botones de acción
+            ibJuegos.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onJuegosClick(usuario);
+                }
+            });
         }
+    }
+
+    // Interfaz para los clicks en los elementos
+    public interface OnItemClickListener {
+        void onJuegosClick(UsuarioResponseDTO usuario);
     }
 }
