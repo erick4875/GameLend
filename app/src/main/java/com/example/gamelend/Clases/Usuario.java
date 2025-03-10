@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class Usuario {
 
-    private String usuario , contrasena,nombre,ciudad;
+    private String usuario , contrasena, nombre, ciudad;
 
 
     public Usuario(String usuario, String contrasena, String nombre, String ciudad){

@@ -1,28 +1,24 @@
 package com.example.gamelend.Activitys;
 
-import android.content.Context;
+
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gamelend.Clases.ListAdapter;
-import com.example.gamelend.Clases.Usuario;
 import com.example.gamelend.Conexion.ApiService;
 import com.example.gamelend.Conexion.ApiClient;
 import com.example.gamelend.R;
 import com.example.gamelend.dto.RespuestaGeneral;
 import com.example.gamelend.dto.UsuarioResponseDTO;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -38,8 +34,18 @@ public class ListaUsuarios extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_lista_usuarios);
 
+        // Encontrar el botón
+        ImageButton btnRegresar = findViewById(R.id.btnRegresar);
+
         apiService = ApiClient.getRetrofitInstance(this).create(ApiService.class); // Inicializamos apiService
         CargarUsuarios();
+
+        // Establecer un boton para regresar a la pantalla principal
+        btnRegresar.setOnClickListener(v -> {
+            Intent intent = new Intent(ListaUsuarios.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
 
     private void CargarUsuarios() {
