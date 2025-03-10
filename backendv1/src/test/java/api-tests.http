@@ -1,0 +1,101 @@
+### registrar usuario sin autenticación - ok
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Prueba Usuario",
+  "nombrePublico": "Linkiafp",
+  "email": "profelinkiafp@linkiafp.com",
+  "password": "password123",
+  "provincia": "Madrid",
+  "localidad": "Centro"
+}
+
+### Login - ok
+# @name login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+
+### Extraer token de la respuesta - 
+@authToken = {{login.response.body.cuerpo.token}}
+
+### Get All Users con token extraído
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer {{authToken}}
+
+### Get User by ID - ok
+GET http://localhost:8080/api/usuarios/1
+Accept: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Create New User - ok
+POST http://localhost:8080/api/usuarios
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "nombre": "Usuario Prueba",
+  "nombrePublico": "Usuario Prueba",
+  "email": "prueba@example.com",
+  "password": "password123",
+  "provincia": "Madrid",
+  "localidad": "Madrid"
+}
+
+
+### Get All Préstamos - ok
+GET http://localhost:8080/api/prestamos
+Accept: application/json
+Authorization: Bearer {{authToken}}
+
+### Create New Préstamo - ok
+POST http://localhost:8080/api/prestamos
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "juegoId": 1,
+  "usuarioPrestadorId": 1,
+  "usuarioReceptorId": 2,
+  "fechaPrestamo": "2025-03-05T06:53:15"
+}
+
+### Get All Juegos - ok
+GET http://localhost:8080/api/juegos
+Accept: application/json
+Authorization: Bearer {{authToken}}
+
+### Get Juego by ID - ok
+GET http://localhost:8080/api/juegos/
+Accept: application/json
+Authorization: Bearer {{authToken}}
+
+### Create New Juego - ok
+POST http://localhost:8080/api/juegos
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "titulo": "The Legend of Zelda",
+  "plataforma": "Nintendo Switch",
+  "genero": "Aventura",
+  "descripcion": "Un juego de aventuras épicas",
+  "estado": "DISPONIBLE",
+  "usuarioPropietarioId": 1
+}
+
+### Registrar devolución de préstamo
+PUT http://localhost:8080/api/prestamos/2/devolver
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "fechaDevolucion": "2025-03-10T15:30:00"
+}
