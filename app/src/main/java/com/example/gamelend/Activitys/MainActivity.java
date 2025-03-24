@@ -10,11 +10,13 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.gamelend.Conexion.ApiClient;
-import com.example.gamelend.Conexion.ApiService;
+import com.example.gamelend.remote.api.ApiClient;
+import com.example.gamelend.remote.api.ApiService;
 import com.example.gamelend.R;
 import com.example.gamelend.dto.LoginRequest;
 import com.example.gamelend.dto.LoginResponse;
+import com.example.gamelend.repository.UserRepository;
+import com.example.gamelend.viewmodel.MainViewModel;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -25,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText editTextUsuario, editTextContrasena;
     private Button buttonEntrar;
 
-    private ApiService apiService;
+    private MainViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +39,14 @@ public class MainActivity extends AppCompatActivity {
         editTextContrasena = findViewById(R.id.editTextContrasena);
         buttonEntrar = findViewById(R.id.buttonEntrar);
 
-        apiService = ApiClient.getRetrofitInstance(this).create(ApiService.class);
+        // Crear el repository y el viewModel de forma manual por ahora
+        ApiService apiService = ApiClient.getRetrofitInstance(this).create(ApiService.class);
+        UserRepository userRepository = new UserRepository(apiService);
+        viewModel = new MainViewModel(userRepository);
 
-        buttonEntrar.setOnClickListener(v -> {
-            validarUsuario();
-        });
+        setupObservers();
+
+        buttonEntrar.setOnClickListener(v -> validarUsuario());
     }
 
     private void validarUsuario() {
@@ -53,45 +58,29 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Llamada al método que verifica en la API
-        loginEnApi(usuario, contrasena);
+        viewModel.login(usuario, contrasena);
     }
 
-    private void loginEnApi(String usuario, String contrasena) {
-        LoginRequest request = new LoginRequest(usuario, contrasena);
+    private void setupObservers() {
+        viewModel.getLoginResponse().observe(this, response -> {
+            if (response != null) {
+                String nombreUsuario = response.getNombreUsuario();
+                String token = response.getToken();
 
-        Call<LoginResponse> call = apiService.login(request);
+                // Guardamos el token en SharedPreferences (opcional)
+                SharedPreferences prefs = getSharedPreferences("MisPreferencias", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("token", token);
+                editor.apply();
 
-        call.enqueue(new Callback<LoginResponse>() {
-            @Override
-            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                if (response.isSuccessful()) {
-                    LoginResponse loginResponse = response.body();
+                Toast.makeText(MainActivity.this, "Bienvenido " + nombreUsuario, Toast.LENGTH_SHORT).show();
 
-                    String nombreUsuario = loginResponse.getNombreUsuario();
-                    String token = loginResponse.getToken();
-
-                    // Guardamos el token en SharedPreferences (opcional)
-                    SharedPreferences prefs = getSharedPreferences("MisPreferencias", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString("token", token);
-                    editor.apply();
-
-                    Toast.makeText(MainActivity.this, "Bienvenido " + nombreUsuario, Toast.LENGTH_SHORT).show();
-
-                    // Ir a la siguiente pantalla
-                    Intent intent = new Intent(MainActivity.this, ListaUsuarios.class);
-                    startActivity(intent);
-                    finish();
-
-                } else {
-                    Toast.makeText(MainActivity.this, "Credenciales incorrectas", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<LoginResponse> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Error de conexión: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                // Ir a la siguiente pantalla
+                Intent intent = new Intent(MainActivity.this, ListaUsuarios.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Toast.makeText(MainActivity.this, "Credenciales incorrectas o error de conexión", Toast.LENGTH_SHORT).show();
             }
         });
     }

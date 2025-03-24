@@ -1,4 +1,4 @@
-package com.example.gamelend.Conexion.interceptor;
+package com.example.gamelend.remote.interceptor;
 
 import android.content.Context;
 import android.content.SharedPreferences;

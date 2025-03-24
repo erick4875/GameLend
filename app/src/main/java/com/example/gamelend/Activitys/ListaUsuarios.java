@@ -1,32 +1,28 @@
 package com.example.gamelend.Activitys;
 
-
-import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gamelend.Clases.ListAdapter;
-import com.example.gamelend.Conexion.ApiService;
-import com.example.gamelend.Conexion.ApiClient;
+import com.example.gamelend.remote.api.ApiService;
+import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.R;
-import com.example.gamelend.dto.RespuestaGeneral;
 import com.example.gamelend.dto.UsuarioResponseDTO;
-
-import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import com.example.gamelend.repository.UserRepository;
+import com.example.gamelend.viewmodel.ListaUsuariosViewModel;
 
 public class ListaUsuarios extends AppCompatActivity {
-    private ApiService apiService;  // Asegúrate de tener la referencia al ApiService
+
+    private ListaUsuariosViewModel viewModel;
+    private RecyclerView recyclerView;
+    private ListAdapter listAdapter;
+    private ApiService apiService;
+    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,63 +30,42 @@ public class ListaUsuarios extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_lista_usuarios);
 
-        // Encontrar el botón
-        ImageButton btnRegresar = findViewById(R.id.btnRegresar);
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        apiService = ApiClient.getRetrofitInstance(this).create(ApiService.class); // Inicializamos apiService
-        CargarUsuarios();
+        // Retrofit + Repository + ViewModel manuales (luego te muestro con Hilt)
+        apiService = ApiClient.getRetrofitInstance(this).create(ApiService.class);
+        userRepository = new UserRepository(apiService);
+        viewModel = new ListaUsuariosViewModel(userRepository);
 
-        // Establecer un boton para regresar a la pantalla principal
-        btnRegresar.setOnClickListener(v -> {
-            Intent intent = new Intent(ListaUsuarios.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        });
+        observarUsuarios();
     }
 
-    private void CargarUsuarios() {
-        apiService.getUsuarios().enqueue(new Callback<RespuestaGeneral<List<UsuarioResponseDTO>>>() {
-            @Override
-            public void onResponse(Call<RespuestaGeneral<List<UsuarioResponseDTO>>> call, Response<RespuestaGeneral<List<UsuarioResponseDTO>>> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().isExito()) {
+    private void observarUsuarios() {
+        viewModel.getUsuarios().observe(this, usuarios -> {
+            if (usuarios != null) {
+                listAdapter = new ListAdapter(usuarios, ListaUsuarios.this, new ListAdapter.OnItemClickListener() {
+                    @Override
+                    public void onEdit(UsuarioResponseDTO usuario) {
+                        Toast.makeText(ListaUsuarios.this, "Editar: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
+                    }
 
-                    List<UsuarioResponseDTO> usuarios = response.body().getCuerpo();
+                    @Override
+                    public void onDelete(UsuarioResponseDTO usuario) {
+                        Toast.makeText(ListaUsuarios.this, "Eliminar: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
+                    }
 
-                    ListAdapter listAdapter = new ListAdapter(usuarios, ListaUsuarios.this, new ListAdapter.OnItemClickListener() {
+                    @Override
+                    public void onJuegosClick(UsuarioResponseDTO usuario) {
+                        Toast.makeText(ListaUsuarios.this, "Juegos: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
+                    }
+                });
 
-                        public void onEdit(UsuarioResponseDTO usuario) {
-                            // Acciones al editar (pendiente implementar)
-                            Toast.makeText(ListaUsuarios.this, "Editar: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
-                        }
-
-                        public void onDelete(UsuarioResponseDTO usuario) {
-                            // Acciones al eliminar (pendiente implementar)
-                            Toast.makeText(ListaUsuarios.this, "Eliminar: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
-                        }
-
-
-                        public void onJuegosClick(UsuarioResponseDTO usuario) {
-                            // Aquí manejas el evento click para los botones "Juegos"
-                            Toast.makeText(ListaUsuarios.this, "Juegos: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-                    RecyclerView recyclerView = findViewById(R.id.recyclerView);
-                    recyclerView.setHasFixedSize(true);
-                    recyclerView.setLayoutManager(new LinearLayoutManager(ListaUsuarios.this));
-                    recyclerView.setAdapter(listAdapter);
-
-                } else {
-                    Toast.makeText(ListaUsuarios.this, "Error al obtener los usuarios", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<RespuestaGeneral<List<UsuarioResponseDTO>>> call, Throwable t) {
-                Toast.makeText(ListaUsuarios.this, "Error de conexión: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                recyclerView.setAdapter(listAdapter);
+            } else {
+                Toast.makeText(ListaUsuarios.this, "Error al obtener los usuarios", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-
 }

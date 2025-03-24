@@ -1,6 +1,5 @@
-package com.example.gamelend.Conexion;
+package com.example.gamelend.remote.api;
 
-import com.example.gamelend.Clases.Usuario;
 import com.example.gamelend.dto.LoginRequest;
 import com.example.gamelend.dto.LoginResponse;
 import com.example.gamelend.dto.RespuestaGeneral;

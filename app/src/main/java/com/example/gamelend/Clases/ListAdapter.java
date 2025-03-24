@@ -80,6 +80,10 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     // Interfaz para los clicks en los elementos
     public interface OnItemClickListener {
+        void onEdit(UsuarioResponseDTO usuario);
+
+        void onDelete(UsuarioResponseDTO usuario);
+
         void onJuegosClick(UsuarioResponseDTO usuario);
     }
 }
