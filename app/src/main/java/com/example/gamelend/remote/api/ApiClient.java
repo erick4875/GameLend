@@ -1,9 +1,9 @@
-package com.example.gamelend.Conexion;
+package com.example.gamelend.remote.api;
 
 
 import android.content.Context;
 
-import com.example.gamelend.Conexion.interceptor.AuthInterceptor;
+import com.example.gamelend.remote.interceptor.AuthInterceptor;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
