@@ -3,9 +3,9 @@ POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
 {
-  "nombre": "Prueba Usuario",
-  "nombrePublico": "Linkiafp",
-  "email": "profelinkiafp@linkiafp.com",
+  "nombre": "miro prueba",
+  "nombrePublico": "Mirofp",
+  "email": "mirop@linkiafp.com",
   "password": "password123",
   "provincia": "Madrid",
   "localidad": "Centro"
