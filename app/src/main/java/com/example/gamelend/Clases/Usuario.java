@@ -1,7 +1,5 @@
 package com.example.gamelend.Clases;
 
-import com.google.gson.annotations.SerializedName;
-
 public class Usuario {
 
     private String usuario , contrasena,nombre,ciudad;

@@ -13,6 +13,7 @@
         android:orientation="vertical"
         android:padding="16dp">
         <ImageView
+            android:id="@+id/imageViewJuego"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:src="@drawable/mando" />
