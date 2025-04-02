@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activitys.InfoUsuario">
+
+    <RelativeLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        tools:layout_editor_absoluteX="33dp"
+        tools:layout_editor_absoluteY="0dp">
+
+        <ImageView
+            android:id="@+id/imageViewUsuario"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/perfil_usuario" />
+
+        <ImageView
+            android:id="@+id/imageViewLogo"
+            android:layout_width="51dp"
+            android:layout_height="53dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/logo" />
+
+        <TextView
+            android:id="@+id/tVNombre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/imageViewUsuario"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="8dp"
+            android:text="Nombre usuario"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btnEditarPerfil"
+            android:layout_width="148dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/imageViewLogo"
+            android:layout_alignParentEnd="true"
+            android:backgroundTint="#009688"
+            android:layout_marginTop="23dp"
+            android:layout_marginEnd="44dp"
+            android:text="Editar Perfil" />
+    </RelativeLayout>
+
+    <!-- Opción de añadir juegos -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="16dp"
+        android:layout_below="@id/headerLayout">
+
+    <Button
+            android:id="@+id/btnAñadirJuego"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#009688"
+            android:text="Añadir Juego"
+            android:layout_centerInParent="true" />
+    </LinearLayout>
+
+    <!-- Lista de juegos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewJuegos"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
