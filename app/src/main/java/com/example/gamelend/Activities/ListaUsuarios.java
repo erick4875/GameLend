@@ -1,4 +1,4 @@
-package com.example.gamelend.Activitys;
+package com.example.gamelend.Activities;
 
 import android.os.Bundle;
 import android.widget.Toast;
@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.gamelend.Clases.ListAdapter;
+import com.example.gamelend.Models.ListAdapter;
 import com.example.gamelend.remote.api.ApiService;
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.R;

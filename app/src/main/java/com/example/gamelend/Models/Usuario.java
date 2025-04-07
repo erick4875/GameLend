@@ -1,4 +1,4 @@
-package com.example.gamelend.Clases;
+package com.example.gamelend.Models;
 
 public class Usuario {
 

@@ -1,4 +1,4 @@
-package com.example.gamelend.Activitys;
+package com.example.gamelend.Activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
