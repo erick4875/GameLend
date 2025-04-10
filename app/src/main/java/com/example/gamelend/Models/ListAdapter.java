@@ -1,4 +1,4 @@
-package com.example.gamelend.Clases;
+package com.example.gamelend.Models;
 
 import android.content.Context;
 import android.view.LayoutInflater;

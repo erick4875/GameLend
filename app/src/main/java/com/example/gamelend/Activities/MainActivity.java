@@ -1,4 +1,4 @@
-package com.example.gamelend.Activitys;
+package com.example.gamelend.Activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,14 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.remote.api.ApiService;
 import com.example.gamelend.R;
-import com.example.gamelend.dto.LoginRequest;
-import com.example.gamelend.dto.LoginResponse;
 import com.example.gamelend.repository.UserRepository;
 import com.example.gamelend.viewmodel.MainViewModel;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 

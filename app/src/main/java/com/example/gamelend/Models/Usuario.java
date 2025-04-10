@@ -1,6 +1,4 @@
-package com.example.gamelend.Clases;
-
-import com.google.gson.annotations.SerializedName;
+package com.example.gamelend.Models;
 
 public class Usuario {
 
