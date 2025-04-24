@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Parte superior fija -->
+    <ImageView
+        android:id="@+id/imageViewUsuario"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_margin="16dp"
+        android:layout_alignParentStart="true"
+        android:src="@drawable/perfil_usuario" />
+
+    <ImageView
+        android:id="@+id/imageViewLogo"
+        android:layout_width="51dp"
+        android:layout_height="53dp"
+        android:layout_margin="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/logo" />
+
+    <TextView
+        android:id="@+id/tVNombre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageViewUsuario"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="Nombre usuario"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- ScrollView con todos los campos -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tVNombre"
+        android:layout_marginTop="16dp"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Campos -->
+            <EditText
+                android:id="@+id/edit_nombre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre"
+                android:inputType="text"
+                android:textColor="#1A1919"
+                android:backgroundTint="#595B6A"
+                android:textSize="20dp" />
+
+            <EditText
+                android:id="@+id/edit_apellidos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Apellidos"
+                android:inputType="text"
+                android:textColor="#1A1919"
+                android:backgroundTint="#595B6A"
+                android:textSize="20dp" />
+
+            <EditText
+                android:id="@+id/edit_usuario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Usuario"
+                android:inputType="text"
+                android:textColor="#1A1919"
+                android:backgroundTint="#595B6A"
+                android:textSize="20dp" />
+
+            <EditText
+                android:id="@+id/edit_contrasena"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Contraseña"
+                android:inputType="textPassword"
+                android:textColor="#1A1919"
+                android:backgroundTint="#595B6A"
+                android:textSize="20dp" />
+
+            <EditText
+                android:id="@+id/edit_direccion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Dirección"
+                android:inputType="text"
+                android:textColor="#1A1919"
+                android:backgroundTint="#595B6A"
+                android:textSize="20dp" />
+
+            <EditText
+                android:id="@+id/edit_provincia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Provincia"
+                android:inputType="text"
+                android:textColor="#1A1919"
+                android:backgroundTint="#595B6A"
+                android:textSize="20dp" />
+
+            <EditText
+                android:id="@+id/edit_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Correo electrónico"
+                android:inputType="textEmailAddress"
+                android:textColor="#1A1919"
+                android:backgroundTint="#595B6A"
+                android:textSize="20dp" />
+
+            <EditText
+                android:id="@+id/edit_telefono"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Teléfono"
+                android:inputType="phone"
+                android:textColor="#1A1919"
+                android:backgroundTint="#595B6A"
+                android:textSize="20dp" />
+
+            <!-- Botones -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:weightSum="2"
+                android:paddingHorizontal="10dp">
+
+                <Button
+                    android:id="@+id/btn_lista_juegos"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Lista de juegos"
+                    android:backgroundTint="#00796B"
+                    android:textColor="@android:color/white" />
+
+                <Button
+                    android:id="@+id/btn_aceptar_cambios"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:text="Aceptar cambios"
+                    android:backgroundTint="#00796B"
+                    android:textColor="@android:color/white" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
