@@ -1,30 +1,46 @@
 package org.project.group5.gamelend.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
- * Excepción personalizada para errores relacionados con el almacenamiento de archivos.
- * 
- * Esta excepción se lanza cuando ocurren problemas al crear, leer, actualizar o eliminar
- * archivos en el sistema de almacenamiento, como permisos insuficientes, errores de I/O,
- * o problemas de configuración del almacenamiento.
+ * Excepción que se lanza cuando ocurren errores relacionados con el almacenamiento de archivos
  */
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 public class FileStorageException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
-    
+
     /**
-     * Crea una nueva excepción con el mensaje de error especificado.
+     * Constructor por defecto
+     */
+    public FileStorageException() {
+        super("Error en el almacenamiento de archivos");
+    }
+
+    /**
+     * Constructor con mensaje personalizado
      * 
-     * @param message Descripción del error
+     * @param message Mensaje de error
      */
     public FileStorageException(String message) {
         super(message);
     }
 
     /**
-     * Crea una nueva excepción con el mensaje y la causa raíz especificados.
+     * Constructor con causa original
      * 
-     * @param message Descripción del error
-     * @param cause Excepción original que causó este error
+     * @param cause Causa original del error
+     */
+    public FileStorageException(Throwable cause) {
+        super("Error en el almacenamiento de archivos", cause);
+    }
+
+    /**
+     * Constructor con mensaje personalizado y causa original
+     * 
+     * @param message Mensaje de error
+     * @param cause Causa original del error
      */
     public FileStorageException(String message, Throwable cause) {
         super(message, cause);

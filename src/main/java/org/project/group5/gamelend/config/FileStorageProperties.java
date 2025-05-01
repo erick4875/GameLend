@@ -3,55 +3,84 @@ package org.project.group5.gamelend.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import lombok.Data;
+
 /**
- * Configuración para el almacenamiento de archivos
- * 
- * Esta clase mapea las propiedades con prefijo "file" del archivo application.properties
- * a atributos Java para su uso en la aplicación. Principalmente controla el directorio
- * donde se almacenarán los archivos subidos por los usuarios.
+ * Configuración para el almacenamiento de imágenes.
+ * Mapea las propiedades con prefijo "file" del archivo application.properties.
  * 
  * Ejemplo de configuración en application.properties:
- * file.upload-dir=/ruta/almacenamiento/archivos
+ * file.upload-dir=uploads/images
+ * file.max-size=5242880
+ * file.allowed-extensions=jpg,jpeg
  */
-@ConfigurationProperties(prefix = "file")
 @Component
+@ConfigurationProperties(prefix = "file")
+@Data
 public class FileStorageProperties {
+
+    /**
+     * Directorio donde se guardarán las imágenes subidas
+     */
+    @NotBlank(message = "El directorio de carga no puede estar en blanco")
+    private String uploadDir = "uploads/images";
     
     /**
-     * Directorio donde se guardarán los archivos subidos
+     * Tamaño máximo permitido para imágenes (en bytes)
+     * Por defecto: 5MB (suficiente para imágenes de alta calidad)
      */
-    private String uploadDir = "uploads"; // Valor por defecto
-
+    @Positive(message = "El tamaño máximo debe ser un valor positivo")
+    private long maxSize = 5 * 1024 * 1024;
+    
     /**
-     * Constructor por defecto
+     * Extensiones de imagen permitidas: JPG y JPEG
      */
-    public FileStorageProperties() {
-    }
-
+    @NotBlank(message = "Las extensiones permitidas no pueden estar vacías")
+    private String allowedExtensions = "jpg,jpeg";
+    
     /**
-     * Constructor con parámetros
+     * Determina si se deben crear subdirectorios por tipo (games/users)
+     */
+    private boolean createTypeSubdirs = true;
+    
+    /**
+     * Verifica si una extensión está permitida
      * 
-     * @param uploadDir Directorio para almacenar archivos
+     * @param extension La extensión a verificar (sin el punto)
+     * @return true si la extensión está permitida, false en caso contrario
      */
-    public FileStorageProperties(String uploadDir) {
-        this.uploadDir = uploadDir;
+    public boolean isExtensionAllowed(String extension) {
+        if (extension == null || extension.isEmpty()) {
+            return false;
+        }
+        
+        String ext = extension.toLowerCase().trim();
+        if (ext.startsWith(".")) {
+            ext = ext.substring(1);
+        }
+        
+        for (String allowedExt : allowedExtensions.split(",")) {
+            if (allowedExt.trim().equals(ext)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
-
+    
     /**
-     * Obtiene el directorio de almacenamiento configurado
-     * 
-     * @return Ruta del directorio de almacenamiento
+     * Obtiene la ruta para guardar imágenes de juegos
      */
-    public String getUploadDir() {
-        return uploadDir;
+    public String getGameImagesPath() {
+        return createTypeSubdirs ? uploadDir + "/games" : uploadDir;
     }
-
+    
     /**
-     * Establece el directorio de almacenamiento
-     * 
-     * @param uploadDir Ruta del directorio donde se guardarán los archivos
+     * Obtiene la ruta para guardar imágenes de usuarios
      */
-    public void setUploadDir(String uploadDir) {
-        this.uploadDir = uploadDir;
+    public String getUserImagesPath() {
+        return createTypeSubdirs ? uploadDir + "/users" : uploadDir;
     }
 }
