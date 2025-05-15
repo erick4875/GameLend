@@ -29,7 +29,7 @@ public interface GameRepository extends JpaRepository<Game, Long> {
      * @param imagePath ruta de la imagen del juego
      * @return Optional con el juego encontrado
      */
-    Optional<Game> findByImagePath(String imagePath);
+    Optional<Game> findByImage_FileName(String fileName);
 
     /**
      * Encuentra todos los juegos de un usuario específico

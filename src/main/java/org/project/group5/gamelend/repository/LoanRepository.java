@@ -50,4 +50,11 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
      */
     @Query("SELECT COUNT(l) > 0 FROM Loan l WHERE l.game.id = :gameId AND l.returnDate IS NULL")
     boolean isGameBorrowed(@Param("gameId") Long gameId);
+
+    /**
+     * Encuentra todos los préstamos para un juego específico que aún no han sido devueltos.
+     * @param gameId El ID del juego.
+     * @return Una lista de préstamos activos para el juego.
+     */
+    List<Loan> findByGameIdAndReturnDateIsNull(Long gameId);
 }

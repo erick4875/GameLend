@@ -21,6 +21,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Entidad que representa un juego
+ * Puede ser una plantilla de juego del catálogo general o una instancia
+ * específica propiedad de un usuario
+ */
 @Entity
 @Table(name = "games")
 @Data
@@ -30,61 +35,83 @@ import lombok.NoArgsConstructor;
 public class Game {
 
     /**
-     * Estados posibles para un juego
+     * Define los posibles estados de disponibilidad de un juego
      */
     public enum GameStatus {
-        AVAILABLE, // Disponible para préstamo
-        BORROWED,  // Prestado actualmente
-        UNAVAILABLE // No disponible (perdido, dañado, etc.)
+        /** El juego está disponible para ser prestado. */
+        AVAILABLE,
+        /** El juego está actualmente prestado */
+        BORROWED,
+        /** El juego no está disponible por otras razones */
+        UNAVAILABLE
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 50, nullable = false)
+    @Column(length = 100, nullable = false)
     private String title;
 
     @Column(length = 50)
     private String platform;
 
-    @Column(length = 500)
+    @Column(length = 2000)
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status", length = 20)
     private GameStatus status;
 
-    @Column(length = 30)
+    @Column(length = 50)
     private String genre;
 
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Loan> loans;
-
-    private String imagePath;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id")
+    /** Documento (imagen) asociado al juego */
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "image_id", referencedColumnName = "id")
     private Document image;
 
+    /**
+     * Usuario propietario de esta instancia del juego (nulo si es un juego del
+     * catálogo)
+     */
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
+    /**
+     * Indica si es una plantilla del catálogo (true) o una instancia de usuario
+     * (false)
+     */
     @Column(name = "is_catalog", nullable = false)
     @Builder.Default
-    private boolean isCatalog = false;
+    private boolean catalog = false;
 
+    /**
+     * Si es un juego de usuario, referencia al juego del catálogo base (opcional)
+     */
     @ManyToOne
     @JoinColumn(name = "catalog_game_id")
     private Game catalogGame;
 
-    @OneToMany(mappedBy = "catalogGame")
-    private List<Game> userGames;
+    /** Historial de préstamos de este juego (si es una instancia de usuario) */
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Loan> loans = new ArrayList<>();
 
-    // Constructor for loans
+    /**
+     * Si es un juego de catálogo, lista las instancias de este juego que poseen los
+     * usuarios
+     */
+    @OneToMany(mappedBy = "catalogGame")
+    @Builder.Default
+    private List<Game> userGames = new ArrayList<>();
+
+    /**
+     * Constructor para juegos de usuario
+     */
     public Game(long id, String title, String platform, String genre, String description,
-                GameStatus status, User user, List<Loan> loans, Document image) {
+            GameStatus status, User user, List<Loan> loans, Document image) {
         this.id = id;
         this.title = title;
         this.platform = platform;
@@ -94,9 +121,12 @@ public class Game {
         this.user = user;
         this.image = image;
         this.loans = loans != null ? loans : new ArrayList<>();
+        this.catalog = false; // Un juego con propietario y estado específico no es de catálogo
     }
 
-    // Constructor for catalog games
+    /**
+     * Constructor para juegos de catálogo (plantillas)
+     */
     public Game(String title, String platform, String genre, String description, Document image) {
         this.title = title;
         this.platform = platform;
@@ -104,13 +134,21 @@ public class Game {
         this.description = description;
         this.image = image;
         this.user = null;
-        this.catalogGame = null;
-        this.userGames = new ArrayList<>();
-        this.loans = new ArrayList<>();
+        this.catalog = true;
+        this.status = GameStatus.AVAILABLE;
     }
 
-    // Constructor for user games based on catalog game
+    /**
+     * Constructor para crear una instancia de juego para un usuario, basada en un
+     * juego del catálogo.
+     */
     public Game(Game catalogGame, User user) {
+        if (catalogGame == null || !catalogGame.isCatalog()) {
+            throw new IllegalArgumentException("El juego base debe ser un juego de catálogo válido.");
+        }
+        if (user == null) {
+            throw new IllegalArgumentException("Se requiere un usuario para crear una instancia de juego.");
+        }
         this.title = catalogGame.getTitle();
         this.platform = catalogGame.getPlatform();
         this.genre = catalogGame.getGenre();
@@ -119,16 +157,26 @@ public class Game {
         this.catalogGame = catalogGame;
         this.user = user;
         this.status = GameStatus.AVAILABLE;
-        this.loans = new ArrayList<>();
+        this.catalog = false;
     }
 
-    // Custom methods
+    /**
+     * Verifica si esta instancia es un juego de catálogo.
+     * 
+     * @return true si es un juego de catálogo, false en caso contrario.
+     */
     public boolean isCatalog() {
-        return isCatalog || (user == null && catalogGame == null);
+        return catalog;
     }
 
-    public boolean isUserGame() {
-        return catalogGame != null && user != null;
+    /**
+     * Verifica si es un juego de un usuario vinculado a una plantilla de catálogo.
+     * 
+     * @return true si es un juego de usuario vinculado, false en caso contrario.
+     */
+    public boolean isUserGameLinkedToCatalog() {
+        return !this.catalog && this.user != null && this.catalogGame != null;
     }
+
+
 }
-

@@ -1,10 +1,12 @@
 package org.project.group5.gamelend.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -30,7 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 public class FileStorageService {
 
     private final FileStorageProperties storageProperties;
-    
+    private static final String DEFAULT_EXTENSION = "jpg";
+    private static final String DEFAULT_FILENAME_PREFIX = "imagen_sin_nombre";
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS");
+
     /**
      * Tipo de imagen que determina la ubicación de almacenamiento
      */
@@ -40,193 +45,230 @@ public class FileStorageService {
     }
 
     /**
-     * Almacena una imagen en el sistema de archivos
+     * Almacena una imagen en el sistema de archivos a partir de un MultipartFile.
      * 
-     * @param file Archivo de imagen recibido
-     * @param type Tipo de imagen (GAME o USER)
-     * @return Nombre del archivo almacenado
-     * @throws FileStorageException Si hay problemas al almacenar el archivo
+     * @param file Archivo de imagen recibido.
+     * @param type Tipo de imagen (GAME o USER).
+     * @return Nombre del archivo almacenado.
+     * @throws FileStorageException Si hay problemas al almacenar el archivo.
      */
     public String storeImage(MultipartFile file, ImageType type) {
         if (file == null || file.isEmpty()) {
-            throw new FileStorageException("No se puede almacenar un archivo vacío");
+            log.warn("Intento de almacenar un archivo nulo o vacío para el tipo {}", type);
+            throw new FileStorageException("No se puede almacenar un archivo vacío.");
         }
-        
-        // Verificar tamaño
-        if (file.getSize() > storageProperties.getMaxSize()) {
-            throw new FileStorageException("El tamaño del archivo excede el límite permitido de " 
-                    + (storageProperties.getMaxSize() / 1024 / 1024) + "MB");
+
+        validateFileSize(file.getSize());
+
+        String rawOriginalFilename = file.getOriginalFilename();
+        String originalFilename = StringUtils.cleanPath(rawOriginalFilename == null ? "" : rawOriginalFilename);
+        if (!StringUtils.hasText(originalFilename)) {
+            originalFilename = DEFAULT_FILENAME_PREFIX + "." + DEFAULT_EXTENSION;
         }
-        
-        // Obtener y verificar extensión de forma segura
-        String originalFilename = file.getOriginalFilename();
-        // Usar nombre predeterminado si es nulo
-        if (originalFilename == null || originalFilename.trim().isEmpty()) {
-            originalFilename = "imagen_sin_nombre.jpg";
-        } else {
-            originalFilename = StringUtils.cleanPath(originalFilename);
-        }
-        
+
         String extension = getFileExtension(originalFilename);
-        
-        // Verificar que la extensión no esté vacía
-        if (extension.isEmpty()) {
-            extension = "jpg"; // Extensión por defecto
+        if (!StringUtils.hasText(extension)) {
+            extension = DEFAULT_EXTENSION;
         }
-        
-        if (!storageProperties.isExtensionAllowed(extension)) {
-            throw new FileStorageException("Solo se permiten archivos con extensiones: " 
-                    + storageProperties.getAllowedExtensions());
+
+        validateFileExtension(extension);
+
+        try (InputStream inputStream = file.getInputStream()) {
+            return storeImageCore(inputStream, type, extension, originalFilename);
+        } catch (IOException e) {
+            log.error("Error al leer el archivo de entrada para el tipo {}: {}", type, originalFilename, e);
+            throw new FileStorageException("Error al leer el archivo de entrada: " + originalFilename, e);
         }
-        
-        // Resto del código sin cambios
+    }
+
+    /**
+     * Almacena una imagen a partir de un array de bytes.
+     * 
+     * @param imageBytes Contenido de la imagen en bytes.
+     * @param type Tipo de imagen (GAME o USER).
+     * @param providedExtension Extensión del archivo (sin punto).
+     * @return Nombre del archivo almacenado.
+     * @throws FileStorageException Si hay problemas al almacenar el archivo.
+     */
+    public String storeImage(byte[] imageBytes, ImageType type, String providedExtension) {
+        if (imageBytes == null || imageBytes.length == 0) {
+            log.warn("Intento de almacenar una imagen vacía (desde bytes) para el tipo {}", type);
+            throw new FileStorageException("No se puede almacenar una imagen vacía.");
+        }
+
+        validateFileSize(imageBytes.length);
+
+        String extension = sanitizeExtension(providedExtension);
+        validateFileExtension(extension);
+
         String newFilename = generateUniqueFilename(extension);
         Path targetLocation = getTargetLocation(type, newFilename);
-        
+
         try {
             Files.createDirectories(targetLocation.getParent());
-            Files.copy(file.getInputStream(), targetLocation);
-            log.info("Imagen almacenada exitosamente: {}", newFilename);
-            
+            Files.write(targetLocation, imageBytes);
+            log.info("Imagen (desde bytes) almacenada exitosamente: {} (Tipo: {}) en path: {}", newFilename, type, targetLocation);
             return newFilename;
         } catch (IOException e) {
-            throw new FileStorageException("Error al almacenar la imagen " + newFilename, e);
+            log.error("Error al almacenar la imagen (desde bytes) {} para el tipo {} en path {}:", newFilename, type, targetLocation, e);
+            throw new FileStorageException("Error al almacenar la imagen (desde bytes) " + newFilename, e);
         }
     }
-    
+
     /**
-     * Almacena una imagen a partir de un array de bytes
-     * 
-     * @param imageBytes Contenido de la imagen en bytes
-     * @param type Tipo de imagen (GAME o USER)
-     * @param extension Extensión del archivo (sin punto)
-     * @return Nombre del archivo almacenado
-     * @throws FileStorageException Si hay problemas al almacenar el archivo
+     * Lógica central para almacenar una imagen desde un InputStream.
      */
-    public String storeImage(byte[] imageBytes, ImageType type, String extension) {
-        if (imageBytes == null || imageBytes.length == 0) {
-            throw new FileStorageException("No se puede almacenar una imagen vacía");
+    private String storeImageCore(InputStream inputStream, ImageType type, String extension, String originalFilenameForLog) throws IOException {
+        String newFilename = generateUniqueFilename(extension);
+        Path targetLocation = getTargetLocation(type, newFilename);
+
+        Files.createDirectories(targetLocation.getParent());
+        Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+        log.info("Imagen '{}' almacenada como '{}' (Tipo: {}) en path: {}", originalFilenameForLog, newFilename, type, targetLocation);
+        return newFilename;
+    }
+
+    private void validateFileSize(long fileSize) {
+        if (fileSize > storageProperties.getMaxSize()) {
+            String message = String.format("El tamaño del archivo (%d bytes) excede el límite permitido de %dMB.",
+                                           fileSize, (storageProperties.getMaxSize() / 1024 / 1024));
+            log.warn(message);
+            throw new FileStorageException(message);
         }
-        
-        // Verificar tamaño
-        if (imageBytes.length > storageProperties.getMaxSize()) {
-            throw new FileStorageException("El tamaño de la imagen excede el límite permitido de " 
-                    + (storageProperties.getMaxSize() / 1024 / 1024) + "MB");
-        }
-        
-        // Validar y limpiar extensión
-        if (extension == null || extension.isEmpty()) {
-            extension = "jpg"; // Extensión por defecto
-        } else if (extension.startsWith(".")) {
-            extension = extension.substring(1);
-        }
-        
-        extension = extension.toLowerCase();
-        
+    }
+
+    private void validateFileExtension(String extension) {
         if (!storageProperties.isExtensionAllowed(extension)) {
-            throw new FileStorageException("Solo se permiten archivos con extensiones: " 
-                    + storageProperties.getAllowedExtensions());
+            String message = String.format("Extensión de archivo no permitida: '%s'. Permitidas: %s",
+                                           extension, storageProperties.getAllowedExtensions());
+            log.warn(message);
+            throw new FileStorageException(message);
         }
-        
-        // Generar nombre único para el archivo
-        String filename = generateUniqueFilename(extension);
-        
-        // Determinar ubicación según tipo
-        Path targetLocation = getTargetLocation(type, filename);
-        
-        try {
-            // Asegurar que existe el directorio
-            Files.createDirectories(targetLocation.getParent());
-            
-            // Escribir archivo
-            Files.write(targetLocation, imageBytes);
-            log.info("Imagen almacenada exitosamente: {}", filename);
-            
-            return filename;
-        } catch (IOException e) {
-            throw new FileStorageException("Error al almacenar la imagen " + filename, e);
+    }
+
+    private String sanitizeExtension(String extension) {
+        if (!StringUtils.hasText(extension)) {
+            return DEFAULT_EXTENSION;
         }
+        String sanitized = extension.startsWith(".") ? extension.substring(1) : extension;
+        return sanitized.toLowerCase();
     }
     
     /**
-     * Carga una imagen como recurso
+     * Carga una imagen como recurso.
      * 
-     * @param filename Nombre del archivo
-     * @param type Tipo de imagen (GAME o USER)
-     * @return Recurso que representa la imagen
-     * @throws MyFileNotFoundException Si la imagen no existe
+     * @param filename Nombre del archivo.
+     * @param type Tipo de imagen (GAME o USER).
+     * @return Recurso que representa la imagen.
+     * @throws MyFileNotFoundException Si la imagen no existe o no se puede acceder.
      */
     public Resource loadImageAsResource(String filename, ImageType type) {
+        if (!StringUtils.hasText(filename)) {
+            log.warn("Intento de cargar imagen con nombre nulo o vacío (Tipo: {})", type);
+            throw new MyFileNotFoundException("El nombre del archivo no puede ser nulo o vacío.");
+        }
         try {
-            Path filePath = getTargetLocation(type, filename);
+            Path filePath = getTargetLocation(type, StringUtils.cleanPath(filename));
             Resource resource = new UrlResource(filePath.toUri());
-            
-            if (resource.exists()) {
+
+            if (resource.exists() && resource.isReadable()) {
+                log.debug("Recurso cargado: {} (Tipo: {}) desde path: {}", filename, type, filePath);
                 return resource;
             } else {
-                throw new MyFileNotFoundException("Imagen no encontrada: " + filename);
+                log.warn("Intento de cargar archivo no existente o no legible: {} (Tipo: {}) en path: {}", filename, type, filePath);
+                throw new MyFileNotFoundException("Imagen no encontrada o no accesible: " + filename + " (Tipo: " + type + ")");
             }
         } catch (MalformedURLException e) {
-            throw new MyFileNotFoundException("Error al acceder a la imagen: " + filename, e);
+            log.error("URL mal formada para el archivo: {} (Tipo: {})", filename, type, e);
+            throw new MyFileNotFoundException("Error al acceder a la imagen (URL mal formada): " + filename, e);
         }
     }
     
     /**
-     * Elimina una imagen
+     * Elimina una imagen.
      * 
-     * @param filename Nombre del archivo
-     * @param type Tipo de imagen (GAME o USER)
-     * @return true si la imagen fue eliminada, false en caso contrario
+     * @param filename Nombre del archivo.
+     * @param type Tipo de imagen (GAME o USER).
+     * @return true si la imagen fue eliminada, false en caso contrario.
      */
     public boolean deleteImage(String filename, ImageType type) {
-        try {
-            Path filePath = getTargetLocation(type, filename);
-            return Files.deleteIfExists(filePath);
-        } catch (IOException e) {
-            log.error("Error al eliminar la imagen {}: {}", filename, e.getMessage());
+        if (!StringUtils.hasText(filename)) {
+            log.warn("Intento de eliminar imagen con nombre nulo o vacío (Tipo: {})", type);
             return false;
+        }
+        try {
+            Path filePath = getTargetLocation(type, StringUtils.cleanPath(filename));
+            boolean deleted = Files.deleteIfExists(filePath);
+            if (deleted) {
+                log.info("Imagen eliminada: {} (Tipo: {}) desde path: {}", filename, type, filePath);
+            } else {
+                log.warn("No se pudo eliminar la imagen (podría no existir): {} (Tipo: {}) en path: {}", filename, type, filePath);
+            }
+            return deleted;
+        } catch (IOException e) {
+            log.error("Error al eliminar la imagen {} (Tipo: {}): {}", filename, type, e.getMessage(), e);
+            return false; 
         }
     }
     
     /**
-     * Genera un nombre de archivo único basado en timestamp y UUID
+     * Genera un nombre de archivo único basado en timestamp y UUID.
      * 
-     * @param extension Extensión del archivo (sin punto)
-     * @return Nombre de archivo único
+     * @param extension Extensión del archivo (sin punto y en minúsculas).
+     * @return Nombre de archivo único.
      */
     private String generateUniqueFilename(String extension) {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
         String uuid = UUID.randomUUID().toString().substring(0, 8);
         return timestamp + "_" + uuid + "." + extension;
     }
     
     /**
-     * Obtiene la extensión de un nombre de archivo
+     * Obtiene la extensión de un nombre de archivo.
      * 
-     * @param filename Nombre completo del archivo
-     * @return Extensión sin punto o cadena vacía si no tiene extensión
+     * @param filename Nombre completo del archivo.
+     * @return Extensión sin punto y en minúsculas, o cadena vacía si no tiene extensión o es inválida.
      */
     private String getFileExtension(String filename) {
-        if (filename == null || filename.isEmpty() || !filename.contains(".")) {
+        if (!StringUtils.hasText(filename)) {
             return "";
         }
-        return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        int lastDotIndex = filename.lastIndexOf(".");
+        if (lastDotIndex == -1 || lastDotIndex == 0 || lastDotIndex == filename.length() - 1) {
+            return ""; 
+        }
+        return filename.substring(lastDotIndex + 1).toLowerCase();
     }
     
     /**
-     * Determina la ubicación para almacenar un archivo según su tipo
+     * Determina la ubicación para almacenar un archivo según su tipo.
      * 
-     * @param type Tipo de imagen
-     * @param filename Nombre del archivo
-     * @return Path completo donde almacenar el archivo
+     * @param type Tipo de imagen.
+     * @param filename Nombre del archivo (ya debería ser único y limpio).
+     * @return Path completo donde almacenar el archivo.
+     * @throws FileStorageException Si el tipo de imagen no es soportado y no hay directorio de subida por defecto.
      */
     private Path getTargetLocation(ImageType type, String filename) {
-        Path basePath = switch (type) {
-            case GAME -> Paths.get(storageProperties.getGameImagesPath()).toAbsolutePath().normalize();
-            case USER -> Paths.get(storageProperties.getUserImagesPath()).toAbsolutePath().normalize();
-            default -> Paths.get(storageProperties.getUploadDir()).toAbsolutePath().normalize();
+        String basePathString = switch (type) {
+            case GAME -> storageProperties.getGameImagesPath();
+            case USER -> storageProperties.getUserImagesPath();
+            default -> {
+                log.warn("Tipo de imagen desconocido: {}. Intentando usar directorio de subida por defecto.", type);
+                String defaultPath = storageProperties.getUploadDir();
+                if (!StringUtils.hasText(defaultPath)) {
+                    log.error("Tipo de imagen no soportado ({}) y no hay directorio de subida por defecto configurado en FileStorageProperties.", type);
+                    throw new FileStorageException("Tipo de imagen no soportado y no hay directorio de subida por defecto.");
+                }
+                yield defaultPath;
+            }
         };
+
+        if (!StringUtils.hasText(basePathString)) {
+            log.error("La ruta base para el tipo de imagen {} no está configurada en FileStorageProperties.", type);
+            throw new FileStorageException("La ruta de almacenamiento para el tipo " + type + " no está configurada.");
+        }
         
+        Path basePath = Paths.get(basePathString).toAbsolutePath().normalize();
         return basePath.resolve(filename);
     }
 }

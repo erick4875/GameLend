@@ -17,53 +17,52 @@ import org.project.group5.gamelend.entity.Game;
 import org.project.group5.gamelend.entity.Loan;
 import org.project.group5.gamelend.entity.User;
 
+/**
+ * Mapper para conversiones entre Loan y sus DTOs.
+ * Utiliza MapStruct.
+ */
 @Mapper(componentModel = "spring")
 public interface LoanMapper {
-    
-    // ====== MÉTODOS DE ENTITY A DTO =======
-    
+
+    DateTimeFormatter DTO_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+    // ====== ENTITY -> DTO ======
+
     /**
-     * Convierte un Loan a un LoanResponseDTO completo con información de relaciones
+     * Convierte Loan (entidad) a LoanResponseDTO.
      */
-    @Mapping(target = "gameId", source = "game.id")
-    @Mapping(target = "gameTitle", source = "game.title")
-    @Mapping(target = "borrowerId", source = "borrower.id")
-    @Mapping(target = "borrowerName", source = "borrower.publicName")
-    @Mapping(target = "loanDate", source = "loanDate", qualifiedByName = "formatDateTime")
-    @Mapping(target = "expectedReturnDate", source = "expectedReturnDate", qualifiedByName = "formatDateTime")
-    @Mapping(target = "returnDate", source = "returnDate", qualifiedByName = "formatDateTime")
-    @Mapping(target = "status", expression = "java(loan.getReturnDate() == null ? \"ACTIVE\" : \"RETURNED\")")
-    @Mapping(target = "notes", source = "notes")
-    @Mapping(target = "game", source = "game", qualifiedByName = "toGameSummary")
-    @Mapping(target = "lender", source = "lender", qualifiedByName = "toUserSummary")
-    @Mapping(target = "borrower", source = "borrower", qualifiedByName = "toUserSummary")
+    @Mapping(target = "loanDate", source = "loanDate", qualifiedByName = "formatDateTimeToString")
+    @Mapping(target = "expectedReturnDate", source = "expectedReturnDate", qualifiedByName = "formatDateTimeToString")
+    @Mapping(target = "returnDate", source = "returnDate", qualifiedByName = "formatDateTimeToString")
+    @Mapping(target = "game", source = "game", qualifiedByName = "loanEntityToGameSummary")
+    @Mapping(target = "lender", source = "lender", qualifiedByName = "loanEntityToUserSummary")
+    @Mapping(target = "borrower", source = "borrower", qualifiedByName = "loanEntityToUserSummary")
     LoanResponseDTO toResponseDTO(Loan loan);
-    
+
     /**
-     * Convierte una lista de Loan a lista de LoanResponseDTO
+     * Convierte una lista de Loan (entidad) a lista de LoanResponseDTO.
      */
     List<LoanResponseDTO> toResponseDTOList(List<Loan> loans);
-    
-    // ====== MÉTODOS DE DTO A ENTITY =======
-    
+
+    // ====== DTO -> ENTITY ======
+
     /**
-     * Crea un préstamo desde un DTO de creación
-     * Los objetos relacionales (game, users) deben establecerse externamente
+     * Convierte LoanDTO a Loan (entidad) para creación.
+     * IDs de relaciones (game, lender, borrower) deben establecerse en el servicio.
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "game", ignore = true)
     @Mapping(target = "lender", ignore = true)
     @Mapping(target = "borrower", ignore = true)
-    @Mapping(target = "loanDate", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "loanDate", expression = "java(dto.getLoanDateAsDateTime() != null ? dto.getLoanDateAsDateTime() : java.time.LocalDateTime.now())")
     @Mapping(target = "returnDate", ignore = true)
-    @Mapping(target = "expectedReturnDate", source = "expectedReturnDate")
-    @Mapping(target = "notes", source = "notes")
+    @Mapping(target = "expectedReturnDate", expression = "java(dto.getExpectedReturnDateAsDateTime())")
     Loan toEntity(LoanDTO dto);
-    
+
     /**
-     * Actualiza un préstamo con la información de devolución
+     * Actualiza una entidad Loan con información de LoanReturnDTO.
      */
-    @Mapping(target = "returnDate", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "returnDate", expression = "java(returnDTO.getReturnDateAsDateTime())")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "game", ignore = true)
     @Mapping(target = "lender", ignore = true)
@@ -71,63 +70,50 @@ public interface LoanMapper {
     @Mapping(target = "loanDate", ignore = true)
     @Mapping(target = "expectedReturnDate", ignore = true)
     @Mapping(target = "notes", ignore = true)
-    void updateLoanWithReturn(LoanReturnDTO returnDTO, @MappingTarget Loan loan);
-    
-    // ====== MÉTODOS AUXILIARES =======
-    
+    void updateLoanWithReturnInfo(LoanReturnDTO returnDTO, @MappingTarget Loan loan);
+
+    // ====== MÉTODOS AUXILIARES (@Named) ======
+
     /**
-     * Formatea una fecha LocalDateTime a String con formato legible
+     * Formatea LocalDateTime a String (yyyy-MM-dd'T'HH:mm:ss).
      */
-    @Named("formatDateTime")
-    default String formatDateTime(LocalDateTime dateTime) {
+    @Named("formatDateTimeToString")
+    default String formatDateTimeToString(LocalDateTime dateTime) {
         if (dateTime == null) {
             return null;
         }
-        return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        return dateTime.format(DTO_DATE_FORMATTER);
     }
-    
+
     /**
-     * Método auxiliar para obtener el id de un Game de forma segura
+     * Convierte entidad Game a GameSummaryDTO.
      */
-    default Long gameToId(Game game) {
-        return game != null ? game.getId() : null;
-    }
-    
-    /**
-     * Método auxiliar para obtener el id de un User de forma segura
-     */
-    default Long userToId(User user) {
-        return user != null ? user.getId() : null;
-    }
-    
-    /**
-     * Método auxiliar para obtener el nombre de un User de forma segura
-     */
-    default String userToName(User user) {
-        return user != null ? user.getPublicName() : null;
-    }
-    
-    @Named("toGameSummary")
-    default GameSummaryDTO toGameSummary(Game game) {
+    @Named("loanEntityToGameSummary")
+    default GameSummaryDTO entityToGameSummary(Game game) {
         if (game == null) {
             return null;
         }
-        return GameSummaryDTO.builder()
-                .id(game.getId())
-                .title(game.getTitle())
-                .platform(game.getPlatform())
-                .status(game.getStatus() != null ? game.getStatus().toString() : null)
-                .build();
+        // GameSummaryDTO espera: Long id, String title, String platform, GameStatus status
+        return new GameSummaryDTO(
+                game.getId(),
+                game.getTitle(),
+                game.getPlatform(), 
+                game.getStatus()
+        );
     }
 
-    @Named("toUserSummary")
-    default UserSummaryDTO toUserSummary(User user) {
+    /**
+     * Convierte entidad User a UserSummaryDTO.
+     */
+    @Named("loanEntityToUserSummary")
+    default UserSummaryDTO entityToUserSummary(User user) {
         if (user == null) {
             return null;
         }
-        return UserSummaryDTO.builder()
-                .id(user.getId())
-                .publicName(user.getPublicName())
-                .build();
+        // UserSummaryDTO espera: Long id, String publicName
+        return new UserSummaryDTO(
+                user.getId(),
+                user.getPublicName()
+        );
     }
 }

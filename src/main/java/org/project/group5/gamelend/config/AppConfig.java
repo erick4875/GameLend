@@ -17,27 +17,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Configuración de autenticación y seguridad para la aplicación
+ * @Configuration: Clase de configuración de Spring.
+ * @RequiredArgsConstructor: Lombok crea un constructor para campos 'final' (inyección de dependencias).
+ *
+ * Configura cómo Spring Security carga usuarios, verifica contraseñas y gestiona la autenticación.
  */
 @Configuration
 @RequiredArgsConstructor
 public class AppConfig {
 
+    // Repositorio para acceder a los datos de los usuarios.
     private final UserRepository userRepository;
 
     /**
-     * Define el servicio de detalles de usuario utilizado por Spring Security
-     * para cargar información de usuarios durante la autenticación.
+     * @Bean: Define un 'UserDetailsService'.
+     * UserDetailsService: Carga datos del usuario (por email en este caso) para Spring Security.
      * 
-     * @return Implementación personalizada de UserDetailsService
+     * @return Implementación que busca usuarios en la BD por email.
      */
     @Bean
     public UserDetailsService userDetailsService() {
+        // Busca un usuario por email. Si no lo encuentra, lanza una excepción.
         return email -> {
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException(
-                            String.format("Usuario con email '%s' no encontrado", email)));
+                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Usuario con email '%s' no encontrado", email)));
             
+            // Crea un objeto UserDetails de Spring Security con el email, contraseña (hasheada) y roles del usuario.
             return org.springframework.security.core.userdetails.User.builder()
                     .username(user.getEmail())
                     .password(user.getPassword())
@@ -49,25 +54,29 @@ public class AppConfig {
     }
 
     /**
-     * Define el proveedor de autenticación que utilizará el UserDetailsService
-     * y el PasswordEncoder configurados.
+     * @Bean: Define un 'AuthenticationProvider'.
+     * AuthenticationProvider: Se encarga de la lógica de autenticación.
+     *                         DaoAuthenticationProvider usa UserDetailsService y PasswordEncoder.
      * 
-     * @return Proveedor de autenticación configurado
+     * @return Un DaoAuthenticationProvider configurado.
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        // Le dice cómo cargar los usuarios.
         provider.setUserDetailsService(userDetailsService());
+        // Le dice cómo verificar las contraseñas.
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
     /**
-     * Define el administrador de autenticación utilizando la configuración predeterminada.
+     * @Bean: Define el 'AuthenticationManager'.
+     * AuthenticationManager: Gestiona el proceso de autenticación, usando los AuthenticationProviders.
      * 
-     * @param config Configuración de autenticación proporcionada por Spring
-     * @return Gestor de autenticación configurado
-     * @throws Exception si hay problemas al obtener el AuthenticationManager
+     * @param config Configuración de autenticación de Spring.
+     * @return El AuthenticationManager.
+     * @throws Exception Si hay error al obtener el AuthenticationManager.
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -75,9 +84,10 @@ public class AppConfig {
     }
 
     /**
-     * Define el codificador de contraseñas utilizando BCrypt.
+     * @Bean: Define un 'PasswordEncoder'.
+     * PasswordEncoder: Se usa para codificar (hashear) contraseñas de forma segura.
      * 
-     * @return Instancia de BCryptPasswordEncoder
+     * @return Un BCryptPasswordEncoder, que es un algoritmo de hashing fuerte.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {

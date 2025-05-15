@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.project.group5.gamelend.dto.DocumentResponseDTO;
 import org.project.group5.gamelend.dto.DocumentSummaryDTO;
+import org.project.group5.gamelend.dto.DocumentUploadDTO;
 import org.project.group5.gamelend.entity.Document;
 import org.project.group5.gamelend.mapper.DocumentMapper;
 import org.project.group5.gamelend.service.DocumentService;
@@ -19,8 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,11 +43,11 @@ public class DocumentController {
     public ResponseEntity<List<DocumentSummaryDTO>> list() {
         log.info("Solicitando lista de documentos");
         List<Document> documents = documentService.list();
-        
+
         if (documents.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        
+
         return ResponseEntity.ok(documentMapper.toSummaryDTOList(documents));
     }
 
@@ -59,22 +62,27 @@ public class DocumentController {
     }
 
     /**
-     * Subir y guardar un archivo
+     * Subir y guardar un archivo usando DocumentUploadDTO para metadatos.
      */
     @PostMapping("/upload")
     public ResponseEntity<DocumentResponseDTO> save(
             @RequestParam MultipartFile file,
-            @ModelAttribute Document documentMetadata) throws IOException {
+            @ModelAttribute @Valid DocumentUploadDTO uploadDTO) throws IOException {
 
-        log.info("Subiendo archivo: {}", file.getOriginalFilename());
-
+        log.info("Subiendo archivo: {} con metadatos: {}", file.getOriginalFilename(), uploadDTO);
+        // Simplificado: Spring ya asegura que 'file' no es null si es requerido.
+        // Solo verificamos si el archivo está vacío.
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("El archivo no puede estar vacío");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo no puede estar vacío");
         }
 
-        Document savedDocument = documentService.save(file, documentMetadata);
-        log.info("Archivo guardado correctamente: {}", file.getOriginalFilename());
-        
+        // *** IMPORTANTE: Ajustar el servicio ***
+        // *** IMPORTANTE: Ajustar el servicio ***
+        // El método documentService.save ahora debería aceptar DocumentUploadDTO
+        Document savedDocument = documentService.save(file, uploadDTO);
+
+        log.info("Archivo guardado correctamente con ID: {}", savedDocument.getId());
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(documentMapper.toResponseDTO(savedDocument));
     }

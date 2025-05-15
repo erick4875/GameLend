@@ -1,86 +1,50 @@
 package org.project.group5.gamelend.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import java.util.List;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
-import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuración para el almacenamiento de imágenes.
- * Mapea las propiedades con prefijo "file" del archivo application.properties.
- * 
- * Ejemplo de configuración en application.properties:
- * file.upload-dir=uploads/images
- * file.max-size=5242880
- * file.allowed-extensions=jpg,jpeg
+ * @ConfigurationProperties(prefix = "file"): Carga propiedades desde `application.properties`
+ *                                          que empiezan con "file." (ej. file.upload-dir).
+ *
+ * Almacena configuraciones para la subida de archivos.
  */
-@Component
 @ConfigurationProperties(prefix = "file")
-@Data
 public class FileStorageProperties {
 
+    private String uploadDir; // Directorio principal para archivos subidos.
+    private String gameImagesPath; // Subdirectorio para imágenes de juegos.
+    private String userImagesPath; // Subdirectorio para imágenes de usuarios.
+    private long maxSize; // Tamaño máximo de archivo permitido (en bytes).
+    private List<String> allowedExtensions; // Extensiones de archivo permitidas (ej. "png", "jpg").
+
+    // Getters y Setters: Necesarios para que Spring inyecte y otros servicios lean los valores.
+
+    public String getUploadDir() { return uploadDir; }
+    public void setUploadDir(String uploadDir) { this.uploadDir = uploadDir; }
+
+    public String getGameImagesPath() { return gameImagesPath; }
+    public void setGameImagesPath(String gameImagesPath) { this.gameImagesPath = gameImagesPath; }
+
+    public String getUserImagesPath() { return userImagesPath; }
+    public void setUserImagesPath(String userImagesPath) { this.userImagesPath = userImagesPath; }
+
+    public long getMaxSize() { return maxSize; }
+    public void setMaxSize(long maxSize) { this.maxSize = maxSize; }
+
+    public List<String> getAllowedExtensions() { return allowedExtensions; }
+    public void setAllowedExtensions(List<String> allowedExtensions) { this.allowedExtensions = allowedExtensions; }
+
     /**
-     * Directorio donde se guardarán las imágenes subidas
-     */
-    @NotBlank(message = "El directorio de carga no puede estar en blanco")
-    private String uploadDir = "uploads/images";
-    
-    /**
-     * Tamaño máximo permitido para imágenes (en bytes)
-     * Por defecto: 5MB (suficiente para imágenes de alta calidad)
-     */
-    @Positive(message = "El tamaño máximo debe ser un valor positivo")
-    private long maxSize = 5 * 1024 * 1024;
-    
-    /**
-     * Extensiones de imagen permitidas: JPG y JPEG
-     */
-    @NotBlank(message = "Las extensiones permitidas no pueden estar vacías")
-    private String allowedExtensions = "jpg,jpeg";
-    
-    /**
-     * Determina si se deben crear subdirectorios por tipo (games/users)
-     */
-    private boolean createTypeSubdirs = true;
-    
-    /**
-     * Verifica si una extensión está permitida
-     * 
-     * @param extension La extensión a verificar (sin el punto)
-     * @return true si la extensión está permitida, false en caso contrario
+     * Comprueba si una extensión de archivo está en la lista de permitidas.
      */
     public boolean isExtensionAllowed(String extension) {
-        if (extension == null || extension.isEmpty()) {
-            return false;
+        // Si no hay lista de permitidas, se asume que todas lo son.
+        if (allowedExtensions == null || allowedExtensions.isEmpty()) {
+            return true;
         }
-        
-        String ext = extension.toLowerCase().trim();
-        if (ext.startsWith(".")) {
-            ext = ext.substring(1);
-        }
-        
-        for (String allowedExt : allowedExtensions.split(",")) {
-            if (allowedExt.trim().equals(ext)) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Obtiene la ruta para guardar imágenes de juegos
-     */
-    public String getGameImagesPath() {
-        return createTypeSubdirs ? uploadDir + "/games" : uploadDir;
-    }
-    
-    /**
-     * Obtiene la ruta para guardar imágenes de usuarios
-     */
-    public String getUserImagesPath() {
-        return createTypeSubdirs ? uploadDir + "/users" : uploadDir;
+        // Verifica si la extensión (ignorando mayúsculas/minúsculas) está en la lista.
+        return allowedExtensions.stream().anyMatch(ext -> ext.equalsIgnoreCase(extension));
     }
 }

@@ -1,16 +1,22 @@
 package org.project.group5.gamelend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+/**
+ * DTO para representar un Rol
+ *
+ * @param idRole ID del rol
+ * @param name Nombre del rol
+ */
+public record RoleDTO(
+    Long idRole,
+    String name
+) {
+    // Records generan automáticamente: constructor, getters, equals(), hashCode(), toString()
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class RoleDTO {
-    private Long idRole;
-    private String name;
-
+    // Constructor completo para validar el nombre del rol
+    public RoleDTO {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del rol no puede ser nulo o vacío");
+        }
+    }
+    
 }

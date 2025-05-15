@@ -1,21 +1,21 @@
 package org.project.group5.gamelend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.project.group5.gamelend.entity.Game.GameStatus;
 
 /**
- * DTO simplificado de Juego
+ * DTO simplificado de Juego para listados o vistas resumidas
+ *
+ * @param id       ID del juego
+ * @param title    Título del juego
+ * @param platform Plataforma del juego
+ * @param status   Estado del juego (AVAILABLE, BORROWED o UNAVAILABLE)
+ *                
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class GameSummaryDTO {
-    private Long id;
-    private String title;
-    private String platform;
-    private String status;
-
+public record GameSummaryDTO(
+        Long id,
+        String title,
+        String platform,
+        GameStatus status
+) {
+        // Records generan automáticamente: constructor, getters, equals(), hashCode(), toString()
 }

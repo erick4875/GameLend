@@ -1,20 +1,15 @@
 package org.project.group5.gamelend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-// Clase para representar un objeto de transferencia de datos (DTO) de resumen de usuario
-// Se utiliza para enviar datos de usuario a través de la API
-// salida de datos (servidor -> cliente)
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class UserSummaryDTO {
-    private Long id;
-    private String publicName;
-
+/**
+ * DTO para representar un resumen de usuario
+ * Se utiliza para enviar datos de usuario simplificados a través de la API
+ *
+ * @param id         Identificador único del usuario
+ * @param publicName Nombre público del usuario, usado para mostrar
+ */
+public record UserSummaryDTO(
+    Long id,
+    String publicName
+) {
+    // Records generan automáticamente: constructor, getters, equals(), hashCode(), toString()
 }
