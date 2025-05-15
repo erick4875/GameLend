@@ -1,70 +1,30 @@
 package org.project.group5.gamelend.dto;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
- * DTO para datos de préstamo (entrada del cliente)
- * Usado para crear o actualizar préstamos
+ * DTO para la creación o actualización de préstamos.
  *
  * @param id                 ID del préstamo (opcional para creación)
  * @param gameId             ID del juego prestado
  * @param lenderId           ID del usuario que presta
- * @param borrowerId         ID del usuario que toma prestado
- * @param loanDate           Fecha del préstamo (String en formato "yyyy-MM-dd'T'HH:mm:ss")
- * @param expectedReturnDate Fecha esperada de devolución (String, mismo formato)
- * @param returnDate         Fecha real de devolución (String, mismo formato, opcional)
+ * @param borrowerId         ID del usuario que recibe el préstamo
+ * @param loanDate           Fecha y hora del préstamo 
+ * @param expectedReturnDate Fecha y hora esperada de devolución
+ * @param returnDate         Fecha y hora real de devolución
  * @param notes              Notas adicionales sobre el préstamo (opcional)
  */
 public record LoanDTO(
-    Long id,
-    Long gameId,
-    Long lenderId,
-    Long borrowerId,
-    String loanDate,
-    String expectedReturnDate,
-    String returnDate,
-    String notes
+        Long id,
+        Long gameId,
+        Long lenderId,
+        Long borrowerId,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime loanDate,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime expectedReturnDate,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime returnDate,
+        String notes
 ) {
-    // Formato para parsear fechas desde String
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
-    /**
-     * Convierte `loanDate` (String) a `LocalDateTime`
-     * Retorna null si el String es nulo o inválido
-     */
-    public LocalDateTime getLoanDateAsDateTime() {
-        try {
-            return loanDate != null ? LocalDateTime.parse(loanDate, DATE_FORMATTER) : null;
-        } catch (DateTimeParseException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Convierte `expectedReturnDate` (String) a `LocalDateTime`
-     * Retorna null si el String es nulo o inválido
-     */
-    public LocalDateTime getExpectedReturnDateAsDateTime() {
-        try {
-            return expectedReturnDate != null ? LocalDateTime.parse(expectedReturnDate, DATE_FORMATTER) : null;
-        } catch (DateTimeParseException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Convierte `returnDate` (String) a `LocalDateTime`
-     * Retorna null si el String es nulo o inválido
-     */
-    public LocalDateTime getReturnDateAsDateTime() {
-        try {
-            return returnDate != null ? LocalDateTime.parse(returnDate, DATE_FORMATTER) : null;
-        } catch (DateTimeParseException e) {
-            return null;
-        }
-    }
-
-        // Records generan automáticamente: constructor, getters, equals(), hashCode(), toString()
+    // Los records generan automáticamente constructor, getters, equals(), hashCode() y toString().
 }

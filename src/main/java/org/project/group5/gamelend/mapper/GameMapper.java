@@ -14,15 +14,14 @@ import org.project.group5.gamelend.dto.GameSummaryDTO;
 import org.project.group5.gamelend.entity.Game;
 import org.project.group5.gamelend.entity.User;
 
+/**
+ * Mapper para convertir entre entidades Game y sus DTOs usando MapStruct.
+ */
 @Mapper(componentModel = "spring")
 public interface GameMapper {
 
-    // MÉTODOS DE ENTITY A DTO (Records)
-
     /**
-     * Convierte una entidad Game a GameResponseDTO (record).
-     * MapStruct llamará al constructor canónico del record.
-     * Los campos con el mismo nombre y tipo se mapean automáticamente.
+     * Convierte Game a GameResponseDTO.
      */
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "userName", source = "user.publicName")
@@ -32,22 +31,23 @@ public interface GameMapper {
     @Mapping(target = "catalog", source = "catalog")
     GameResponseDTO toResponseDTO(Game game);
 
+    /**
+     * Convierte una lista de Game a una lista de GameResponseDTO.
+     */
     List<GameResponseDTO> toResponseDTOList(List<Game> games);
 
     /**
-     * Convierte una entidad Game a GameSummaryDTO (record).
-     * El campo 'status' (GameStatus) se mapeará directamente.
-     * 'id', 'title', 'platform' se mapean automáticamente.
+     * Convierte Game a GameSummaryDTO.
      */
     GameSummaryDTO toSummaryDTO(Game game);
 
+    /**
+     * Convierte una lista de Game a una lista de GameSummaryDTO.
+     */
     List<GameSummaryDTO> toSummaryDTOList(List<Game> games);
 
-    // MÉTODOS DE ENTITY A DTO (GameDTO)
-
     /**
-     * Convierte una entidad Game a GameDTO.
-     * Ajusta los mappings según la definición de tu GameDTO.
+     * Convierte Game a GameDTO.
      */
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "imageId", source = "image.id")
@@ -56,16 +56,14 @@ public interface GameMapper {
     @Mapping(target = "catalog", source = "catalog")
     GameDTO toDTO(Game game);
 
+    /**
+     * Convierte una lista de Game a una lista de GameDTO.
+     */
     List<GameDTO> toDTOList(List<Game> games);
 
-    // MÉTODOS DE DTO (Record) A ENTITY
-
     /**
-     * Convierte GameDTO (record) a entidad Game para creación.
-     * Las relaciones (user, image, catalogGame) y el id se ignoran aquí
-     * y deben establecerse en el servicio.
-     * El campo 'status' (GameStatus) se mapeará directamente desde dto.status().
-     * El campo 'isCatalog' (Boolean) del DTO se mapeará al campo 'isCatalog' (boolean o Boolean) de la entidad.
+     * Convierte GameDTO a Game (para creación).
+     * Relaciones como user, image y catalogGame se deben establecer en el servicio.
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
@@ -76,10 +74,8 @@ public interface GameMapper {
     Game toEntity(GameDTO dto);
 
     /**
-     * Actualiza una entidad Game existente con datos del GameDTO (record).
-     * Las relaciones (user, image, catalogGame) y el id se ignoran aquí
-     * y deben establecerse en el servicio después de llamar a este método.
-     * Se usa BeanMapping para ignorar nulos del DTO y no sobrescribir campos existentes en la entidad.
+     * Actualiza una entidad Game existente con datos de GameDTO.
+     * Ignora nulos para no sobrescribir campos existentes.
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
@@ -112,8 +108,9 @@ public interface GameMapper {
                 .build();
     }
 
-    // Métodos auxiliares
-
+    /**
+     * Devuelve la URL de la imagen o una por defecto si no hay imagen.
+     */
     @Named("formatImageUrl")
     default String formatImageUrl(String completeFileName) {
         if (completeFileName == null || completeFileName.isEmpty()) {

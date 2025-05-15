@@ -31,13 +31,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servicio para la gestión de usuarios
+ * Servicio para la gestión de usuarios.
  */
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
 
+    // Dependencias inyectadas
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository userRoleRepository;
     private final UserRepository userRepository;
@@ -45,8 +46,7 @@ public class UserService {
     private final GameMapper gameMapper;
 
     /**
-     * Obtiene el rol predeterminado para nuevos usuarios
-     * Obtiene el rol predeterminado para nuevos usuarios
+     * Obtiene el rol predeterminado para nuevos usuarios.
      */
     public Role getDefaultRole() {
         return userRoleRepository.findByName("ROLE_USER")
@@ -54,7 +54,7 @@ public class UserService {
     }
 
     /**
-     * Encuentra un rol por su nombre
+     * Busca un rol por su nombre.
      */
     public Role findRoleByName(String roleName) {
         return userRoleRepository.findByName(roleName)
@@ -63,12 +63,6 @@ public class UserService {
 
     /**
      * Busca un usuario por su ID.
-     * 
-     * @param id El ID del usuario a buscar.
-     * @return La entidad User encontrada.
-     * @throws ResourceNotFoundException si no se encuentra ningún usuario con ese
-     *                                   ID.
-     * @throws BadRequestException       si el ID es nulo.
      */
     public User findById(Long id) {
         if (id == null) {
@@ -79,17 +73,7 @@ public class UserService {
     }
 
     /**
-     * Crea o actualiza un usuario.
-     * Este método necesita ser revisado. Si es para crear, las validaciones de
-     * existencia
-     * de publicName y email deben hacerse ANTES de intentar guardar.
-     * Si es para actualizar, esas validaciones deben ser diferentes (permitir el
-     * mismo publicName/email
-     * si pertenecen al usuario que se está actualizando).
-     * 
-     * @param user El usuario a guardar
-     * @return El usuario guardado
-     * @throws BadRequestException si hay problemas de validación
+     * Crea o actualiza un usuario, validando duplicados y encriptando la contraseña.
      */
     @Transactional
     public User saveUser(User user) {
@@ -140,7 +124,7 @@ public class UserService {
     }
 
     /**
-     * Maneja errores de integridad de datos
+     * Maneja errores de integridad de datos (duplicados de email o publicName).
      */
     private void handleDataIntegrityViolation(DataIntegrityViolationException e) {
         String mensaje = e.getMessage() != null ? e.getMessage() : "";
@@ -160,9 +144,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene todos los usuarios
-     * 
-     * @return Lista de usuarios
+     * Obtiene todos los usuarios.
      */
     public List<User> getAllUsers() {
         List<User> users = userRepository.findAll();
@@ -175,9 +157,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene todos los usuarios como una lista de UserResponseDTO.
-     * 
-     * @return Lista de UserResponseDTO.
+     * Obtiene todos los usuarios como UserResponseDTO.
      */
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsersAsResponseDTO() {
@@ -187,12 +167,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene un usuario por su ID
-     * 
-     * @param id ID del usuario
-     * @return Usuario encontrado
-     * @throws BadRequestException       si el ID es nulo
-     * @throws ResourceNotFoundException si el usuario no existe
+     * Obtiene un usuario por su ID.
      */
     public User getUserById(Long id) {
         if (id == null) {
@@ -209,10 +184,6 @@ public class UserService {
 
     /**
      * Obtiene un usuario por su ID como UserResponseDTO.
-     * 
-     * @param id ID del usuario.
-     * @return UserResponseDTO del usuario.
-     * @throws ResourceNotFoundException si el usuario no existe.
      */
     @Transactional(readOnly = true)
     public UserResponseDTO getUserByIdAsResponseDTO(Long id) {
@@ -221,12 +192,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene un usuario por su email
-     * 
-     * @param email Email del usuario
-     * @return Usuario encontrado
-     * @throws BadRequestException       si el email es nulo o vacío
-     * @throws ResourceNotFoundException si el usuario no existe
+     * Obtiene un usuario por su email.
      */
     public User getUserByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -243,10 +209,6 @@ public class UserService {
 
     /**
      * Obtiene un usuario por su email como UserResponseDTO.
-     * 
-     * @param email Email del usuario.
-     * @return UserResponseDTO del usuario.
-     * @throws ResourceNotFoundException si el usuario no existe.
      */
     @Transactional(readOnly = true)
     public UserResponseDTO getUserByEmailAsResponseDTO(String email) {
@@ -255,14 +217,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene el perfil de un usuario por su email para UserResponseDTO.
-     * Este método puede ser similar a getUserByEmailAsResponseDTO o tener una
-     * lógica específica
-     * si el "perfil" implica cargar diferentes datos o un DTO diferente.
-     * Por ahora, asumimos que es lo mismo que getUserByEmailAsResponseDTO.
-     * 
-     * @param email Email del usuario.
-     * @return UserResponseDTO del perfil del usuario.
+     * Obtiene el perfil de usuario por email como UserResponseDTO.
      */
     @Transactional(readOnly = true)
     public UserResponseDTO getUserProfileByEmail(String email) {
@@ -270,13 +225,8 @@ public class UserService {
     }
 
     /**
-     * Obtiene un usuario completo con sus relaciones por ID como UserResponseDTO.
-     * 
-     * @param id ID del usuario.
-     * @return UserResponseDTO del usuario completo.
-     ** @throws ResourceNotFoundException si el usuario no existe.
+     * Obtiene un usuario completo con todas sus relaciones por ID como UserResponseDTO.
      */
-
     @Transactional(readOnly = true)
     public UserResponseDTO getCompleteUserByIdAsResponseDTO(Long id) {
         User user = getCompleteUserById(id);
@@ -284,11 +234,7 @@ public class UserService {
     }
 
     /**
-     * Elimina un usuario por su ID
-     * 
-     * @param id ID del usuario a eliminar
-     * @throws BadRequestException       si el ID es nulo
-     * @throws ResourceNotFoundException si el usuario no existe
+     * Elimina un usuario por su ID.
      */
     @Transactional
     public void deleteUser(Long id) {
@@ -307,13 +253,7 @@ public class UserService {
     }
 
     /**
-     * Actualiza un usuario existente
-     * 
-     * @param id          ID del usuario a actualizar
-     * @param userRequest Datos actualizados del usuario
-     * @return Usuario actualizado
-     * @throws BadRequestException       si el ID o usuario son nulos
-     * @throws ResourceNotFoundException si el usuario no existe
+     * Actualiza un usuario existente.
      */
     @Transactional
     public User updateUser(Long id, User userRequest) {
@@ -363,11 +303,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene un DTO de usuario por su email
-     * 
-     * @param email Email del usuario
-     * @return DTO del usuario
-     * @throws UserNotFoundException si el usuario no existe
+     * Obtiene un UserDTO básico por email.
      */
     public UserDTO getUserBasicByEmailDTO(String email) {
         try {
@@ -399,13 +335,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene un DTO de usuario con sus juegos por nombre público
-     * 
-     * @param publicName Nombre público del usuario
-     * @return DTO del usuario con sus juegos
-     * @throws UserNotFoundException si el usuario no existe
-     * @throws RuntimeException      si ocurre un error inesperado durante la
-     *                               obtención de datos.
+     * Obtiene un UserDTO con los juegos del usuario por nombre público.
      */
     @Transactional(readOnly = true)
     public UserDTO getGamesByPublicName(String publicName) {
@@ -463,14 +393,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene el usuario actualmente autenticado
-     * 
-     * @return Usuario autenticado
-     * @throws AuthenticationCredentialsNotFoundException si el usuario no está
-     *                                                    autenticado
-     * @throws UsernameNotFoundException                  si el usuario autenticado
-     *                                                    no existe en la base de
-     *                                                    datos
+     * Obtiene el usuario actualmente autenticado.
      */
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -488,14 +411,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene el usuario actual y lo convierte a DTO
-     * 
-     * @return DTO del usuario actual
-     * @throws AuthenticationCredentialsNotFoundException si el usuario no está
-     *                                                    autenticado
-     * @throws UsernameNotFoundException                  si el usuario autenticado
-     *                                                    no existe en la base de
-     *                                                    datos
+     * Obtiene el usuario actual como UserResponseDTO.
      */
     public UserResponseDTO getCurrentUserDTO() {
         User user = getCurrentUser();
@@ -503,9 +419,7 @@ public class UserService {
     }
 
     /**
-     * Método adicional para obtener usuario actual sin lanzar excepciones
-     * 
-     * @return DTO del usuario actual o null si hay error
+     * Obtiene el usuario actual como UserResponseDTO, o null si hay error.
      */
     public UserResponseDTO getCurrentUserDTOSafe() {
         try {
@@ -518,11 +432,7 @@ public class UserService {
     }
 
     /**
-     * Obtiene un usuario completo con todos sus datos relacionados por su ID
-     * 
-     * @param id ID del usuario
-     * @return Usuario completo con sus relaciones
-     * @throws ResourceNotFoundException si el usuario no existe
+     * Obtiene un usuario completo con todas sus relaciones por ID.
      */
     @Transactional(readOnly = true)
     public User getCompleteUserById(Long id) {
@@ -542,10 +452,7 @@ public class UserService {
     }
 
     /**
-     * Verifica si existe un usuario con el nombre público dado
-     * 
-     * @param publicName Nombre público a verificar
-     * @return true si existe, false si no
+     * Verifica si existe un usuario con el nombre público dado.
      */
     public boolean existsByPublicName(String publicName) {
         if (publicName == null || publicName.trim().isEmpty()) {
@@ -555,10 +462,7 @@ public class UserService {
     }
 
     /**
-     * Verifica si existe un usuario con el email dado
-     * 
-     * @param email Email a verificar
-     * @return true si existe, false si no
+     * Verifica si existe un usuario con el email dado.
      */
     public boolean existsByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -569,10 +473,6 @@ public class UserService {
 
     /**
      * Crea un usuario desde un UserDTO.
-     * Este método es el que el controlador podría llamar.
-     * 
-     * @param userDTO DTO con la información del usuario a crear.
-     * @return UserResponseDTO del usuario creado.
      */
     @Transactional
     public UserResponseDTO createUserFromDTO(UserDTO userDTO) {

@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servicio para gestionar el almacenamiento de imágenes para juegos y usuarios
+ * Servicio para gestionar el almacenamiento de imágenes para juegos y usuarios.
  */
 @Service
 @RequiredArgsConstructor
@@ -37,7 +37,7 @@ public class FileStorageService {
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS");
 
     /**
-     * Tipo de imagen que determina la ubicación de almacenamiento
+     * Tipos de imagen soportados (determinan la ubicación de almacenamiento).
      */
     public enum ImageType {
         GAME,
@@ -45,12 +45,8 @@ public class FileStorageService {
     }
 
     /**
-     * Almacena una imagen en el sistema de archivos a partir de un MultipartFile.
-     * 
-     * @param file Archivo de imagen recibido.
-     * @param type Tipo de imagen (GAME o USER).
-     * @return Nombre del archivo almacenado.
-     * @throws FileStorageException Si hay problemas al almacenar el archivo.
+     * Almacena una imagen recibida como MultipartFile.
+     * Valida tamaño y extensión antes de guardar.
      */
     public String storeImage(MultipartFile file, ImageType type) {
         if (file == null || file.isEmpty()) {
@@ -82,13 +78,8 @@ public class FileStorageService {
     }
 
     /**
-     * Almacena una imagen a partir de un array de bytes.
-     * 
-     * @param imageBytes Contenido de la imagen en bytes.
-     * @param type Tipo de imagen (GAME o USER).
-     * @param providedExtension Extensión del archivo (sin punto).
-     * @return Nombre del archivo almacenado.
-     * @throws FileStorageException Si hay problemas al almacenar el archivo.
+     * Almacena una imagen recibida como array de bytes.
+     * Valida tamaño y extensión antes de guardar.
      */
     public String storeImage(byte[] imageBytes, ImageType type, String providedExtension) {
         if (imageBytes == null || imageBytes.length == 0) {
@@ -107,10 +98,12 @@ public class FileStorageService {
         try {
             Files.createDirectories(targetLocation.getParent());
             Files.write(targetLocation, imageBytes);
-            log.info("Imagen (desde bytes) almacenada exitosamente: {} (Tipo: {}) en path: {}", newFilename, type, targetLocation);
+            log.info("Imagen (desde bytes) almacenada exitosamente: {} (Tipo: {}) en path: {}", newFilename, type,
+                    targetLocation);
             return newFilename;
         } catch (IOException e) {
-            log.error("Error al almacenar la imagen (desde bytes) {} para el tipo {} en path {}:", newFilename, type, targetLocation, e);
+            log.error("Error al almacenar la imagen (desde bytes) {} para el tipo {} en path {}:", newFilename, type,
+                    targetLocation, e);
             throw new FileStorageException("Error al almacenar la imagen (desde bytes) " + newFilename, e);
         }
     }
@@ -118,34 +111,47 @@ public class FileStorageService {
     /**
      * Lógica central para almacenar una imagen desde un InputStream.
      */
-    private String storeImageCore(InputStream inputStream, ImageType type, String extension, String originalFilenameForLog) throws IOException {
+    private String storeImageCore(InputStream inputStream, ImageType type, String extension,
+            String originalFilenameForLog) throws IOException {
         String newFilename = generateUniqueFilename(extension);
         Path targetLocation = getTargetLocation(type, newFilename);
 
         Files.createDirectories(targetLocation.getParent());
         Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
-        log.info("Imagen '{}' almacenada como '{}' (Tipo: {}) en path: {}", originalFilenameForLog, newFilename, type, targetLocation);
+        log.info("Imagen '{}' almacenada como '{}' (Tipo: {}) en path: {}", originalFilenameForLog, newFilename, type,
+                targetLocation);
         return newFilename;
     }
 
+    /**
+     * Valida el tamaño del archivo.
+     * Lanza excepción si excede el máximo permitido.
+     */
     private void validateFileSize(long fileSize) {
         if (fileSize > storageProperties.getMaxSize()) {
             String message = String.format("El tamaño del archivo (%d bytes) excede el límite permitido de %dMB.",
-                                           fileSize, (storageProperties.getMaxSize() / 1024 / 1024));
+                    fileSize, (storageProperties.getMaxSize() / 1024 / 1024));
             log.warn(message);
             throw new FileStorageException(message);
         }
     }
 
+    /**
+     * Valida la extensión del archivo.
+     * Lanza excepción si no está permitida.
+     */
     private void validateFileExtension(String extension) {
         if (!storageProperties.isExtensionAllowed(extension)) {
             String message = String.format("Extensión de archivo no permitida: '%s'. Permitidas: %s",
-                                           extension, storageProperties.getAllowedExtensions());
+                    extension, storageProperties.getAllowedExtensions());
             log.warn(message);
             throw new FileStorageException(message);
         }
     }
 
+    /**
+     * Limpia y normaliza la extensión del archivo.
+     */
     private String sanitizeExtension(String extension) {
         if (!StringUtils.hasText(extension)) {
             return DEFAULT_EXTENSION;
@@ -153,12 +159,12 @@ public class FileStorageService {
         String sanitized = extension.startsWith(".") ? extension.substring(1) : extension;
         return sanitized.toLowerCase();
     }
-    
+
     /**
      * Carga una imagen como recurso.
      * 
      * @param filename Nombre del archivo.
-     * @param type Tipo de imagen (GAME o USER).
+     * @param type     Tipo de imagen (GAME o USER).
      * @return Recurso que representa la imagen.
      * @throws MyFileNotFoundException Si la imagen no existe o no se puede acceder.
      */
@@ -175,20 +181,22 @@ public class FileStorageService {
                 log.debug("Recurso cargado: {} (Tipo: {}) desde path: {}", filename, type, filePath);
                 return resource;
             } else {
-                log.warn("Intento de cargar archivo no existente o no legible: {} (Tipo: {}) en path: {}", filename, type, filePath);
-                throw new MyFileNotFoundException("Imagen no encontrada o no accesible: " + filename + " (Tipo: " + type + ")");
+                log.warn("Intento de cargar archivo no existente o no legible: {} (Tipo: {}) en path: {}", filename,
+                        type, filePath);
+                throw new MyFileNotFoundException(
+                        "Imagen no encontrada o no accesible: " + filename + " (Tipo: " + type + ")");
             }
         } catch (MalformedURLException e) {
             log.error("URL mal formada para el archivo: {} (Tipo: {})", filename, type, e);
             throw new MyFileNotFoundException("Error al acceder a la imagen (URL mal formada): " + filename, e);
         }
     }
-    
+
     /**
-     * Elimina una imagen.
+     * Elimina una imagen del sistema de archivos.
      * 
      * @param filename Nombre del archivo.
-     * @param type Tipo de imagen (GAME o USER).
+     * @param type     Tipo de imagen (GAME o USER).
      * @return true si la imagen fue eliminada, false en caso contrario.
      */
     public boolean deleteImage(String filename, ImageType type) {
@@ -202,32 +210,27 @@ public class FileStorageService {
             if (deleted) {
                 log.info("Imagen eliminada: {} (Tipo: {}) desde path: {}", filename, type, filePath);
             } else {
-                log.warn("No se pudo eliminar la imagen (podría no existir): {} (Tipo: {}) en path: {}", filename, type, filePath);
+                log.warn("No se pudo eliminar la imagen (podría no existir): {} (Tipo: {}) en path: {}", filename, type,
+                        filePath);
             }
             return deleted;
         } catch (IOException e) {
             log.error("Error al eliminar la imagen {} (Tipo: {}): {}", filename, type, e.getMessage(), e);
-            return false; 
+            return false;
         }
     }
-    
+
     /**
-     * Genera un nombre de archivo único basado en timestamp y UUID.
-     * 
-     * @param extension Extensión del archivo (sin punto y en minúsculas).
-     * @return Nombre de archivo único.
+     * Genera un nombre de archivo único usando timestamp y UUID.
      */
     private String generateUniqueFilename(String extension) {
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
         String uuid = UUID.randomUUID().toString().substring(0, 8);
         return timestamp + "_" + uuid + "." + extension;
     }
-    
+
     /**
      * Obtiene la extensión de un nombre de archivo.
-     * 
-     * @param filename Nombre completo del archivo.
-     * @return Extensión sin punto y en minúsculas, o cadena vacía si no tiene extensión o es inválida.
      */
     private String getFileExtension(String filename) {
         if (!StringUtils.hasText(filename)) {
@@ -235,18 +238,13 @@ public class FileStorageService {
         }
         int lastDotIndex = filename.lastIndexOf(".");
         if (lastDotIndex == -1 || lastDotIndex == 0 || lastDotIndex == filename.length() - 1) {
-            return ""; 
+            return "";
         }
         return filename.substring(lastDotIndex + 1).toLowerCase();
     }
-    
+
     /**
      * Determina la ubicación para almacenar un archivo según su tipo.
-     * 
-     * @param type Tipo de imagen.
-     * @param filename Nombre del archivo (ya debería ser único y limpio).
-     * @return Path completo donde almacenar el archivo.
-     * @throws FileStorageException Si el tipo de imagen no es soportado y no hay directorio de subida por defecto.
      */
     private Path getTargetLocation(ImageType type, String filename) {
         String basePathString = switch (type) {
@@ -256,8 +254,11 @@ public class FileStorageService {
                 log.warn("Tipo de imagen desconocido: {}. Intentando usar directorio de subida por defecto.", type);
                 String defaultPath = storageProperties.getUploadDir();
                 if (!StringUtils.hasText(defaultPath)) {
-                    log.error("Tipo de imagen no soportado ({}) y no hay directorio de subida por defecto configurado en FileStorageProperties.", type);
-                    throw new FileStorageException("Tipo de imagen no soportado y no hay directorio de subida por defecto.");
+                    log.error(
+                            "Tipo de imagen no soportado ({}) y no hay directorio de subida por defecto configurado en FileStorageProperties.",
+                            type);
+                    throw new FileStorageException(
+                            "Tipo de imagen no soportado y no hay directorio de subida por defecto.");
                 }
                 yield defaultPath;
             }
@@ -267,7 +268,7 @@ public class FileStorageService {
             log.error("La ruta base para el tipo de imagen {} no está configurada en FileStorageProperties.", type);
             throw new FileStorageException("La ruta de almacenamiento para el tipo " + type + " no está configurada.");
         }
-        
+
         Path basePath = Paths.get(basePathString).toAbsolutePath().normalize();
         return basePath.resolve(filename);
     }

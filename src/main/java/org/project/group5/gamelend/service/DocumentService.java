@@ -23,6 +23,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Servicio para la gestión de documentos (subida, descarga, eliminación).
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -33,7 +36,7 @@ public class DocumentService {
     private final FileStorageService fileStorageService;
 
     /**
-     * Lista todos los documentos disponibles
+     * Lista todos los documentos disponibles.
      */
     public List<Document> list() {
         log.debug("Listando todos los documentos");
@@ -41,26 +44,19 @@ public class DocumentService {
     }
 
     /**
-     * Busca un documento por su ID
+     * Busca un documento por su ID.
      */
     public Document find(Long id) {
         if (id == null) {
             log.warn("ID de documento nulo");
             throw new IllegalArgumentException("ID no puede ser nulo");
         }
-
         return documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + id));
     }
 
     /**
      * Guarda un nuevo documento a partir de un archivo y metadatos DTO.
-     *
-     * @param file      El archivo subido.
-     * @param uploadDTO Los metadatos del documento (nombre)
-     * @return La entidad Document guardada.
-     * @throws IOException          Si ocurre un error de E/S.
-     * @throws FileStorageException Si ocurre un error al guardar el archivo.
      */
     public Document save(MultipartFile file, DocumentUploadDTO uploadDTO) throws IOException {
         if (file == null || file.isEmpty()) {
@@ -98,7 +94,7 @@ public class DocumentService {
     }
 
     /**
-     * Genera una respuesta para descargar un documento
+     * Genera una respuesta para descargar un documento.
      */
     public ResponseEntity<Resource> download(String fileName, HttpServletRequest request) {
         if (fileName == null || fileName.isEmpty()) {
@@ -125,7 +121,8 @@ public class DocumentService {
     }
 
     /**
-     * Elimina un documento por su ID     */
+     * Elimina un documento por su ID (marca como eliminado y elimina el archivo físico).
+     */
     public void delete(Long id) {
         Document document = find(id);
 
@@ -143,6 +140,9 @@ public class DocumentService {
         log.info("Documento con ID {} marcado como eliminado", id);
     }
 
+    /**
+     * Determina el tipo de imagen a partir del nombre del documento.
+     */
     private ImageType determineImageTypeFromName(String documentName) {
         if (documentName != null && documentName.toLowerCase().contains("game")) {
             return ImageType.GAME;
@@ -151,10 +151,16 @@ public class DocumentService {
         }
     }
 
+    /**
+     * Determina el tipo de imagen a partir del documento.
+     */
     private ImageType determineImageType(Document document) {
         return determineImageTypeFromName(document.getName());
     }
 
+    /**
+     * Obtiene la extensión del archivo.
+     */
     private String getFileExtension(String filename) {
         if (filename != null && filename.contains(".")) {
             int dotIndex = filename.lastIndexOf(".");
@@ -168,6 +174,9 @@ public class DocumentService {
         return "";
     }
 
+    /**
+     * Obtiene la ruta local donde se almacena el archivo según el tipo.
+     */
     private String getLocalPath(ImageType type, String fileName) {
         return switch (type) {
             case GAME -> "games/" + fileName;
@@ -175,6 +184,9 @@ public class DocumentService {
         };
     }
 
+    /**
+     * Determina el tipo MIME del archivo para la descarga.
+     */
     private String determineContentType(HttpServletRequest request, String storedFileName, Document document) {
         String contentType = null;
         try {
