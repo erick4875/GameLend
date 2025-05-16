@@ -1,5 +1,7 @@
 package com.example.gamelend.repository;
 
+import android.content.Context;
+
 import com.example.gamelend.dto.GameDTO;
 import com.example.gamelend.dto.GameResponseDTO;
 import com.example.gamelend.dto.GameSummaryDTO;
@@ -13,8 +15,8 @@ import retrofit2.Call;
 public class GameRepository {
     private final ApiService apiService;
 
-    public GameRepository() {
-        apiService = ApiClient.getInstance().create(ApiService.class);
+    public GameRepository(Context context) {
+        apiService = ApiClient.getRetrofitInstance(context).create(ApiService.class);
     }
 
     public Call<GameResponseDTO> createGame(GameDTO gameDTO) {

@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         buttonEntrar = findViewById(R.id.buttonEntrar);
 
         // Crear el repository y el viewModel de forma manual por ahora
-        ApiService apiService = ApiClient.getInstance().create(ApiService.class);
+        ApiService apiService = ApiClient.getRetrofitInstance(this).create(ApiService.class);
         UserRepository userRepository = new UserRepository(apiService);
         viewModel = new MainViewModel(userRepository);
 
