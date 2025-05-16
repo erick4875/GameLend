@@ -15,14 +15,33 @@ public class ApiClient {
     private static Retrofit retrofit = null;
     private static OkHttpClient client;
 
-    public static Retrofit getRetrofitInstance(Context context) {
+//    public static Retrofit getRetrofitInstance(Context context) {
+//        if (retrofit == null) {
+//            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+//            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+//
+//            client = new OkHttpClient.Builder()
+//                    .addInterceptor(loggingInterceptor)
+//                    .addInterceptor(new AuthInterceptor(context))
+//                    .build();
+//
+//            retrofit = new Retrofit.Builder()
+//                    .baseUrl(BASE_URL)
+//                    .addConverterFactory(GsonConverterFactory.create())
+//                    .client(client)
+//                    .build();
+//        }
+//        return retrofit;
+//    }
+
+    // Singleton sin necesidad de contexto
+    public static Retrofit getInstance() {
         if (retrofit == null) {
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-            client = new OkHttpClient.Builder()
+            OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(loggingInterceptor)
-                    .addInterceptor(new AuthInterceptor(context))
                     .build();
 
             retrofit = new Retrofit.Builder()

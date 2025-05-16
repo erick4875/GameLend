@@ -1,15 +1,15 @@
 package com.example.gamelend.dto;
 
-public class LoginRequest {
+public class LoginRequestDTO {
     private String email;
     private String password;
 
-    public LoginRequest(String email, String password) {
+    public LoginRequestDTO(String email, String password) {
         this.email = email;
         this.password = password;
     }
 
-    public LoginRequest() {
+    public LoginRequestDTO() {
     }
 
     public String getEmail() {

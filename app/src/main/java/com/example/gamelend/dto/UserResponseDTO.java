@@ -1,7 +1,7 @@
 package com.example.gamelend.dto;
 
 
-public class UsuarioResponseDTO {
+public class UserResponseDTO {
 
     private Long id;
     private String nombrePublico;
@@ -10,8 +10,8 @@ public class UsuarioResponseDTO {
     private String localidad;
     private String fechaRegistro;
 
-    public UsuarioResponseDTO(Long id, String nombrePublico, String email, String provincia,
-                              String localidad, String fechaRegistro) {
+    public UserResponseDTO(Long id, String nombrePublico, String email, String provincia,
+                           String localidad, String fechaRegistro) {
         this.id = id;
         this.nombrePublico = nombrePublico;
         this.email = email;
@@ -20,7 +20,7 @@ public class UsuarioResponseDTO {
         this.fechaRegistro = fechaRegistro;
     }
 
-    public UsuarioResponseDTO() {}
+    public UserResponseDTO() {}
 
     public Long getId(){
         return id;
