@@ -57,18 +57,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupObservers() {
-        viewModel.getLoginResponse().observe(this, response -> {
-            if (response != null) {
-                String nombreUsuario = response.getNombreUsuario();
-                String token = response.getToken();
+        viewModel.getTokenResponse().observe(this, tokenResponseDTO -> {
+            if (tokenResponseDTO != null) {
+                // Obtenemos el AccessToken y el RefreshToken
+                String accessToken = tokenResponseDTO.getAccessToken();
+                String token = tokenResponseDTO.getRefreshToken();
 
                 // Guardamos el token en SharedPreferences (opcional)
                 SharedPreferences prefs = getSharedPreferences("MisPreferencias", MODE_PRIVATE);
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putString("token", token);
+                editor.putString("accessToken", accessToken);
+                editor.putString("refreshToken", token);
                 editor.apply();
 
-                Toast.makeText(MainActivity.this, "Bienvenido " + nombreUsuario, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Incicio de sesión exitoso " , Toast.LENGTH_SHORT).show();
 
                 // Ir a la siguiente pantalla
                 Intent intent = new Intent(MainActivity.this, ListaUsuarios.class);
