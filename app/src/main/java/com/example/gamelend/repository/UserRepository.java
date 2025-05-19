@@ -4,8 +4,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.gamelend.dto.LoginRequestDTO;
-import com.example.gamelend.dto.LoginResponse;
-import com.example.gamelend.dto.RespuestaGeneral;
 import com.example.gamelend.dto.TokenResponseDTO;
 import com.example.gamelend.dto.UserResponseDTO;
 import com.example.gamelend.remote.api.ApiService;

@@ -1,6 +1,6 @@
 package com.example.gamelend.dto;
 
-public class LoginResponse {
+public class TokenRsponseDTO {
     private String NombreUsuario;
     private String Token;
     private String tipo;
@@ -10,7 +10,7 @@ public class LoginResponse {
     private boolean exito;
 
     // Constructor vacío necesario para Gson
-    public LoginResponse() {}
+    public TokenRsponseDTO() {}
 
     public String getNombreUsuario() {
         return NombreUsuario;

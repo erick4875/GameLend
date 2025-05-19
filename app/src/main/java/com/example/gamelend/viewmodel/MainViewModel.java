@@ -4,25 +4,32 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.gamelend.dto.LoginResponse;
+import com.example.gamelend.dto.TokenRsponseDTO;
+import com.example.gamelend.dto.TokenResponseDTO;
 import com.example.gamelend.repository.UserRepository;
 
 public class MainViewModel extends ViewModel {
 
     private UserRepository userRepository;
-    private MutableLiveData<LoginResponse> loginResponseLiveData = new MutableLiveData<>();
+    private MutableLiveData<TokenResponseDTO> tokenResponseLiveData = new MutableLiveData<>();
 
     public MainViewModel(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    public LiveData<LoginResponse> getLoginResponse() {
-        return loginResponseLiveData;
+    // Getter para observar el LiveData
+    public LiveData<TokenResponseDTO> getTokenResponse() {
+        return tokenResponseLiveData;
     }
 
+    // Metodo para iniciar sesión
     public void login(String usuario, String contrasena) {
         userRepository.login(usuario, contrasena).observeForever(response -> {
-            loginResponseLiveData.setValue(response);
+            if (response != null) {
+                tokenResponseLiveData.postValue(response);
+            } else {
+                tokenResponseLiveData.postValue(null); // Manejar error
+            }
         });
     }
 }
