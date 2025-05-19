@@ -12,17 +12,17 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gamelend.R;
-import com.example.gamelend.dto.UsuarioResponseDTO;
+import com.example.gamelend.dto.UserResponseDTO;
 
 import java.util.List;
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
-    private List<UsuarioResponseDTO> usuarios;
+    private List<UserResponseDTO> usuarios;
     private Context context;
     private OnItemClickListener listener;
 
-    public ListAdapter(List<UsuarioResponseDTO> usuarios, Context context, OnItemClickListener listener) {
+    public ListAdapter(List<UserResponseDTO> usuarios, Context context, OnItemClickListener listener) {
         this.usuarios = usuarios;
         this.context = context;
         this.listener = listener;
@@ -37,7 +37,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        UsuarioResponseDTO usuario = usuarios.get(position);
+        UserResponseDTO usuario = usuarios.get(position);
         holder.bind(usuario, listener);
     }
 
@@ -62,7 +62,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
             ibJuegos = itemView.findViewById(R.id.imageButtonJuegos);
         }
 
-        public void bind(final UsuarioResponseDTO usuario, final OnItemClickListener listener) {
+        public void bind(final UserResponseDTO usuario, final OnItemClickListener listener) {
             // Asignamos los datos del usuario a las vistas
             tvNombre.setText(usuario.getNombrePublico());
             tvCiudad.setText(usuario.getLocalidad());
@@ -80,10 +80,10 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     // Interfaz para los clicks en los elementos
     public interface OnItemClickListener {
-        void onEdit(UsuarioResponseDTO usuario);
+        void onEdit(UserResponseDTO usuario);
 
-        void onDelete(UsuarioResponseDTO usuario);
+        void onDelete(UserResponseDTO usuario);
 
-        void onJuegosClick(UsuarioResponseDTO usuario);
+        void onJuegosClick(UserResponseDTO usuario);
     }
 }
