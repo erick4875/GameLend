@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         editTextUsuario = findViewById(R.id.editTextUsuario);
         editTextContrasena = findViewById(R.id.editTextContrasena);
         buttonEntrar = findViewById(R.id.buttonEntrar);
+        Button buttonRegistrarse = findViewById(R.id.buttonRegistrarse);
 
         // Crear el repository y el viewModel de forma manual por ahora
         ApiService apiService = ApiClient.getRetrofitInstance(this).create(ApiService.class);
@@ -42,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
         setupObservers();
 
         buttonEntrar.setOnClickListener(v -> validarUsuario());
+
+        // Acción para ir a la actividad de registro
+        buttonRegistrarse.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, Registro.class);
+            startActivity(intent);
+        });
     }
 
     private void validarUsuario() {
