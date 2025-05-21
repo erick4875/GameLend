@@ -12,7 +12,7 @@ import com.example.gamelend.Models.ListAdapter;
 import com.example.gamelend.remote.api.ApiService;
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.R;
-import com.example.gamelend.dto.UsuarioResponseDTO;
+import com.example.gamelend.dto.UserResponseDTO;
 import com.example.gamelend.repository.UserRepository;
 import com.example.gamelend.viewmodel.ListaUsuariosViewModel;
 
@@ -47,17 +47,17 @@ public class ListaUsuarios extends AppCompatActivity {
             if (usuarios != null) {
                 listAdapter = new ListAdapter(usuarios, ListaUsuarios.this, new ListAdapter.OnItemClickListener() {
                     @Override
-                    public void onEdit(UsuarioResponseDTO usuario) {
+                    public void onEdit(UserResponseDTO usuario) {
                         Toast.makeText(ListaUsuarios.this, "Editar: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
-                    public void onDelete(UsuarioResponseDTO usuario) {
+                    public void onDelete(UserResponseDTO usuario) {
                         Toast.makeText(ListaUsuarios.this, "Eliminar: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
-                    public void onJuegosClick(UsuarioResponseDTO usuario) {
+                    public void onJuegosClick(UserResponseDTO usuario) {
                         Toast.makeText(ListaUsuarios.this, "Juegos: " + usuario.getNombrePublico(), Toast.LENGTH_SHORT).show();
                     }
                 });

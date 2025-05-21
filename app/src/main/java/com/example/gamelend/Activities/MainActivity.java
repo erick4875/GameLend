@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         editTextUsuario = findViewById(R.id.editTextUsuario);
         editTextContrasena = findViewById(R.id.editTextContrasena);
         buttonEntrar = findViewById(R.id.buttonEntrar);
+        Button buttonRegistrarse = findViewById(R.id.buttonRegistrarse);
 
         // Crear el repository y el viewModel de forma manual por ahora
         ApiService apiService = ApiClient.getRetrofitInstance(this).create(ApiService.class);
@@ -42,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
         setupObservers();
 
         buttonEntrar.setOnClickListener(v -> validarUsuario());
+
+        // Acción para ir a la actividad de registro
+        buttonRegistrarse.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, Registro.class);
+            startActivity(intent);
+        });
     }
 
     private void validarUsuario() {
@@ -57,18 +64,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupObservers() {
-        viewModel.getLoginResponse().observe(this, response -> {
-            if (response != null) {
-                String nombreUsuario = response.getNombreUsuario();
-                String token = response.getToken();
+        viewModel.getTokenResponse().observe(this, tokenResponseDTO -> {
+            if (tokenResponseDTO != null) {
+                // Obtenemos el AccessToken y el RefreshToken
+                String accessToken = tokenResponseDTO.getAccessToken();
+                String token = tokenResponseDTO.getRefreshToken();
 
                 // Guardamos el token en SharedPreferences (opcional)
                 SharedPreferences prefs = getSharedPreferences("MisPreferencias", MODE_PRIVATE);
                 SharedPreferences.Editor editor = prefs.edit();
-                editor.putString("token", token);
+                editor.putString("accessToken", accessToken);
+                editor.putString("refreshToken", token);
                 editor.apply();
 
-                Toast.makeText(MainActivity.this, "Bienvenido " + nombreUsuario, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Incicio de sesión exitoso " , Toast.LENGTH_SHORT).show();
 
                 // Ir a la siguiente pantalla
                 Intent intent = new Intent(MainActivity.this, ListaUsuarios.class);
