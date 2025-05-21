@@ -21,7 +21,7 @@ public class WebConfig {
      * @return Un WebMvcConfigurer con las reglas CORS
      */
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
+    WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {

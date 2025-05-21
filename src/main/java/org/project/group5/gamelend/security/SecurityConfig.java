@@ -29,7 +29,7 @@ public class SecurityConfig {
     private final TokenRepository tokenRepository;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Deshabilitar CSRF (Cross-Site Request Forgery)
                 .authorizeHttpRequests(req -> req

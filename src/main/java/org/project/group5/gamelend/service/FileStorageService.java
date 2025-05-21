@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -128,9 +127,10 @@ public class FileStorageService {
      * Lanza excepción si excede el máximo permitido.
      */
     private void validateFileSize(long fileSize) {
-        if (fileSize > storageProperties.getMaxSize()) {
-            String message = String.format("El tamaño del archivo (%d bytes) excede el límite permitido de %dMB.",
-                    fileSize, (storageProperties.getMaxSize() / 1024 / 1024));
+        long maxSizeInBytes = storageProperties.getMaxSize();
+        if (fileSize > maxSizeInBytes) {
+            long maxSizeInMB = maxSizeInBytes / (1024 * 1024);
+            String message = "El tamaño del archivo (%d bytes) excede el límite permitido de %dMB.".formatted(fileSize, maxSizeInMB);
             log.warn(message);
             throw new FileStorageException(message);
         }
@@ -142,8 +142,11 @@ public class FileStorageService {
      */
     private void validateFileExtension(String extension) {
         if (!storageProperties.isExtensionAllowed(extension)) {
-            String message = String.format("Extensión de archivo no permitida: '%s'. Permitidas: %s",
-                    extension, storageProperties.getAllowedExtensions());
+            String allowedExtensionsString = "desconocidas (revisar configuración)";
+            if (storageProperties.getAllowedExtensions() != null && !storageProperties.getAllowedExtensions().isEmpty()) {
+                allowedExtensionsString = String.join(", ", storageProperties.getAllowedExtensions());
+            }
+            String message = "Extensión de archivo no permitida: '%s'. Permitidas: [%s]".formatted(extension, allowedExtensionsString);
             log.warn(message);
             throw new FileStorageException(message);
         }
@@ -269,7 +272,7 @@ public class FileStorageService {
             throw new FileStorageException("La ruta de almacenamiento para el tipo " + type + " no está configurada.");
         }
 
-        Path basePath = Paths.get(basePathString).toAbsolutePath().normalize();
-        return basePath.resolve(filename);
+        Path basePath = Path.of(basePathString).toAbsolutePath().normalize();
+        return basePath.resolve(StringUtils.cleanPath(filename)).normalize();
     }
 }

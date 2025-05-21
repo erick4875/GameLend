@@ -36,11 +36,11 @@ public class AppConfig {
      * @return Implementación que busca usuarios en la BD por email.
      */
     @Bean
-    public UserDetailsService userDetailsService() {
+    UserDetailsService userDetailsService() {
         // Busca un usuario por email. Si no lo encuentra, lanza una excepción.
         return email -> {
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException(String.format("Usuario con email '%s' no encontrado", email)));
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario con email '%s' no encontrado".formatted(email)));
             
             // Crea un objeto UserDetails de Spring Security con el email, contraseña (hasheada) y roles del usuario.
             return org.springframework.security.core.userdetails.User.builder()
@@ -61,7 +61,7 @@ public class AppConfig {
      * @return Un DaoAuthenticationProvider configurado.
      */
     @Bean
-    public AuthenticationProvider authenticationProvider() {
+    AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         // Le dice cómo cargar los usuarios.
         provider.setUserDetailsService(userDetailsService());
@@ -79,7 +79,7 @@ public class AppConfig {
      * @throws Exception Si hay error al obtener el AuthenticationManager.
      */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
@@ -90,7 +90,7 @@ public class AppConfig {
      * @return Un BCryptPasswordEncoder, que es un algoritmo de hashing fuerte.
      */
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

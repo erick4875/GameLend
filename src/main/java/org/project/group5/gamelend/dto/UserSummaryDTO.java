@@ -8,8 +8,8 @@ package org.project.group5.gamelend.dto;
  * @param publicName Nombre público del usuario, usado para mostrar
  */
 public record UserSummaryDTO(
-    Long id,
-    String publicName
-) {
-    // Records generan automáticamente: constructor, getters, equals(), hashCode(), toString()
+        Long id,
+        String publicName) {
+    // Records generan automáticamente: constructor, getters, equals(), hashCode(),
+    // toString()
 }

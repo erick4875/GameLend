@@ -1,5 +1,6 @@
 package org.project.group5.gamelend.mapper;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,8 @@ public interface RoleMapper {
      * Convierte una lista de entidades Role a una lista de RoleDTO.
      */
     default List<RoleDTO> toDTOList(List<Role> roles) {
-        if (roles == null) return null;
+        if (roles == null)
+            return null;
         return roles.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
@@ -33,7 +35,8 @@ public interface RoleMapper {
      * Convierte una lista de entidades Role a una lista de nombres de rol.
      */
     default List<String> toRoleNameList(List<Role> roles) {
-        if (roles == null) return null;
+        if (roles == null)
+            return null;
         return roles.stream().map(this::roleToName).collect(Collectors.toList());
     }
 
@@ -44,4 +47,22 @@ public interface RoleMapper {
     default String roleToName(Role role) {
         return role != null ? role.getName() : null;
     }
+
+    /**
+     * Convierte una lista de entidades Role a una lista de nombres de rol (String).
+     * Elimina el prefijo "ROLE_" de cada nombre.
+     *
+     * @param roles Lista de entidades Role
+     * @return Lista de nombres de rol sin el prefijo "ROLE_"
+     */
+    @Named("mapRolesToStrings")
+    default List<String> mapRolesToStrings(List<Role> roles) {
+        if (roles == null)
+            return Collections.emptyList();
+        return roles.stream()
+                .map(role -> role.getName().replace("ROLE_", ""))
+                .collect(Collectors.toCollection(java.util.LinkedList::new));
+    }
+
+    
 }

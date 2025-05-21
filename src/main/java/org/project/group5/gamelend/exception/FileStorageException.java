@@ -1,14 +1,18 @@
 package org.project.group5.gamelend.exception;
 
+import java.io.Serial;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Excepción que se lanza cuando ocurren errores relacionados con el almacenamiento de archivos
+ * Excepción que se lanza cuando ocurren errores relacionados con el
+ * almacenamiento de archivos
  */
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 public class FileStorageException extends RuntimeException {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -40,7 +44,7 @@ public class FileStorageException extends RuntimeException {
      * Constructor con mensaje personalizado y causa original
      * 
      * @param message Mensaje de error
-     * @param cause Causa original del error
+     * @param cause   Causa original del error
      */
     public FileStorageException(String message, Throwable cause) {
         super(message, cause);

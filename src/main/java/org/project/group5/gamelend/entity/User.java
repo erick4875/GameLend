@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
  * Entidad que representa a un usuario en el sistema.
  */
 @Entity
-@Table(name = "users")
+@Table(name = "user")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,7 +39,7 @@ public class User {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_user") 
+    @Column(name = "id_user")
     private Long id;
 
     /**
@@ -107,9 +107,7 @@ public class User {
      * Lista de roles asignados al usuario.
      */
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles", 
-               joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id_user"), 
-               inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id_role"))
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id_role"))
     private List<Role> roles;
 
     /**
@@ -120,6 +118,7 @@ public class User {
 
     /**
      * Añade un rol al usuario si no lo tiene ya.
+     * 
      * @param role El rol a añadir.
      */
     public void addRole(Role role) {
@@ -136,6 +135,7 @@ public class User {
 
     /**
      * Elimina un rol del usuario.
+     * 
      * @param role El rol a eliminar.
      */
     public void removeRole(Role role) {

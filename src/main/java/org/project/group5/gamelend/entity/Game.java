@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
  * específica propiedad de un usuario
  */
 @Entity
-@Table(name = "games")
+@Table(name = "game")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

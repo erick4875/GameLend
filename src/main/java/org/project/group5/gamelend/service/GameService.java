@@ -259,7 +259,7 @@ public class GameService {
         if (gameDTO.imageId() != null) {
             Document imageDocument = documentService.find(gameDTO.imageId());
             gameToUpdate.setImage(imageDocument);
-        } else if (gameDTO.imagePath() != null && !gameDTO.imagePath().isBlank()) {
+        } else if (gameDTO.imageUrl() != null && !gameDTO.imageUrl().isBlank()) {
             log.warn(
                     "imagePath proporcionado en GameDTO pero la lógica para manejarlo (sin imageId) no está completamente implementada para la actualización.");
         } else {

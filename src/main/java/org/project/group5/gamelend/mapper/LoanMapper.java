@@ -24,9 +24,9 @@ public interface LoanMapper {
     /**
      * Convierte un préstamo (Loan) a su DTO de respuesta.
      */
-    @Mapping(target = "game", source = "game", qualifiedByName = "loanEntityToGameSummary")
-    @Mapping(target = "lender", source = "lender", qualifiedByName = "loanEntityToUserSummary")
-    @Mapping(target = "borrower", source = "borrower", qualifiedByName = "loanEntityToUserSummary")
+    @Mapping(target = "game", source = "game", qualifiedByName = "gameToGameSummaryDTO")
+    @Mapping(target = "lender", source = "lender", qualifiedByName = "userToUserSummaryDTO")
+    @Mapping(target = "borrower", source = "borrower", qualifiedByName = "userToUserSummaryDTO")
     LoanResponseDTO toResponseDTO(Loan loan);
 
     /**
@@ -43,6 +43,9 @@ public interface LoanMapper {
     @Mapping(target = "lender", ignore = true)
     @Mapping(target = "borrower", ignore = true)
     @Mapping(target = "returnDate", ignore = true)
+    @Mapping(target = "loanDate", source = "loanDate")
+    @Mapping(target = "expectedReturnDate", source = "expectedReturnDate")
+    @Mapping(target = "notes", source = "notes")
     Loan toEntity(LoanDTO dto);
 
     /**
@@ -55,31 +58,34 @@ public interface LoanMapper {
     @Mapping(target = "loanDate", ignore = true)
     @Mapping(target = "expectedReturnDate", ignore = true)
     @Mapping(target = "notes", ignore = true)
+    @Mapping(target = "returnDate", source = "returnDate")
     void updateLoanWithReturnInfo(LoanReturnDTO returnDTO, @MappingTarget Loan loan);
 
     /**
-     * Convierte un Game a GameSummaryDTO.
+     * Método de ayuda para convertir un Game a GameSummaryDTO
      */
-    @Named("loanEntityToGameSummary")
-    default GameSummaryDTO entityToGameSummary(Game game) {
-        if (game == null) return null;
+    @Named("gameToGameSummaryDTO")
+    default GameSummaryDTO gameToGameSummaryDTO(Game game) {
+        if (game == null) {
+            return null;
+        }
         return new GameSummaryDTO(
                 game.getId(),
                 game.getTitle(),
                 game.getPlatform(),
-                game.getStatus()
-        );
+                game.getStatus());
     }
 
     /**
-     * Convierte un User a UserSummaryDTO.
+     * Método de ayuda para convertir un User a UserSummaryDTO
      */
-    @Named("loanEntityToUserSummary")
-    default UserSummaryDTO entityToUserSummary(User user) {
-        if (user == null) return null;
+    @Named("userToUserSummaryDTO")
+    default UserSummaryDTO userToUserSummaryDTO(User user) {
+        if (user == null) {
+            return null;
+        }
         return new UserSummaryDTO(
                 user.getId(),
-                user.getPublicName()
-        );
+                user.getPublicName());
     }
 }

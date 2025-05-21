@@ -46,7 +46,7 @@ public class DatabaseInitializer {
      */
     @Bean
     @Order(1)
-    public CommandLineRunner initDatabase() {
+    CommandLineRunner initDatabase() {
         return args -> {
             log.info("Inicializando roles y usuario administrador...");
             

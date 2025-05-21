@@ -9,13 +9,13 @@ import org.project.group5.gamelend.entity.Game.GameStatus;
  * @param title    Título del juego
  * @param platform Plataforma del juego
  * @param status   Estado del juego (AVAILABLE, BORROWED o UNAVAILABLE)
- *                
+ * 
  */
 public record GameSummaryDTO(
-        Long id,
-        String title,
-        String platform,
-        GameStatus status
-) {
-        // Records generan automáticamente: constructor, getters, equals(), hashCode(), toString()
+                Long id,
+                String title,
+                String platform,
+                GameStatus status) {
+        // Records generan automáticamente: constructor, getters, equals(), hashCode(),
+        // toString()
 }

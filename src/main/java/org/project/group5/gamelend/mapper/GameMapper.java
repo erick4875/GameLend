@@ -11,67 +11,73 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.project.group5.gamelend.dto.GameDTO;
 import org.project.group5.gamelend.dto.GameResponseDTO;
 import org.project.group5.gamelend.dto.GameSummaryDTO;
+import org.project.group5.gamelend.entity.Document;
 import org.project.group5.gamelend.entity.Game;
 import org.project.group5.gamelend.entity.User;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Mapper para convertir entre entidades Game y sus DTOs usando MapStruct.
  */
 @Mapper(componentModel = "spring")
-public interface GameMapper {
+public abstract class GameMapper {
+
+    @Value("${app.image-base-url:http://localhost:8081}")
+    protected String imageBaseUrl;
 
     /**
      * Convierte Game a GameResponseDTO.
      */
-    @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "userName", source = "user.publicName")
-    @Mapping(target = "imageId", source = "image.id")
-    @Mapping(target = "imagePath", source = "image.completeFileName", qualifiedByName = "formatImageUrl")
-    @Mapping(target = "catalogGameId", source = "catalogGame.id")
-    @Mapping(target = "catalog", source = "catalog")
-    GameResponseDTO toResponseDTO(Game game);
+    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.publicName", target = "userName")
+    @Mapping(source = "catalogGame.id", target = "catalogGameId")
+    @Mapping(source = "image.id", target = "imageId")
+    @Mapping(source = "image", target = "imageUrl", qualifiedByName = "buildDocumentUrl")
+    public abstract GameResponseDTO toResponseDTO(Game game);
 
     /**
      * Convierte una lista de Game a una lista de GameResponseDTO.
      */
-    List<GameResponseDTO> toResponseDTOList(List<Game> games);
+    public abstract List<GameResponseDTO> toResponseDTOList(List<Game> games);
 
     /**
      * Convierte Game a GameSummaryDTO.
      */
-    GameSummaryDTO toSummaryDTO(Game game);
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "title", source = "title")
+    public abstract GameSummaryDTO toGameSummaryDTO(Game game);
 
     /**
      * Convierte una lista de Game a una lista de GameSummaryDTO.
      */
-    List<GameSummaryDTO> toSummaryDTOList(List<Game> games);
+    public abstract List<GameSummaryDTO> toSummaryDTOList(List<Game> games);
 
     /**
      * Convierte Game a GameDTO.
      */
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "imageId", source = "image.id")
-    @Mapping(target = "imagePath", source = "image.completeFileName", qualifiedByName = "formatImageUrl")
+    @Mapping(source = "image.id", target = "imageId")
+    @Mapping(source = "image", target = "imageUrl", qualifiedByName = "buildDocumentUrl")
     @Mapping(target = "catalogGameId", source = "catalogGame.id")
     @Mapping(target = "catalog", source = "catalog")
-    GameDTO toDTO(Game game);
+    public abstract GameDTO toDTO(Game game);
 
     /**
      * Convierte una lista de Game a una lista de GameDTO.
      */
-    List<GameDTO> toDTOList(List<Game> games);
+    public abstract List<GameDTO> toDTOList(List<Game> games);
 
     /**
      * Convierte GameDTO a Game (para creación).
      * Relaciones como user, image y catalogGame se deben establecer en el servicio.
      */
-    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "image", ignore = true)
     @Mapping(target = "catalogGame", ignore = true)
     @Mapping(target = "loans", ignore = true)
     @Mapping(target = "userGames", ignore = true)
-    Game toEntity(GameDTO dto);
+    public abstract Game toEntity(GameDTO dto);
 
     /**
      * Actualiza una entidad Game existente con datos de GameDTO.
@@ -85,13 +91,13 @@ public interface GameMapper {
     @Mapping(target = "loans", ignore = true)
     @Mapping(target = "userGames", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateGameFromDto(GameDTO dto, @MappingTarget Game game);
+    public abstract void updateGameFromDto(GameDTO dto, @MappingTarget Game game);
 
     /**
      * Crea un juego de usuario a partir de un juego de catálogo.
      */
     @Named("createUserGameFromCatalog")
-    default Game createUserGameFromCatalog(Game catalogGame, User user) {
+    public Game createUserGameFromCatalog(Game catalogGame, User user) {
         if (catalogGame == null || !catalogGame.isCatalog()) {
             return null;
         }
@@ -109,16 +115,14 @@ public interface GameMapper {
     }
 
     /**
-     * Devuelve la URL de la imagen o una por defecto si no hay imagen.
+     * Construye la URL completa para un documento.
      */
-    @Named("formatImageUrl")
-    default String formatImageUrl(String completeFileName) {
-        if (completeFileName == null || completeFileName.isEmpty()) {
-            return "/api/documents/download/default-game-image.png";
+    @Named("buildDocumentUrl")
+    public String buildDocumentUrl(Document document) {
+        if (document == null || document.getId() == null) {
+            return null;
         }
-        if (completeFileName.startsWith("http://") || completeFileName.startsWith("https://")) {
-            return completeFileName;
-        }
-        return "/api/documents/download/" + completeFileName;
+        return imageBaseUrl + "/api/documents/" + document.getId();
     }
+
 }

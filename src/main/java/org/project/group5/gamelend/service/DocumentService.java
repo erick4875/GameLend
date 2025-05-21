@@ -200,16 +200,16 @@ public class DocumentService {
             String extension = document.getExtension().toLowerCase();
             log.debug("Determinando tipo MIME basado en la extensión: {}", extension);
             if ("jpg".equals(extension) || "jpeg".equals(extension)) {
-                contentType = "image/jpeg";
+                contentType = MediaType.IMAGE_JPEG_VALUE;
             } else {
                 log.warn("Extensión no esperada encontrada: {}, usando application/octet-stream", extension);
-                contentType = "application/octet-stream";
+                contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
             }
         }
 
         if (contentType == null) {
             log.warn("No se pudo determinar el tipo MIME para {}, usando application/octet-stream", storedFileName);
-            contentType = "application/octet-stream";
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
 
         log.info("Tipo MIME determinado para {}: {}", storedFileName, contentType);

@@ -5,6 +5,7 @@ import org.project.group5.gamelend.dto.LoginRequestDTO;
 import org.project.group5.gamelend.dto.RegisterRequestDTO;
 import org.project.group5.gamelend.dto.TokenResponseDTO;
 import org.project.group5.gamelend.service.AuthService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,7 +63,7 @@ public class AuthController {
      * @return Nuevos tokens y estado 200 (OK).
      */
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDTO> refreshToken(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<TokenResponseDTO> refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         TokenResponseDTO response = (TokenResponseDTO) authService.refreshToken(authHeader);
         return ResponseEntity.ok(response);
     }

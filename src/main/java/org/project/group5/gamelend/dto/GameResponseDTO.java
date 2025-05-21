@@ -15,7 +15,7 @@ import org.project.group5.gamelend.entity.Game.GameStatus;
  * @param userId        ID del propietario
  * @param userName      Nombre público del propietario
  * @param imageId       ID de la imagen (documento)
- * @param imagePath     Ruta/URL de la imagen
+ * @param imageUrl     Ruta/URL de la imagen
  * @param catalog     Si es juego de catálogo general
  * @param catalogGameId ID del juego de catálogo vinculado (opcional)
  */
@@ -29,7 +29,7 @@ public record GameResponseDTO(
         Long userId,
         String userName,
         Long imageId,
-        String imagePath,
+        String imageUrl,
         boolean catalog,
         Long catalogGameId
 ) {

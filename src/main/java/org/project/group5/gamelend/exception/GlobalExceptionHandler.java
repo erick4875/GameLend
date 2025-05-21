@@ -113,7 +113,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, Object>> handleMissingParams(MissingServletRequestParameterException ex) {
-        String message = String.format("Parámetro requerido '%s' no está presente", ex.getParameterName());
+        String message = "Parámetro requerido '%s' no está presente".formatted(ex.getParameterName());
         log.warn(message);
         return buildResponse(HttpStatus.BAD_REQUEST, message);
     }
@@ -128,7 +128,7 @@ public class GlobalExceptionHandler {
         if (requiredType != null) {
             typeName = requiredType.getSimpleName();
         }
-        String message = String.format("El parámetro '%s' debe ser de tipo '%s'", 
+        String message = "El parámetro '%s' debe ser de tipo '%s'".formatted(
                 ex.getName(), typeName);
         log.warn(message);
         return buildResponse(HttpStatus.BAD_REQUEST, message);
