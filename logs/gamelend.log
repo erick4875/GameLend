@@ -1,12 +1,73 @@
-2025-05-22 23:06:35 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 10892 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in C:\proyecto\grupo\backend_spring_boot_grupo5)
-2025-05-22 23:06:35 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
-2025-05-22 23:06:37 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-22 23:06:37 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.40]
-2025-05-22 23:06:37 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-22 23:06:38 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-22 23:06:39 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6ceb11f9
-2025-05-22 23:06:39 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-22 23:06:45 [main] INFO  o.p.group5.gamelend.GameLendApp - Started GameLendApp in 10.229 seconds (process running for 10.851)
-2025-05-22 23:06:45 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicializando roles y usuario administrador...
-2025-05-22 23:06:45 [main] INFO  o.p.g.g.config.DatabaseInitializer - Usuario administrador admin@linkiafp.com ya existe.
-2025-05-22 23:06:45 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicialización de base de datos completada.
+2025-05-23 00:19:38 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 17840 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-23 00:19:38 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-23 00:19:40 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-23 00:19:40 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.40]
+2025-05-23 00:19:40 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-23 00:19:41 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-23 00:19:42 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@f591271
+2025-05-23 00:19:42 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-23 00:19:54 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 19004 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-23 00:19:54 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-23 00:19:54 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanDefinitionStoreException: I/O failure while processing configuration class [org.project.group5.gamelend.GameLendApp]
+2025-05-23 00:19:55 [main] ERROR o.s.boot.SpringApplication - Application run failed
+org.springframework.beans.factory.BeanDefinitionStoreException: I/O failure while processing configuration class [org.project.group5.gamelend.GameLendApp]
+	at org.springframework.context.annotation.ConfigurationClassParser.processConfigurationClass(ConfigurationClassParser.java:286)
+	at org.springframework.context.annotation.ConfigurationClassParser.parse(ConfigurationClassParser.java:204)
+	at org.springframework.context.annotation.ConfigurationClassParser.parse(ConfigurationClassParser.java:172)
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.processConfigBeanDefinitions(ConfigurationClassPostProcessor.java:418)
+	at org.springframework.context.annotation.ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry(ConfigurationClassPostProcessor.java:290)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanDefinitionRegistryPostProcessors(PostProcessorRegistrationDelegate.java:349)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:118)
+	at org.springframework.context.support.AbstractApplicationContext.invokeBeanFactoryPostProcessors(AbstractApplicationContext.java:791)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:609)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:753)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1362)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1351)
+	at org.project.group5.gamelend.GameLendApp.main(GameLendApp.java:29)
+Caused by: java.io.FileNotFoundException: class path resource [org/project/group5/gamelend/config/AppConfig.class] cannot be opened because it does not exist
+	at org.springframework.core.io.ClassPathResource.getInputStream(ClassPathResource.java:215)
+	at org.springframework.core.type.classreading.SimpleMetadataReader.getClassReader(SimpleMetadataReader.java:54)
+	at org.springframework.core.type.classreading.SimpleMetadataReader.<init>(SimpleMetadataReader.java:48)
+	at org.springframework.core.type.classreading.SimpleMetadataReaderFactory.getMetadataReader(SimpleMetadataReaderFactory.java:103)
+	at org.springframework.boot.type.classreading.ConcurrentReferenceCachingMetadataReaderFactory.createMetadataReader(ConcurrentReferenceCachingMetadataReaderFactory.java:98)
+	at org.springframework.boot.type.classreading.ConcurrentReferenceCachingMetadataReaderFactory.getMetadataReader(ConcurrentReferenceCachingMetadataReaderFactory.java:85)
+	at org.springframework.core.type.classreading.SimpleMetadataReaderFactory.getMetadataReader(SimpleMetadataReaderFactory.java:81)
+	at org.springframework.boot.type.classreading.ConcurrentReferenceCachingMetadataReaderFactory.getMetadataReader(ConcurrentReferenceCachingMetadataReaderFactory.java:75)
+	at org.springframework.context.annotation.ConfigurationClassParser.parse(ConfigurationClassParser.java:216)
+	at org.springframework.context.annotation.ConfigurationClassParser.doProcessConfigurationClass(ConfigurationClassParser.java:354)
+	at org.springframework.context.annotation.ConfigurationClassParser.processConfigurationClass(ConfigurationClassParser.java:281)
+	... 15 common frames omitted
+2025-05-23 00:27:23 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 11996 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-23 00:27:23 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-23 00:27:25 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Unable to start web server
+2025-05-23 00:27:25 [main] ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web application could not be started as there was no org.springframework.boot.web.servlet.server.ServletWebServerFactory bean defined in the context.
+
+Action:
+
+Check your application's dependencies for a supported servlet web server.
+Check the configured web application type.
+
+2025-05-23 00:29:24 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 12280 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-23 00:29:24 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-23 00:29:27 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-23 00:29:27 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-23 00:29:27 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-23 00:29:28 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-23 00:29:29 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@405223e4
+2025-05-23 00:29:29 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-23 00:29:34 [main] INFO  o.p.group5.gamelend.GameLendApp - Started GameLendApp in 10.637 seconds (process running for 11.21)
+2025-05-23 00:29:34 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicializando roles y usuario administrador...
+2025-05-23 00:29:35 [main] INFO  o.p.g.g.config.DatabaseInitializer - Usuario administrador admin@linkiafp.com ya existe.
+2025-05-23 00:29:35 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicialización de base de datos completada.
+2025-05-23 00:29:36 [RMI TCP Connection(2)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
