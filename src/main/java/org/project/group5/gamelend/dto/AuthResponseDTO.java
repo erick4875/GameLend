@@ -13,7 +13,7 @@ import java.util.List;
  */
 public record AuthResponseDTO(
     String token,
-    String nombrePublico,
+    String publicName,
     Long userId,
     List<String> roles
 ) {}
