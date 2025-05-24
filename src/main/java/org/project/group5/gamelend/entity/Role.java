@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
  * Entidad Rol: representa un rol de usuario (ADMIN o USER).
  */
 @Entity
-@Table(name = "role")
+@Table(name = "roles")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

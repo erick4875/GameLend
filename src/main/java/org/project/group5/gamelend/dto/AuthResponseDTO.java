@@ -7,7 +7,7 @@ import java.util.List;
  * Contiene la información mínima necesaria para el cliente después de autenticación
  *
  * @param token Token JWT de acceso
- * @param nombrePublico Nombre público del usuario
+ * @param publicName Nombre público del usuario
  * @param userId ID del usuario
  * @param roles Lista de roles asignados al usuario
  */

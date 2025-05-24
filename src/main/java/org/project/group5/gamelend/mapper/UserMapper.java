@@ -80,6 +80,7 @@ public interface UserMapper {
     @Mapping(target = "province", source = "province")
     @Mapping(target = "city", source = "city")
     @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     @Mapping(target = "games", ignore = true)
     @Mapping(target = "loansMade", ignore = true)
     @Mapping(target = "loansReceived", ignore = true)

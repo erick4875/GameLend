@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
  * Entidad que representa un préstamo de un juego entre usuarios
  */
 @Entity
-@Table(name = "loan")
+@Table(name = "loans")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

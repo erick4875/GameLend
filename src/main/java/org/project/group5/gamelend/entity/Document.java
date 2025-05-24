@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
  * Puede ser una imagen de un juego o un avatar de usuario
  */
 @Entity
-@Table(name = "document")
+@Table(name = "documents")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

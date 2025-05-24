@@ -27,7 +27,8 @@ public interface RoleMapper {
      */
     default List<RoleDTO> toDTOList(List<Role> roles) {
         if (roles == null)
-            return null;
+            return Collections.emptyList();
+        // Si la lista es null, devuelve una lista vacía
         return roles.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
@@ -36,7 +37,7 @@ public interface RoleMapper {
      */
     default List<String> toRoleNameList(List<Role> roles) {
         if (roles == null)
-            return null;
+            return Collections.emptyList(); // devuelve una lista vacía si la lista es null
         return roles.stream().map(this::roleToName).collect(Collectors.toList());
     }
 
@@ -57,12 +58,18 @@ public interface RoleMapper {
      */
     @Named("mapRolesToStrings")
     default List<String> mapRolesToStrings(List<Role> roles) {
-        if (roles == null)
+        if (roles == null) {
             return Collections.emptyList();
+        }
         return roles.stream()
-                .map(role -> role.getName().replace("ROLE_", ""))
-                .collect(Collectors.toCollection(java.util.LinkedList::new));
+                .map(role -> {
+                    if (role != null && role.getName() != null) {
+                        return role.getName().replace("ROLE_", "");
+                    }
+                    return null; 
+                })
+                .filter(name -> name != null) 
+                .collect(Collectors.toList()); 
     }
 
-    
 }
