@@ -1,72 +1,116 @@
 package com.example.gamelend.dto;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UserResponseDTO {
 
     private Long id;
-    private String nombrePublico;
+    private String publicName;
     private String email;
-    private String provincia;
-    private String localidad;
-    private String fechaRegistro;
+    private String registrationDate; // Recibirá el LocalDateTime como String formateado
+    private String province;
+    private String city;
+    private List<GameResponseDTO> games;
+    private List<GameSummaryDTO> gamesLent;
+    private List<String> roles;
 
-    public UserResponseDTO(Long id, String nombrePublico, String email, String provincia,
-                           String localidad, String fechaRegistro) {
-        this.id = id;
-        this.nombrePublico = nombrePublico;
-        this.email = email;
-        this.provincia = provincia;
-        this.localidad = localidad;
-        this.fechaRegistro = fechaRegistro;
+    // Constructor vacío (necesario para Gson/Moshi)
+    public UserResponseDTO() {
+        // Importante inicializar las listas para evitar NullPointerExceptions
+        // si el JSON no incluye estos campos o los envía como null.
+        this.games = new ArrayList<>();
+        this.gamesLent = new ArrayList<>();
+        this.roles = new ArrayList<>();
     }
 
-    public UserResponseDTO() {}
+    // Constructor con todos los campos
+    public UserResponseDTO(Long id, String publicName, String email, String registrationDate,
+                           String province, String city, List<GameResponseDTO> games,
+                           List<GameSummaryDTO> gamesLent, List<String> roles) {
+        this.id = id;
+        this.publicName = publicName;
+        this.email = email;
+        this.registrationDate = registrationDate;
+        this.province = province;
+        this.city = city;
+        this.games = (games != null) ? games : new ArrayList<>(); // Asegurar no nulos
+        this.gamesLent = (gamesLent != null) ? gamesLent : new ArrayList<>(); // Asegurar no nulos
+        this.roles = (roles != null) ? roles : new ArrayList<>(); // Asegurar no nulos
+    }
 
-    public Long getId(){
+    // Getters
+    public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNombrePublico() {
-        return nombrePublico;
-    }
-
-    public void setNombrePublico(String nombrePublico) {
-        this.nombrePublico = nombrePublico;
+    public String getPublicName() {
+        return publicName;
     }
 
     public String getEmail() {
         return email;
     }
 
+    public String getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public List<GameResponseDTO> getGames() {
+        return games;
+    }
+
+    public List<GameSummaryDTO> getGamesLent() {
+        return gamesLent;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    // Setters
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setPublicName(String publicName) {
+        this.publicName = publicName;
+    }
+
     public void setEmail(String email) {
         this.email = email;
     }
 
-    public String getProvincia() {
-        return provincia;
+    public void setRegistrationDate(String registrationDate) {
+        this.registrationDate = registrationDate;
     }
 
-    public void setProvincia(String provincia) {
-        this.provincia = provincia;
+    public void setProvince(String province) {
+        this.province = province;
     }
 
-    public String getLocalidad() {
-        return localidad;
+    public void setCity(String city) {
+        this.city = city;
     }
 
-    public void setLocalidad(String localidad) {
-        this.localidad = localidad;
+    public void setGames(List<GameResponseDTO> games) {
+        this.games = (games != null) ? games : new ArrayList<>();
     }
 
-    public String getFechaRegistro() {
-        return fechaRegistro;
+    public void setGamesLent(List<GameSummaryDTO> gamesLent) {
+        this.gamesLent = (gamesLent != null) ? gamesLent : new ArrayList<>();
     }
 
-    public void setFechaRegistro(String fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
+    public void setRoles(List<String> roles) {
+        this.roles = (roles != null) ? roles : new ArrayList<>();
     }
 }

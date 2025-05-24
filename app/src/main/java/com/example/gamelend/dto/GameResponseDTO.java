@@ -1,20 +1,45 @@
 package com.example.gamelend.dto;
 
-import com.google.gson.annotations.SerializedName;
+import com.example.gamelend.models.GameStatus;
 
 public class GameResponseDTO {
+
     private Long id;
     private String title;
     private String platform;
     private String genre;
     private String description;
-    private String status;
+    private GameStatus status;
     private Long userId;
     private String userName;
     private Long imageId;
-    private String imagePath;
+    private String imageUrl;
     private boolean catalog;
     private Long catalogGameId;
+
+    // Constructor vacío
+    public GameResponseDTO() {
+    }
+
+    // Constructor con todos los campos
+    public GameResponseDTO(Long id, String title, String platform, String genre, String description,
+                           GameStatus status, Long userId, String userName, Long imageId,
+                           String imageUrl, boolean catalog, Long catalogGameId) {
+        this.id = id;
+        this.title = title;
+        this.platform = platform;
+        this.genre = genre;
+        this.description = description;
+        this.status = status;
+        this.userId = userId;
+        this.userName = userName;
+        this.imageId = imageId;
+        this.imageUrl = imageUrl;
+        this.catalog = catalog;
+        this.catalogGameId = catalogGameId;
+    }
+
+    // Getters y Setters
 
     public Long getId() {
         return id;
@@ -56,11 +81,11 @@ public class GameResponseDTO {
         this.description = description;
     }
 
-    public String getStatus() {
+    public GameStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(GameStatus status) {
         this.status = status;
     }
 
@@ -88,12 +113,12 @@ public class GameResponseDTO {
         this.imageId = imageId;
     }
 
-    public String getImagePath() {
-        return imagePath;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public boolean isCatalog() {
@@ -111,4 +136,5 @@ public class GameResponseDTO {
     public void setCatalogGameId(Long catalogGameId) {
         this.catalogGameId = catalogGameId;
     }
+
 }

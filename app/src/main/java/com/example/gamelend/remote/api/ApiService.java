@@ -23,7 +23,7 @@ import retrofit2.http.Query;
 
 public interface ApiService {
 
-    // ===== Auth Endpoints =====
+    // ===== Auth Endpoints (NO necesitan token de acceso vía AuthInterceptor) =====
     @POST("api/auth/register")
     Call<TokenResponseDTO> register(@Body RegisterRequestDTO request);
 
@@ -33,48 +33,41 @@ public interface ApiService {
     @POST("api/auth/refresh")
     Call<TokenResponseDTO> refreshToken(@Header("Authorization") String refreshToken);
 
-
-    // ===== User Endpoints =====
+    // ===== User Endpoints (Protegidos - AuthInterceptor añade el token de acceso) =====
     @GET("api/users")
-    Call<List<UserResponseDTO>> getAllUsers(@Header("Authorization") String token);
+    Call<List<UserResponseDTO>> getAllUsers();
 
     @GET("api/users/{id}")
-    Call<UserResponseDTO> getUserById(@Path("id") Long id, @Header("Authorization") String token);
+    Call<UserResponseDTO> getUserById(@Path("id") Long id);
 
     @POST("api/users")
-    Call<UserResponseDTO> createUser(@Body UserDTO userDTO, @Header("Authorization") String token);
+    Call<UserResponseDTO> createUser(@Body UserDTO userDTO);
 
     @PUT("api/users/{id}")
     Call<UserResponseDTO> updateUser(
             @Path("id") Long id,
-            @Body UserDTO userDTO,
-            @Header("Authorization") String token
+            @Body UserDTO userDTO
     );
 
     @DELETE("api/users/{id}")
-    Call<Void> deleteUser(@Path("id") Long id, @Header("Authorization") String token);
+    Call<Void> deleteUser(@Path("id") Long id);
 
-    // ===== Búsquedas Especializadas =====
+    // ===== Búsquedas Especializadas (Protegidas - AuthInterceptor añade el token de acceso) =====
     @GET("api/users/email/{email}")
-    Call<UserResponseDTO> getUserByEmail(
-            @Path("email") String email,
-            @Header("Authorization") String token
-    );
+    Call<UserResponseDTO> getUserByEmail(@Path("email") String email);
 
+    /**
+     * Obtiene el perfil del usuario actualmente autenticado.
+     * El backend identifica al usuario a través del token JWT.
+     */
     @GET("api/users/profile")
-    Call<UserResponseDTO> getUserProfile(
-            @Query("email") String email,
-            @Header("Authorization") String token
-    );
+    Call<UserResponseDTO> getUserProfile(@Query("email") String email);
 
     @GET("api/users/{id}/complete")
-    Call<UserResponseDTO> getCompleteUser(
-            @Path("id") Long id,
-            @Header("Authorization") String token
-    );
+    Call<UserResponseDTO> getCompleteUser(@Path("id") Long id);
 
-    // ===== Game Endpoints =====
-    @GET("api/games")
+    // ===== Game Endpoints (Protegidos - AuthInterceptor añade el token de acceso) =====
+    @POST("api/games")
     Call<GameResponseDTO> createGame(@Body GameDTO gameDTO);
 
     @GET("api/games")

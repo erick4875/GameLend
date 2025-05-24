@@ -1,5 +1,8 @@
 package com.example.gamelend.dto;
 
+/**
+ * DTO para enviar la solicitud de registro de un nuevo usuario desde la app Android.
+ */
 public class RegisterRequestDTO {
     private String name;
     private String publicName;
@@ -7,6 +10,9 @@ public class RegisterRequestDTO {
     private String email;
     private String province;
     private String city;
+
+    public RegisterRequestDTO() {
+    }
 
     // Constructor
     public RegisterRequestDTO(String name, String publicName, String password, String email, String province, String city) {

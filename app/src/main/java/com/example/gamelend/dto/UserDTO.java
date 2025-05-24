@@ -9,9 +9,11 @@ public class UserDTO {
     private String province;
     private String city;
     private String password;
-    private String registrationDate; // Usamos String en lugar de LocalDateTime
+    private String registrationDate; // Usamos String para recibir el LocalDateTime
     private List<GameDTO> games;
     private List<String> roles;
+
+    public UserDTO() {}
 
     // Constructor
     public UserDTO(String name, String publicName, String email, String province,

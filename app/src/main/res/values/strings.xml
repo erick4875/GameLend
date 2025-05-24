@@ -1,3 +1,63 @@
 <resources>
     <string name="app_name">GameLend</string>
+
+    <string name="app_logo_description">Logotipo de la aplicación GameLend</string>
+
+    <string name="hint_email">Email</string>
+    <string name="hint_username">Nombre de usuario</string>
+    <string name="hint_password">Contraseña</string>
+    <string name="hint_name_real">Nombre Completo</string>
+    <string name="hint_public_name">Nombre de Usuario (Público)</string>
+    <string name="hint_email_example">ejemplo@correo.com</string>
+    <string name="hint_province">Provincia</string>
+    <string name="hint_city">Ciudad</string>
+
+    <string name="button_login">ENTRAR</string>
+    <string name="button_register">REGISTRARSE</string>
+    <string name="button_register_submit">REGISTRAR</string>
+    <string name="title_activity_login">Iniciar Sesión</string>
+    <string name="title_register_user">Registrar Usuario</string>
+    <string name="title_activity_user_profile">Perfil de Usuario</string>
+    <string name="title_activity_user_list">Lista de Usuarios</string>
+    <string name="error_complete_all_fields">Por favor, completa todos los campos.</string>
+    <string name="error_email_password_empty">Email y contraseña no pueden estar vacíos.</string>
+    <string name="error_login_failed">Credenciales incorrectas o error de conexión.</string>
+    <string name="error_registration_failed">Error en el registro. Verifica los datos o inténtalo más tarde.</string>
+    <string name="error_network_connection">Error de conexión. Verifica tu internet.</string>
+
+    <string name="login_successful">Inicio de sesión exitoso.</string>
+    <string name="registration_successful">Usuario registrado correctamente.</string>
+    <string name="registration_successful_login">Usuario registrado e inicio de sesión exitoso.</string>
+
+    <string name="title_activity_edit_profile">Editar Perfil</string>
+    <string name="title_activity_add_game">Añadir Juego</string>
+    <string name="title_activity_list_game">Mis Juegos</string>
+
+    <string name="user_profile_image_description">Imagen de perfil del usuario</string>
+    <string name="loading_username">Cargando nombre...</string>
+    <string name="button_edit_profile">Editar Perfil</string>
+    <string name="button_add_game">Añadir Juego</string>
+    <string name="button_logout">Cerrar Sesión</string>
+
+    <string name="hint_game_title">Título del juego</string>
+    <string name="hint_platform">Plataforma (ej. PS5, PC, Switch)</string>
+    <string name="hint_genre">Género (ej. RPG, Acción)</string>
+    <string name="hint_description_optional">Descripción (opcional)</string>
+    <string name="label_status">Estado del Juego:</string>
+    <string name="button_cancel">CANCELAR</string>
+    <string name="button_save_game">GUARDAR JUEGO</string>
+
+    <string name="error_complete_all_fields_game">Por favor, completa título, plataforma, género y estado.</string>
+    <string name="game_added_successfully">Juego agregado con éxito</string>
+
+    <string name="hint_last_name">Apellidos</string>
+    <string name="hint_new_password_optional">Nueva Contraseña (opcional)</string>
+    <string name="hint_phone_optional">Teléfono (opcional)</string>
+    <string name="button_my_games">Mis Juegos</string>
+    <string name="button_save_changes">GUARDAR CAMBIOS</string>
+
+    <string name="user_profile_load_error">Error al cargar datos del perfil</string>
+    <string name="error_complete_all_editable_fields">Por favor, completa los campos editables.</string>
+    <string name="profile_updated_successfully">Perfil actualizado con éxito</string>
+
 </resources>
