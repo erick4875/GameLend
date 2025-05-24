@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide; // Para cargar imágenes desde URL (si tu models.Game tuviera imageUrl)
 import com.example.gamelend.R;
 
 import java.util.ArrayList;
@@ -20,14 +19,19 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
 
     private Context context;
     private List<Game> gameList; // Sigue usando tu clase 'models.Game'
-    // private OnGameItemClickListener onItemClickListener; // Opcional: para clics en los items
-
+    //private OnGameItemClickListener onItemClickListener;
+    private boolean isUserOwned;
     // Constructor: ahora solo necesita el contexto (y el listener opcional)
     // La lista se pasará a través de submitList
-    public GameAdapter(Context context, List<Game> initialGameList /*, OnGameItemClickListener listener */) {
+
+    /*public interface OnGameItemClickListener {
+        void onGameItemClick(Game game);
+    }*/
+
+    public GameAdapter(Context context, List<Game> initialGameList,boolean isUserOwned) {
         this.context = context;
         this.gameList = new ArrayList<>(initialGameList); // Copia la lista inicial o inicializa vacía
-        // this.onItemClickListener = listener;
+        this.isUserOwned = isUserOwned; // Guarda el estado de propiedad del usuario
     }
 
     // Metodo para actualizar la lista de juegos en el adaptador
@@ -68,14 +72,20 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
             holder.gameImageView.setImageResource(R.drawable.mando); // Imagen por defecto
         }
 
+        if (isUserOwned){
+            holder.gameImageView.setVisibility(View.VISIBLE); // Muestra la imagen si el usuario posee el juego
+        } else {
+            holder.gameImageView.setVisibility(View.GONE); // Oculta la imagen si no lo posee
+        }
+
         // Configurar listener de clic para el ítem (opcional)
-        /*
-        holder.itemView.setOnClickListener(v -> {
+
+        /*holder.itemView.setOnClickListener(v -> {
             if (onItemClickListener != null) {
                 onItemClickListener.onGameItemClick(currentGame);
             }
-        });
-        */
+        });*/
+
     }
 
     @Override
@@ -87,14 +97,14 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
     public static class GameViewHolder extends RecyclerView.ViewHolder {
         TextView gameNameTextView;  // Antes tvNombreJuego
         ImageView gameImageView; // Antes imageViewJuego
-        // CardView gameCardView; // Descomenta si usas CardView y tienes el ID
+         //CardView gameCardView; // Descomenta si usas CardView y tienes el ID
 
         public GameViewHolder(@NonNull View itemView) {
             super(itemView);
             // Enlaza las variables con los IDs del layout item_game.xml
-            gameNameTextView = itemView.findViewById(R.id.tvNombreJuego); // Asegúrate que este ID exista en item_game.xml
-            gameImageView = itemView.findViewById(R.id.imageViewJuego); // Asegúrate que este ID exista
-            // gameCardView = itemView.findViewById(R.id.gameCardView); // Si usas CardView
+            gameNameTextView = itemView.findViewById(R.id.tvGameName); // Asegúrate que este ID exista en item_game.xml
+            gameImageView = itemView.findViewById(R.id.imageViewGame); // Asegúrate que este ID exista
+             //gameCardView = itemView.findViewById(R.id.gameCardView); // Si usas CardView
         }
     }
 

@@ -24,12 +24,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide; // Para cargar imágenes desde URL
 import com.example.gamelend.R;
 import com.example.gamelend.auth.TokenManager;
+import com.example.gamelend.dto.GameSummaryDTO;
+import com.example.gamelend.models.Game;
 import com.example.gamelend.models.GameAdapter; // Asume que tienes este adaptador
 // import com.example.gamelend.models.Game; // Si GameAdapter usa una clase Game local
 import com.example.gamelend.remote.api.ApiClient;
+import com.example.gamelend.viewmodel.GameListViewModel;
 import com.example.gamelend.viewmodel.UserProfileViewModel; // Tu ViewModel
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class UserProfileActivity extends AppCompatActivity {
 
@@ -45,6 +49,8 @@ public class UserProfileActivity extends AppCompatActivity {
     private GameAdapter gameAdapter;
     private TokenManager tokenManager;
     private UserProfileViewModel userProfileViewModel;
+
+    private GameListViewModel gameListViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +82,7 @@ public class UserProfileActivity extends AppCompatActivity {
         gamesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         gamesRecyclerView.setHasFixedSize(true);
         // Necesitarás un GameAdapter. Si no lo tienes, crea uno básico.
-        gameAdapter = new GameAdapter(this, new ArrayList<>() /*, listener si es necesario */);
+        gameAdapter = new GameAdapter(this, new ArrayList<>(),false);
         gamesRecyclerView.setAdapter(gameAdapter);
 
         // Inicializar ViewModel
@@ -84,8 +90,16 @@ public class UserProfileActivity extends AppCompatActivity {
                 ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()))
                 .get(UserProfileViewModel.class);
 
+
+        //Inicializar el ViewModel de la lista de juegos
+        gameListViewModel = new ViewModelProvider(this,
+                ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()))
+                .get(GameListViewModel.class);
+
         // Configurar observadores para los LiveData del ViewModel
         setupViewModelObservers();
+
+        gameListViewModel.fetchAllGames();
 
         // Solicitar la carga de datos del perfil
         Log.d(TAG, "Solicitando datos del perfil del usuario...");
@@ -173,6 +187,39 @@ public class UserProfileActivity extends AppCompatActivity {
             }
         });
         */
+
+        //Cargar la lista de juegos de la base de datos o API si es necesario
+        gameListViewModel.gamesListLiveData.observe(this, games -> {
+            if (games != null) {
+                Log.d(TAG, "Juegos cargados: " + games.size());
+                // Convertir GameSummaryDTO a Game
+                List<Game> convertedGames = new ArrayList<>();
+                for (GameSummaryDTO dto : games) {
+                    String name = dto.getTitle();
+                    int imageRes = R.drawable.mando; // Usa un recurso por defecto o mapea según DTO
+                    convertedGames.add(new Game(name, imageRes));
+                }
+                gameAdapter.submitList(convertedGames); // Actualizar el adaptador con la lista de juegos
+            }
+        });
+
+        // Observar el estado de carga para mostrar progressbar
+        gameListViewModel.isLoadingLiveData.observe(this, isLoading -> {
+            if (isLoading != null && isLoading) {
+                loadingProgressBarProfile.setVisibility(View.VISIBLE);
+            } else {
+                loadingProgressBarProfile.setVisibility(View.GONE);
+            }
+        });
+
+        // Observar errores
+        gameListViewModel.errorLiveData.observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+                gameListViewModel.clearFetchGamesError();
+            }
+        });
+
     }
 
     private void performLogout() {
@@ -193,6 +240,7 @@ public class UserProfileActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     // onBackPressed() ya lo tenías, puedes mantenerlo o ajustarlo
     // @Override

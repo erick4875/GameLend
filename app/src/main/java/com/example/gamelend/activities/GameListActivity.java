@@ -40,6 +40,7 @@ public class GameListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_list);
 
+
         Toolbar toolbar = findViewById(R.id.gameListToolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -55,7 +56,7 @@ public class GameListActivity extends AppCompatActivity {
 
         // Inicializar adaptador con una lista vacía de 'models.Game'
         // El constructor de GameAdapter espera List<com.example.gamelend.models.Game>
-        gameAdapter = new GameAdapter(this, new ArrayList<Game>() /*, listener */);
+        gameAdapter = new GameAdapter(this, new ArrayList<Game>(), true);
         gamesRecyclerView.setAdapter(gameAdapter);
 
         gameListViewModel = new ViewModelProvider(this,
@@ -126,7 +127,7 @@ public class GameListActivity extends AppCompatActivity {
         });
     }
 
-    // Método de ejemplo para mapear el enum de estado del DTO al enum del modelo (si son diferentes)
+    // Metodo de ejemplo para mapear el enum de estado del DTO al enum del modelo (si son diferentes)
     // Necesitarías que tu GameSummaryDTO tenga un getter para su GameStatus.
     /*
     private com.example.gamelend.models.GameStatus mapDtoStatusToModelStatus(org.project.group5.gamelend.entity.Game.GameStatus dtoStatus) {

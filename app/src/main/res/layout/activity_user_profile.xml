@@ -95,7 +95,9 @@
         app:layout_constraintBottom_toTopOf="@+id/logoutButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/activity_game_list" /> <Button
+        tools:listitem="@layout/activity_game_list" />
+
+    <Button
     android:id="@+id/logoutButton"
     android:layout_width="0dp"
     android:layout_height="wrap_content"

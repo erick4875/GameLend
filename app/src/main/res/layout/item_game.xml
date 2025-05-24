@@ -19,13 +19,13 @@
         android:padding="16dp">
 
         <ImageView
-            android:id="@+id/imageViewJuego"
+            android:id="@+id/imageViewGame"
             android:layout_width="81dp"
             android:layout_height="60dp"
             android:src="@drawable/mando" />
 
         <TextView
-            android:id="@+id/tvNombreJuego"
+            android:id="@+id/tvGameName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
