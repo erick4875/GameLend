@@ -109,7 +109,8 @@ public class RegisterActivity extends AppCompatActivity {
         registerViewModel.registrationResultLiveData.observe(this, tokenResponse -> {
             if (tokenResponse != null && tokenResponse.getAccessToken() != null) {
                 Toast.makeText(RegisterActivity.this, R.string.registration_successful_login, Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                Intent intent = new Intent(RegisterActivity.this, UserProfileActivity.class);
+                intent.putExtra("UserName", tokenResponse.getPublicName());
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();

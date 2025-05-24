@@ -15,6 +15,8 @@ import com.example.gamelend.R;
 import com.example.gamelend.dto.TokenResponseDTO; // Asegúrate que este DTO tenga getAccessToken()
 import com.example.gamelend.viewmodel.LoginViewModel;
 
+import java.security.PublicKey;
+
 public class MainActivity extends AppCompatActivity { // Considera renombrar a LoginActivity
 
     private EditText emailEditText, passwordEditText;
@@ -62,7 +64,7 @@ public class MainActivity extends AppCompatActivity { // Considera renombrar a L
             Toast.makeText(this, "Email y contraseña no pueden estar vacíos.", Toast.LENGTH_SHORT).show();
             return;
         }
-        // Llamar al método correcto en el ViewModel
+        // Llamar al metodo correcto en el ViewModel
         loginViewModel.performLogin(email, password);
     }
 
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity { // Considera renombrar a L
             if (tokenResponseDTO != null && tokenResponseDTO.getAccessToken() != null) {
                 // El ViewModel (a través de TokenManager) ya guardó los tokens
                 Toast.makeText(MainActivity.this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
-                navigateToUserProfile();
+                navigateToUserProfile(tokenResponseDTO.getPublicName());
             }
             // Si tokenResponseDTO es null o no tiene accessToken, significa que el login falló.
             // Ese caso se maneja principalmente observando errorLiveData.
@@ -106,8 +108,9 @@ public class MainActivity extends AppCompatActivity { // Considera renombrar a L
         });
     }
 
-    private void navigateToUserProfile() {
+    private void navigateToUserProfile(String publicName) {
         Intent intent = new Intent(MainActivity.this, UserProfileActivity.class);
+        intent.putExtra("USERNAME", publicName);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

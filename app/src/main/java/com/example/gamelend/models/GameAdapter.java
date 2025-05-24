@@ -30,7 +30,7 @@ public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder
         // this.onItemClickListener = listener;
     }
 
-    // Método para actualizar la lista de juegos en el adaptador
+    // Metodo para actualizar la lista de juegos en el adaptador
     public void submitList(List<Game> newGameList) {
         this.gameList.clear();
         if (newGameList != null) {
