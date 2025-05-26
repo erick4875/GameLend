@@ -37,17 +37,19 @@
             android:layout_centerVertical="false"
             android:layout_alignParentTop="true"
             android:contentDescription="@string/user_profile_image_description"
-            android:src="@drawable/perfil_usuario" /> <TextView
-        android:id="@+id/userNameTextViewEdit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/userProfileImageViewEdit"
-        android:layout_alignTop="@id/userProfileImageViewEdit"
-        android:layout_marginStart="16dp"
-        android:text="@string/loading_username"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"/>
+            android:src="@drawable/perfil_usuario" />
+
+        <TextView
+            android:id="@+id/userNameTextViewEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/userProfileImageViewEdit"
+            android:layout_alignTop="@id/userProfileImageViewEdit"
+            android:layout_marginStart="16dp"
+            android:text="@string/loading_username"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
 
         <ImageView
             android:id="@+id/logoImageViewEditProfile"
@@ -89,19 +91,6 @@
                 android:textSize="20sp"
                 android:layout_marginBottom="12dp"/>
 
-            <!--
-            <EditText
-                android:id="@+id/lastNameEditTextProfile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/hint_last_name"
-                android:inputType="textPersonName"
-                android:textColor="#1A1919"
-                android:backgroundTint="#595B6A"
-                android:textSize="20sp"
-                android:layout_marginBottom="12dp"/>
-            -->
-
             <EditText
                 android:id="@+id/publicNameEditTextProfile"
                 android:layout_width="match_parent"
@@ -113,7 +102,6 @@
                 android:textSize="20sp"
                 android:layout_marginBottom="12dp"/>
 
-            <!--
             <EditText
                 android:id="@+id/passwordEditTextProfile"
                 android:layout_width="match_parent"
@@ -124,7 +112,6 @@
                 android:backgroundTint="#595B6A"
                 android:textSize="20sp"
                 android:layout_marginBottom="12dp"/>
-            -->
 
             <EditText
                 android:id="@+id/emailEditTextProfile"
@@ -135,7 +122,8 @@
                 android:textColor="#1A1919"
                 android:backgroundTint="#595B6A"
                 android:textSize="20sp"
-                android:enabled="false" android:focusable="false"
+                android:enabled="false"
+                android:focusable="false"
                 android:layout_marginBottom="12dp"/>
 
             <EditText
@@ -160,18 +148,6 @@
                 android:textSize="20sp"
                 android:layout_marginBottom="12dp"/>
 
-            <!--
-            <EditText
-                android:id="@+id/phoneEditTextProfile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/hint_phone_optional"
-                android:inputType="phone"
-                android:textColor="#1A1919"
-                android:backgroundTint="#595B6A"
-                android:textSize="20sp"
-                android:layout_marginBottom="12dp"/>
-            -->
         </LinearLayout>
     </ScrollView>
 
@@ -218,4 +194,3 @@
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

@@ -30,38 +30,49 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
-            android:id="@+id/userProfileImageView"
-            android:layout_width="80dp"
+            android:id="@+id/userProfileImageView" android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
+            android:layout_centerVertical="false"
+            android:layout_alignParentTop="true"
             android:contentDescription="@string/user_profile_image_description"
-            android:src="@drawable/perfil_usuario" /> <TextView
-        android:id="@+id/userNameTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/userProfileImageView"
-        android:layout_marginStart="16dp"
-        android:layout_alignTop="@id/userProfileImageView"
-        android:text="@string/loading_username"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"/>
+            android:src="@drawable/perfil_usuario" />
 
-        <Button
-            android:id="@+id/editProfileButton"
-            style="?attr/materialButtonOutlinedStyle"
+        <TextView
+            android:id="@+id/userNameTextView" android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/userProfileImageView"
+            android:layout_marginStart="16dp"
+            android:layout_alignTop="@id/userProfileImageView"
+            android:text="@string/loading_username"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/registrationDateTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/userProfileImageView"
             android:layout_below="@id/userNameTextView"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="@string/loading_registration_date" android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"/>
+        <Button
+            android:id="@+id/editProfileButton" style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/userProfileImageView"
+            android:layout_below="@id/registrationDateTextView" android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
+            android:backgroundTint="#009688"
+            android:textColor="@android:color/white"
             android:text="@string/button_edit_profile"
             android:textAllCaps="false"/>
+
         <ImageView
-            android:id="@+id/logoImageViewProfile"
-            android:layout_width="48dp"
+            android:id="@+id/logoImageViewProfile" android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
@@ -70,8 +81,7 @@
     </RelativeLayout>
 
     <Button
-        android:id="@+id/addGameButton"
-        android:layout_width="0dp"
+        android:id="@+id/addGameButton" android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
@@ -84,13 +94,13 @@
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/gamesRecyclerView"
-        android:layout_width="0dp"
+        android:id="@+id/gamesRecyclerView" android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:contentDescription="@string/cd_user_games_list"
         app:layout_constraintTop_toBottomOf="@id/addGameButton"
         app:layout_constraintBottom_toTopOf="@+id/logoutButton"
         app:layout_constraintStart_toStartOf="parent"
@@ -98,23 +108,21 @@
         tools:listitem="@layout/activity_game_list" />
 
     <Button
-    android:id="@+id/logoutButton"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
-    android:layout_marginBottom="16dp"
-    android:text="@string/button_logout"
-    style="?attr/materialButtonOutlinedStyle"
-    app:strokeColor="#009688"
-    android:textColor="#009688"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"/>
+        android:id="@+id/logoutButton" android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/button_logout"
+        style="?attr/materialButtonOutlinedStyle"
+        android:backgroundTint="#009688"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <ProgressBar
-        android:id="@+id/loadingProgressBarProfile"
-        style="?android:attr/progressBarStyle"
+        android:id="@+id/loadingProgressBarProfile" style="?android:attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"

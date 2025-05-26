@@ -67,7 +67,7 @@ public class RegisterViewModel extends AndroidViewModel {
                 }
 
                 if (tokenResponse != null && tokenResponse.getAccessToken() != null) {
-                    _isLoadingLiveData.setValue(false); // Detener carga en caso de éxito
+                    _isLoadingLiveData.setValue(false);
                     Log.d(TAG, "Registro exitoso. AccessToken: " + tokenResponse.getAccessToken().substring(0, Math.min(10, tokenResponse.getAccessToken().length())) + "...");
                     tokenManager.saveAccessToken(tokenResponse.getAccessToken());
                     if (tokenResponse.getRefreshToken() != null) {
@@ -82,18 +82,22 @@ public class RegisterViewModel extends AndroidViewModel {
                     if (tokenResponse.getRoles() != null) {
                         tokenManager.saveRoles(tokenResponse.getRoles());
                     }
-                    // === CORRECCIÓN AQUÍ: Usar getEmail() para el POJO de Android ===
-                    String emailToSave = request.getEmail(); // Usar el getter
+                    String emailToSave = tokenResponse.getEmail();
                     if (emailToSave != null && !emailToSave.isEmpty()) {
                         tokenManager.saveEmail(emailToSave);
-                        Log.d(TAG, "Email de registro guardado en TokenManager: " + emailToSave);
+                        Log.d(TAG, "Email de registro (desde respuesta) guardado en TokenManager: " + emailToSave);
+                    } else {
+                        // Fallback al email de la petición si no vino en la respuesta (aunque debería)
+                        String requestEmail = request.getEmail(); // 'request' es el RegisterRequestDTO
+                        if (requestEmail != null && !requestEmail.isEmpty()) {
+                            tokenManager.saveEmail(requestEmail);
+                            Log.d(TAG, "Email de registro (desde petición) guardado en TokenManager: " + requestEmail);
+                        } else {
+                            Log.w(TAG, "No se pudo determinar un email para guardar tras el registro.");
+                        }
                     }
-                    // ==========================================================
                     _registrationResultLiveData.postValue(tokenResponse);
                 }
-                // Si tokenResponse es null, el error ya fue manejado por el observador
-                // de userRepository.getRegistrationErrorLiveData().
-                // isLoadingLiveData ya se habrá puesto a false en ese observador.
             }
         };
         currentApiResponseLiveData.observeForever(registrationApiObserver);

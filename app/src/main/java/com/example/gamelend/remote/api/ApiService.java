@@ -74,7 +74,7 @@ public interface ApiService {
     Call<List<GameSummaryDTO>> getAllGames();
 
     @GET("api/games/{id}")
-    Call<GameResponseDTO> getGameById(@Path("id") Long id);
+    Call<GameResponseDTO> getGameDetailsById(@Path("id") Long gameId);
 
     @PUT("api/games/{id}")
     Call<GameResponseDTO> updateGame(@Path("id") Long id, @Body GameDTO gameDTO);

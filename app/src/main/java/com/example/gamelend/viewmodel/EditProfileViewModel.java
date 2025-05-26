@@ -39,7 +39,7 @@ public class EditProfileViewModel extends AndroidViewModel {
     private Observer<UserResponseDTO> profileDataObserver;
     private LiveData<UserResponseDTO> currentProfileFetchLiveData;
 
-    private Observer<UserResponseDTO> profileUpdateObserver; // Asumiendo que updateUser devuelve UserResponseDTO
+    private Observer<UserResponseDTO> profileUpdateObserver;
     private LiveData<UserResponseDTO> currentProfileUpdateLiveData;
 
 
@@ -55,8 +55,8 @@ public class EditProfileViewModel extends AndroidViewModel {
                 _errorMessage.postValue(errorMsg);
             }
         });
-        // Observar errores de actualización del perfil desde el repositorio (necesitarás añadir esto al repo)
-        /*
+        // Observar errores de actualización del perfil desde el repositorio
+
         userRepository.getUpdateUserErrorLiveData().observeForever(errorMsg -> {
             if (errorMsg != null && _isLoading.getValue() == Boolean.TRUE) {
                 _isLoading.setValue(false);
@@ -64,7 +64,6 @@ public class EditProfileViewModel extends AndroidViewModel {
                 _updateSuccess.postValue(false);
             }
         });
-        */
     }
 
     public void fetchCurrentUserData() {
@@ -113,8 +112,6 @@ public class EditProfileViewModel extends AndroidViewModel {
         _errorMessage.setValue(null);
         _updateSuccess.setValue(null); // Resetear el estado de éxito
 
-        // Necesitas un método en UserRepository para actualizar, ej: updateUserProfile
-        // Asumimos que devuelve LiveData<UserResponseDTO> con el usuario actualizado
         LiveData<UserResponseDTO> updateResponseLiveData = userRepository.updateUser(userId, userUpdateRequest);
 
         if (currentProfileUpdateLiveData != null && profileUpdateObserver != null && currentProfileUpdateLiveData.hasObservers()) {
@@ -130,15 +127,14 @@ public class EditProfileViewModel extends AndroidViewModel {
                 }
                 _isLoading.setValue(false);
                 if (updatedUser != null) {
-                    _userData.postValue(updatedUser); // Actualizar los datos del perfil con la respuesta
+                    _userData.postValue(updatedUser);
                     _updateSuccess.postValue(true);
                     Log.d(TAG, "Perfil actualizado exitosamente para userId: " + userId);
-                    // Opcional: Actualizar datos en TokenManager si es necesario (ej. publicName)
                     if (updatedUser.getPublicName() != null) {
                         tokenManager.savePublicName(updatedUser.getPublicName());
+                        Log.d(TAG, "PublicName actualizado en TokenManager a: " + updatedUser.getPublicName());
                     }
                 } else {
-                    // El error debería ser manejado por la observación del LiveData de error del repositorio
                     if (_errorMessage.getValue() == null) {
                         _errorMessage.postValue("Error al actualizar el perfil.");
                     }
@@ -162,7 +158,6 @@ public class EditProfileViewModel extends AndroidViewModel {
         if (currentProfileUpdateLiveData != null && profileUpdateObserver != null && currentProfileUpdateLiveData.hasObservers()) {
             currentProfileUpdateLiveData.removeObserver(profileUpdateObserver);
         }
-        // Des-observar los LiveData de error del repositorio si es necesario
     }
 }
 

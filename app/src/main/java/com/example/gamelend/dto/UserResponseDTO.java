@@ -7,8 +7,10 @@ import java.util.List;
 public class UserResponseDTO {
 
     private Long id;
+    private String name;
     private String publicName;
     private String email;
+    private String password;
     private String registrationDate; // Recibirá el LocalDateTime como String formateado
     private String province;
     private String city;
@@ -26,14 +28,16 @@ public class UserResponseDTO {
     }
 
     // Constructor con todos los campos
-    public UserResponseDTO(Long id, String publicName, String email, String registrationDate,
-                           String province, String city, List<GameResponseDTO> games,
+    public UserResponseDTO(Long id, String name, String publicName, String email, String registrationDate,
+                           String province, String password, String city, List<GameResponseDTO> games,
                            List<GameSummaryDTO> gamesLent, List<String> roles) {
         this.id = id;
+        this.name = name;
         this.publicName = publicName;
         this.email = email;
         this.registrationDate = registrationDate;
         this.province = province;
+        this.password = password;
         this.city = city;
         this.games = (games != null) ? games : new ArrayList<>(); // Asegurar no nulos
         this.gamesLent = (gamesLent != null) ? gamesLent : new ArrayList<>(); // Asegurar no nulos
@@ -44,6 +48,8 @@ public class UserResponseDTO {
     public Long getId() {
         return id;
     }
+
+    public String getName() { return name; }
 
     public String getPublicName() {
         return publicName;
@@ -59,6 +65,10 @@ public class UserResponseDTO {
 
     public String getProvince() {
         return province;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public String getCity() {
@@ -82,6 +92,8 @@ public class UserResponseDTO {
         this.id = id;
     }
 
+    public void setName(String name) { this.name = name; }
+
     public void setPublicName(String publicName) {
         this.publicName = publicName;
     }
@@ -96,6 +108,10 @@ public class UserResponseDTO {
 
     public void setProvince(String province) {
         this.province = province;
+    }
+
+    public void setPassword(String password) {
+        this.province = password;
     }
 
     public void setCity(String city) {

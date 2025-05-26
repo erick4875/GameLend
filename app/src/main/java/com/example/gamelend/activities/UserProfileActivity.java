@@ -2,7 +2,7 @@ package com.example.gamelend.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log; // Para depuración
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -14,34 +14,35 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets; // Mantén si usas el listener de insets
-import androidx.core.view.ViewCompat; // Mantén si usas el listener de insets
-import androidx.core.view.WindowInsetsCompat; // Mantén si usas el listener de insets
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide; // Para cargar imágenes desde URL
 import com.example.gamelend.R;
 import com.example.gamelend.auth.TokenManager;
 import com.example.gamelend.dto.GameSummaryDTO;
+import com.example.gamelend.dto.UserResponseDTO;
 import com.example.gamelend.models.Game;
-import com.example.gamelend.models.GameAdapter; // Asume que tienes este adaptador
-// import com.example.gamelend.models.Game; // Si GameAdapter usa una clase Game local
+import com.example.gamelend.models.GameAdapter; // Importar GameAdapter
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.viewmodel.GameListViewModel;
-import com.example.gamelend.viewmodel.UserProfileViewModel; // Tu ViewModel
+import com.example.gamelend.viewmodel.UserProfileViewModel;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+// import java.util.stream.Collectors; // Solo si usas streams (API 24+)
 
-public class UserProfileActivity extends AppCompatActivity {
+// UserProfileActivity ahora implementa la interfaz OnGameItemClickListener de GameAdapter
+public class UserProfileActivity extends AppCompatActivity implements GameAdapter.OnGameItemClickListener {
 
     private static final String TAG = "UserProfileActivity";
 
-    // UI Elements
     private ImageView userProfileImageView, logoImageViewProfile;
-    private TextView userNameTextView;
+    private TextView userNameTextView, registrationDateTextView;
     private Button editProfileButton, addGameButton, logoutButton;
     private RecyclerView gamesRecyclerView;
     private ProgressBar loadingProgressBarProfile;
@@ -49,7 +50,6 @@ public class UserProfileActivity extends AppCompatActivity {
     private GameAdapter gameAdapter;
     private TokenManager tokenManager;
     private UserProfileViewModel userProfileViewModel;
-
     private GameListViewModel gameListViewModel;
 
     @Override
@@ -57,169 +57,180 @@ public class UserProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
 
-        // Configurar Toolbar
         Toolbar toolbar = findViewById(R.id.profileToolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            // getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Descomenta si quieres flecha atrás
             getSupportActionBar().setTitle(R.string.title_activity_user_profile);
+            // getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Descomenta si quieres flecha atrás
         }
 
-        // Inicializar vistas (asegúrate que los IDs en XML sean estos)
         userProfileImageView = findViewById(R.id.userProfileImageView);
         logoImageViewProfile = findViewById(R.id.logoImageViewProfile);
         userNameTextView = findViewById(R.id.userNameTextView);
+        registrationDateTextView = findViewById(R.id.registrationDateTextView);
         editProfileButton = findViewById(R.id.editProfileButton);
         addGameButton = findViewById(R.id.addGameButton);
         logoutButton = findViewById(R.id.logoutButton);
         gamesRecyclerView = findViewById(R.id.gamesRecyclerView);
         loadingProgressBarProfile = findViewById(R.id.loadingProgressBarProfile);
 
-        // Inicializar TokenManager
         tokenManager = ApiClient.getTokenManager(getApplicationContext());
 
-        // Configurar RecyclerView
         gamesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         gamesRecyclerView.setHasFixedSize(true);
-        // Necesitarás un GameAdapter. Si no lo tienes, crea uno básico.
-        gameAdapter = new GameAdapter(this, new ArrayList<>(),false);
+        // Al crear el adaptador, pasamos 'this' como el listener
+        gameAdapter = new GameAdapter(this, new ArrayList<>(), this);
         gamesRecyclerView.setAdapter(gameAdapter);
 
-        // Inicializar ViewModel
-        userProfileViewModel = new ViewModelProvider(this,
-                ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()))
-                .get(UserProfileViewModel.class);
+        userProfileViewModel = new ViewModelProvider(this).get(UserProfileViewModel.class);
+        gameListViewModel = new ViewModelProvider(this).get(GameListViewModel.class);
 
-
-        //Inicializar el ViewModel de la lista de juegos
-        gameListViewModel = new ViewModelProvider(this,
-                ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()))
-                .get(GameListViewModel.class);
-
-        // Configurar observadores para los LiveData del ViewModel
         setupViewModelObservers();
+        setupButtonListeners(); // Mover listeners de botones a un método separado
 
-        gameListViewModel.fetchAllGames();
+        // La carga de datos se hará en onResume
+    }
 
-        // Solicitar la carga de datos del perfil
-        Log.d(TAG, "Solicitando datos del perfil del usuario...");
-        userProfileViewModel.fetchUserProfileData();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: Solicitando datos...");
+        loadingProgressBarProfile.setVisibility(View.VISIBLE);
+        setButtonsEnabled(false);
 
-        // Configuración de eventos para los botones
+        if (userProfileViewModel != null) {
+            userProfileViewModel.fetchUserProfileData();
+        }
+        if (gameListViewModel != null) {
+            // Aquí decides si cargas todos los juegos o solo los del usuario.
+            // Si son solo los del usuario, esta lógica podría estar en UserProfileViewModel
+            // o GameListViewModel necesitaría el userId.
+            gameListViewModel.fetchAllGames();
+        }
+    }
+
+    private void setupButtonListeners() {
         editProfileButton.setOnClickListener(view -> {
+            Log.d(TAG, "Botón Editar Perfil PRESIONADO");
             Intent intent = new Intent(UserProfileActivity.this, EditProfileActivity.class);
-            // Podrías pasar el ID del usuario o el UserResponseDTO si EditProfileActivity lo necesita
-            // intent.putExtra("USER_ID", userIdFromViewModel);
             startActivity(intent);
         });
 
         addGameButton.setOnClickListener(view -> {
+            Log.d(TAG, "Botón Añadir Juego PRESIONADO");
             Intent intent = new Intent(UserProfileActivity.this, AddGameActivity.class);
             startActivity(intent);
         });
 
-        logoutButton.setOnClickListener(view -> performLogout());
-
-        // Manejo de Insets (si lo necesitas)
-        View profileHeaderLayout = findViewById(R.id.profileHeaderLayout);
-        if (profileHeaderLayout != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(profileHeaderLayout, (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-                return insets;
-            });
-        }
+        logoutButton.setOnClickListener(view -> {
+            Log.d(TAG, "Botón Cerrar Sesión PRESIONADO");
+            performLogout();
+        });
     }
 
     private void setupViewModelObservers() {
-        // Observar el estado de carga
         userProfileViewModel.isLoading.observe(this, isLoading -> {
-            Log.d(TAG, "isLoading LiveData changed: " + isLoading);
-            if (isLoading != null && isLoading) {
-                loadingProgressBarProfile.setVisibility(View.VISIBLE);
-                // Opcionalmente, ocultar contenido principal mientras carga
-                // gamesRecyclerView.setVisibility(View.GONE);
-                // userNameTextView.setVisibility(View.GONE); // etc.
-            } else {
-                loadingProgressBarProfile.setVisibility(View.GONE);
-                // Mostrar contenido principal
-                // gamesRecyclerView.setVisibility(View.VISIBLE);
-                // userNameTextView.setVisibility(View.VISIBLE);
-            }
+            Log.d(TAG, "UserProfile isLoading: " + isLoading);
+            updateLoadingState();
         });
 
-        // Observar los datos del perfil del usuario
+        gameListViewModel.isLoadingLiveData.observe(this, isLoading -> {
+            Log.d(TAG, "GameList isLoading: " + isLoading);
+            updateLoadingState();
+        });
+
         userProfileViewModel.userData.observe(this, user -> {
             if (user != null) {
                 Log.d(TAG, "userData LiveData changed: " + user.getPublicName());
-                userNameTextView.setText(user.getPublicName()); // <--- ACTUALIZAR EL NOMBRE
-                // Aquí también actualizarías la imagen de perfil, etc.
-                // Ejemplo con Glide (asegúrate de tener la dependencia y permiso de internet):
-                // if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
-                //    Glide.with(this).load(user.getProfileImageUrl()).placeholder(R.drawable.perfil_usuario).into(userProfileImageView);
-                // } else {
-                //    userProfileImageView.setImageResource(R.drawable.perfil_usuario); // Placeholder
-                // }
-                // También podrías cargar los juegos del usuario aquí o tener un LiveData separado para ellos
-                // if (user.getGames() != null) {
-                //    gameAdapter.submitList(user.getGames()); // Asumiendo que UserResponseDTO tiene los juegos y GameAdapter los acepta
-                // }
+                userNameTextView.setText(user.getPublicName());
+                if (user.getRegistrationDate() != null && !user.getRegistrationDate().isEmpty()) {
+                    String formattedDate = formatDateString(user.getRegistrationDate());
+                    registrationDateTextView.setText(getString(R.string.registration_date_prefix) + formattedDate);
+                } else {
+                    registrationDateTextView.setText(getString(R.string.registration_date_prefix) + "No disponible");
+                }
             } else {
-                Log.d(TAG, "userData LiveData es null (posiblemente después de un error inicial)");
+                Log.d(TAG, "userData LiveData es null");
+                userNameTextView.setText("");
+                registrationDateTextView.setText("");
             }
         });
 
-        // Observar los mensajes de error
         userProfileViewModel.errorMessage.observe(this, error -> {
             if (error != null && !error.isEmpty()) {
-                Log.e(TAG, "errorMessage LiveData changed: " + error);
-                Toast.makeText(UserProfileActivity.this, error, Toast.LENGTH_LONG).show();
-                userProfileViewModel.clearErrorMessage(); // Limpiar el error después de mostrarlo
+                Log.e(TAG, "UserProfile errorMessage: " + error);
+                Toast.makeText(UserProfileActivity.this, "Perfil: " + error, Toast.LENGTH_LONG).show();
+                userProfileViewModel.clearErrorMessage();
             }
         });
 
-        // Observar la lista de juegos del usuario (si la manejas por separado en el ViewModel)
-        /*
-        userProfileViewModel.userGames.observe(this, games -> {
-            if (games != null) {
-                Log.d(TAG, "userGames LiveData changed, count: " + games.size());
-                gameAdapter.submitList(games); // Asume que GameAdapter tiene submitList
-            }
-        });
-        */
-
-        //Cargar la lista de juegos de la base de datos o API si es necesario
-        gameListViewModel.gamesListLiveData.observe(this, games -> {
-            if (games != null) {
-                Log.d(TAG, "Juegos cargados: " + games.size());
-                // Convertir GameSummaryDTO a Game
-                List<Game> convertedGames = new ArrayList<>();
-                for (GameSummaryDTO dto : games) {
-                    String name = dto.getTitle();
-                    int imageRes = R.drawable.mando; // Usa un recurso por defecto o mapea según DTO
-                    convertedGames.add(new Game(name, imageRes));
-                }
-                gameAdapter.submitList(convertedGames); // Actualizar el adaptador con la lista de juegos
-            }
-        });
-
-        // Observar el estado de carga para mostrar progressbar
-        gameListViewModel.isLoadingLiveData.observe(this, isLoading -> {
-            if (isLoading != null && isLoading) {
-                loadingProgressBarProfile.setVisibility(View.VISIBLE);
+        gameListViewModel.gamesListLiveData.observe(this, gameSummaryDTOs -> {
+            if (gameSummaryDTOs != null) {
+                Log.d(TAG, "GamesList LiveData (DTOs) changed, count: " + gameSummaryDTOs.size());
+                List<Game> uiGameList = mapGameSummaryDTOsToGames(gameSummaryDTOs);
+                gameAdapter.submitList(uiGameList);
             } else {
-                loadingProgressBarProfile.setVisibility(View.GONE);
+                gameAdapter.submitList(new ArrayList<>());
             }
         });
 
-        // Observar errores
         gameListViewModel.errorLiveData.observe(this, error -> {
             if (error != null && !error.isEmpty()) {
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+                Log.e(TAG, "GameList errorMessage: " + error);
+                Toast.makeText(UserProfileActivity.this, "Juegos: " + error, Toast.LENGTH_LONG).show();
                 gameListViewModel.clearFetchGamesError();
             }
         });
+    }
 
+    private void setButtonsEnabled(boolean enabled) {
+        editProfileButton.setEnabled(enabled);
+        addGameButton.setEnabled(enabled);
+        logoutButton.setEnabled(enabled);
+    }
+
+    private void updateLoadingState() {
+        Boolean profileIsLoading = userProfileViewModel.isLoading.getValue();
+        Boolean gamesAreLoading = gameListViewModel.isLoadingLiveData.getValue();
+
+        boolean pLoading = profileIsLoading != null && profileIsLoading;
+        boolean gLoading = gamesAreLoading != null && gamesAreLoading;
+        boolean overallLoading = pLoading || gLoading;
+
+        Log.d(TAG, "updateLoadingState - profileLoading: " + pLoading + ", gamesLoading: " + gLoading + ", overallLoading: " + overallLoading);
+
+        loadingProgressBarProfile.setVisibility(overallLoading ? View.VISIBLE : View.GONE);
+        setButtonsEnabled(!overallLoading);
+    }
+
+    private List<Game> mapGameSummaryDTOsToGames(List<GameSummaryDTO> dtos) {
+        List<Game> uiGames = new ArrayList<>();
+        if (dtos == null) return uiGames;
+        for (GameSummaryDTO dto : dtos) {
+            if (dto != null) {
+                String title = dto.getTitle() != null ? dto.getTitle() : "N/A";
+                Long gameId = dto.getId(); // Asumiendo que GameSummaryDTO tiene getId()
+                // Usando el constructor de models.Game que ahora incluye id
+                uiGames.add(new Game(gameId, title, R.drawable.mando));
+            }
+        }
+        return uiGames;
+    }
+
+    private String formatDateString(String dateString) {
+        if (dateString == null) return "N/A";
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
+            Date date = inputFormat.parse(dateString);
+            if (date != null) {
+                return outputFormat.format(date);
+            }
+        } catch (ParseException e) {
+            Log.e(TAG, "Error al parsear la fecha: " + dateString, e);
+            return dateString;
+        }
+        return dateString;
     }
 
     private void performLogout() {
@@ -233,7 +244,6 @@ public class UserProfileActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        // Manejar el clic en la flecha de atrás de la Toolbar
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
@@ -241,11 +251,20 @@ public class UserProfileActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // === IMPLEMENTACIÓN DEL MÉTODO DE LA INTERFAZ OnGameItemClickListener ===
+    @Override
+    public void onGameItemClick(Game clickedGame) {
+        Log.d(TAG, "Juego clickeado: " + clickedGame.getName() + " (ID: " + clickedGame.getId() + ")");
+        Toast.makeText(this, "Juego: " + clickedGame.getName(), Toast.LENGTH_SHORT).show();
 
-    // onBackPressed() ya lo tenías, puedes mantenerlo o ajustarlo
-    // @Override
-    // public void onBackPressed() {
-    //     super.onBackPressed();
-    //     finish();
-    // }
+        if (clickedGame.getId() != null) {
+            Intent intent = new Intent(UserProfileActivity.this, GameDetailActivity.class);
+            intent.putExtra(GameListActivity.EXTRA_GAME_ID, clickedGame.getId()); // Usar la constante de GameListActivity
+            startActivity(intent);
+        } else {
+            Log.e(TAG, "ID del juego es null, no se puede navegar a detalles.");
+            Toast.makeText(this, "No se pudo obtener el ID del juego para ver detalles.", Toast.LENGTH_SHORT).show();
+        }
+    }
+    // =====================================================================
 }

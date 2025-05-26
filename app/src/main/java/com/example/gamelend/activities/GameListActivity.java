@@ -1,5 +1,6 @@
 package com.example.gamelend.activities;
 
+import android.content.Intent; // Para iniciar GameDetailActivity
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -18,33 +19,33 @@ import com.example.gamelend.R;
 import com.example.gamelend.dto.GameSummaryDTO; // DTO de la API
 import com.example.gamelend.models.Game;         // Modelo local para la UI (com.example.gamelend.models.Game)
 import com.example.gamelend.models.GameAdapter;
-import com.example.gamelend.models.GameStatus; // El enum de tu paquete models
+// import com.example.gamelend.models.GameStatus; // Si lo usas en el mapeo
 import com.example.gamelend.viewmodel.GameListViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors; // Para el mapeo con streams (requiere API 24+)
+// import java.util.stream.Collectors; // Si usas streams para mapear
 
-public class GameListActivity extends AppCompatActivity {
+public class GameListActivity extends AppCompatActivity implements GameAdapter.OnGameItemClickListener {
 
     private static final String TAG = "GameListActivity";
 
     private RecyclerView gamesRecyclerView;
     private GameAdapter gameAdapter;
     private ProgressBar loadingProgressBar;
-
     private GameListViewModel gameListViewModel;
+
+    public static final String EXTRA_GAME_ID = "com.example.gamelend.GAME_ID"; // Constante para el extra del Intent
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game_list);
-
+        setContentView(R.layout.activity_game_list); // Tu XML actualizado
 
         Toolbar toolbar = findViewById(R.id.gameListToolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Muestra la flecha "atrás"
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
@@ -54,9 +55,7 @@ public class GameListActivity extends AppCompatActivity {
         gamesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         gamesRecyclerView.setHasFixedSize(true);
 
-        // Inicializar adaptador con una lista vacía de 'models.Game'
-        // El constructor de GameAdapter espera List<com.example.gamelend.models.Game>
-        gameAdapter = new GameAdapter(this, new ArrayList<Game>(), true);
+        gameAdapter = new GameAdapter(this, new ArrayList<Game>(), this);
         gamesRecyclerView.setAdapter(gameAdapter);
 
         gameListViewModel = new ViewModelProvider(this,
@@ -88,33 +87,12 @@ public class GameListActivity extends AppCompatActivity {
         });
 
         gameListViewModel.gamesListLiveData.observe(this, gameSummaryDTOs -> {
-            // gameSummaryDTOs es List<GameSummaryDTO>
             if (gameSummaryDTOs != null) {
-                Log.d(TAG, "gamesListLiveData (DTOs) changed, count: " + gameSummaryDTOs.size());
-
-                // === MAPEAR List<GameSummaryDTO> a List<com.example.gamelend.models.Game> ===
-                List<Game> uiGameList = new ArrayList<>();
-                for (GameSummaryDTO dto : gameSummaryDTOs) {
-                    if (dto != null) {
-                        // Asumimos que GameSummaryDTO tiene getTitle().
-                        // Para la imagen, GameSummaryDTO no tiene un resource ID.
-                        // Si GameSummaryDTO tuviera una imageUrl, la pasarías al constructor de models.Game
-                        // y GameAdapter usaría Glide. Por ahora, usamos un placeholder.
-                        // También, GameSummaryDTO tiene 'platform' y 'status'. Si quieres mostrarlos,
-                        // tu clase 'models.Game' necesitaría esos campos y un constructor que los acepte.
-
-                        String title = dto.getTitle() != null ? dto.getTitle() : "Título no disponible";
-                        // String platform = dto.getPlatform(); // Si GameSummaryDTO tiene getPlatform()
-                        // com.example.gamelend.models.GameStatus status = mapDtoStatusToModelStatus(dto.getStatus()); // Necesitarías un método de mapeo para el enum
-
-                        // Usando el constructor actual de models.Game(String name, int imageResourceId)
-                        uiGameList.add(new Game(title, R.drawable.mando)); // R.drawable.mando es un placeholder
-                    }
-                }
-                // =======================================================================
-                gameAdapter.submitList(uiGameList); // Pasar la lista mapeada (List<models.Game>) al adaptador
+                Log.d(TAG, "GamesList LiveData (DTOs) changed, count: " + gameSummaryDTOs.size());
+                List<Game> uiGameList = mapGameSummaryDTOsToGames(gameSummaryDTOs);
+                gameAdapter.submitList(uiGameList);
             } else {
-                gameAdapter.submitList(new ArrayList<>()); // Enviar lista vacía si los DTOs son nulos
+                gameAdapter.submitList(new ArrayList<>());
             }
         });
 
@@ -127,20 +105,44 @@ public class GameListActivity extends AppCompatActivity {
         });
     }
 
-    // Metodo de ejemplo para mapear el enum de estado del DTO al enum del modelo (si son diferentes)
-    // Necesitarías que tu GameSummaryDTO tenga un getter para su GameStatus.
-    /*
-    private com.example.gamelend.models.GameStatus mapDtoStatusToModelStatus(org.project.group5.gamelend.entity.Game.GameStatus dtoStatus) {
-        if (dtoStatus == null) return com.example.gamelend.models.GameStatus.UNAVAILABLE; // O un valor por defecto
-        switch (dtoStatus) {
-            case AVAILABLE:
-                return com.example.gamelend.models.GameStatus.AVAILABLE;
-            case BORROWED:
-                return com.example.gamelend.models.GameStatus.BORROWED;
-            case UNAVAILABLE:
-            default:
-                return com.example.gamelend.models.GameStatus.UNAVAILABLE;
+    /**
+     * Mapea una lista de GameSummaryDTO (de la API) a una lista de Game (modelo de UI).
+     * @param dtos Lista de GameSummaryDTO.
+     * @return Lista de objetos Game para la UI.
+     */
+    private List<Game> mapGameSummaryDTOsToGames(List<GameSummaryDTO> dtos) {
+        List<Game> uiGames = new ArrayList<>();
+        if (dtos == null) return uiGames;
+
+        for (GameSummaryDTO dto : dtos) {
+            if (dto != null) {
+                String title = dto.getTitle() != null ? dto.getTitle() : "Título no disponible";
+                Long gameId = dto.getId(); // Asumimos que GameSummaryDTO tiene getId()
+
+                // Usando el constructor de models.Game que ahora incluye id
+                // public Game(Long id, String name, int imageResourceId)
+                uiGames.add(new Game(gameId, title, R.drawable.mando)); // R.drawable.mando es un placeholder
+            }
+        }
+        return uiGames;
+    }
+
+    /**
+     * Se llama cuando un ítem de la lista de juegos es clickeado.
+     * @param clickedGame El objeto 'Game' (de tu paquete models) que fue clickeado.
+     */
+    @Override
+    public void onGameItemClick(Game clickedGame) {
+        Log.d(TAG, "Juego clickeado: " + clickedGame.getName() + " (ID: " + clickedGame.getId() + ")");
+        Toast.makeText(this, "Juego: " + clickedGame.getName(), Toast.LENGTH_SHORT).show();
+
+        if (clickedGame.getId() != null) {
+            Intent intent = new Intent(GameListActivity.this, GameDetailActivity.class);
+            intent.putExtra(EXTRA_GAME_ID, clickedGame.getId()); // Pasar el ID del juego
+            startActivity(intent);
+        } else {
+            Log.e(TAG, "ID del juego es null, no se puede navegar a detalles.");
+            Toast.makeText(this, "No se pudo obtener el ID del juego para ver detalles.", Toast.LENGTH_SHORT).show();
         }
     }
-    */
 }

@@ -26,8 +26,9 @@ public class UserRepository {
 
     private ApiService apiService;
     private MutableLiveData<String> registrationErrorLiveData = new MutableLiveData<>();
-    private MutableLiveData<String> userProfileErrorLiveData = new MutableLiveData<>(); // Para errores de perfil
+    private MutableLiveData<String> userProfileErrorLiveData = new MutableLiveData<>();
     private MutableLiveData<String> updateUserErrorLiveData = new MutableLiveData<>();
+
 
     public UserRepository(Context context) {
         this.apiService = ApiClient.getRetrofitInstance(context.getApplicationContext()).create(ApiService.class);
@@ -37,8 +38,12 @@ public class UserRepository {
         return registrationErrorLiveData;
     }
 
-    public LiveData<String> getUserProfileErrorLiveData() { // Getter para el error de perfil
+    public LiveData<String> getUserProfileErrorLiveData() {
         return userProfileErrorLiveData;
+    }
+
+    public LiveData<String> getUpdateUserErrorLiveData() {
+        return updateUserErrorLiveData;
     }
 
     public LiveData<UserResponseDTO> updateUser(Long userId, UserDTO userUpdateRequest) {
@@ -220,5 +225,5 @@ public class UserRepository {
         });
         return userProfileResultLiveData;
     }
-    // =======================================================
+
 }

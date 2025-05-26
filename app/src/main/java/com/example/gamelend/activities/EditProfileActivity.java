@@ -3,18 +3,18 @@ package com.example.gamelend.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem;
+import android.view.MenuItem; // Para la Toolbar
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.ImageView; // Para las imágenes de perfil y logo
+import android.widget.ProgressBar; // Para el feedback de carga/guardado
+import android.widget.TextView; // Para el nombre de usuario
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.NonNull; // Para onOptionsItemSelected
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar; // Para la Toolbar
 import androidx.lifecycle.ViewModelProvider; // Importar ViewModelProvider
 
 // import com.bumptech.glide.Glide; // Descomentar si usas Glide
@@ -30,9 +30,10 @@ public class EditProfileActivity extends AppCompatActivity {
     private static final String TAG = "EditProfileActivity";
 
     private ImageView userProfileImageViewEdit, logoImageViewEditProfile;
-    private TextView userNameTextViewEdit;
-    private EditText publicNameEditTextProfile,
-            provinceEditTextProfile, cityEditTextProfile;
+    private TextView userNameTextViewEdit; // Para mostrar el publicName actual (no editable)
+    private EditText nameEditTextProfile; // Para editar el nombre real
+    private EditText publicNameEditTextProfile, passwordEditTextProfile; // Para editar el nombre público
+    private EditText provinceEditTextProfile, cityEditTextProfile;
 
     private Button viewGamesButton, saveChangesButton;
     private ProgressBar editProfileLoadingProgressBar;
@@ -56,23 +57,25 @@ public class EditProfileActivity extends AppCompatActivity {
         userProfileImageViewEdit = findViewById(R.id.userProfileImageViewEdit);
         logoImageViewEditProfile = findViewById(R.id.logoImageViewEditProfile);
         userNameTextViewEdit = findViewById(R.id.userNameTextViewEdit);
-        publicNameEditTextProfile = findViewById(R.id.publicNameEditTextProfile);
+
+        nameEditTextProfile = findViewById(R.id.nameEditTextProfile); // EditText para el nombre real
+        publicNameEditTextProfile = findViewById(R.id.publicNameEditTextProfile); // EditText para el nombre público
         provinceEditTextProfile = findViewById(R.id.provinceEditTextProfile);
         cityEditTextProfile = findViewById(R.id.cityEditTextProfile);
+        passwordEditTextProfile = findViewById(R.id.passwordEditTextProfile);
+
         viewGamesButton = findViewById(R.id.viewGamesButton);
         saveChangesButton = findViewById(R.id.saveChangesButton);
         editProfileLoadingProgressBar = findViewById(R.id.editProfileLoadingProgressBar);
 
         tokenManager = ApiClient.getTokenManager(getApplicationContext());
 
-        // Inicializar ViewModel
         editProfileViewModel = new ViewModelProvider(this,
                 ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()))
                 .get(EditProfileViewModel.class);
 
         setupViewModelObservers();
 
-        // Cargar datos del usuario actual
         Log.d(TAG, "Solicitando datos del perfil para editar...");
         editProfileViewModel.fetchCurrentUserData();
 
@@ -97,37 +100,48 @@ public class EditProfileActivity extends AppCompatActivity {
     private void populateUI(UserResponseDTO user) {
         if (user == null) {
             Log.w(TAG, "populateUI llamado con usuario null.");
-            userNameTextViewEdit.setText(R.string.user_profile_load_error); // Nueva string
-            // Dejar los EditText vacíos o con un hint indicando error
+            userNameTextViewEdit.setText(R.string.user_profile_load_error);
+            nameEditTextProfile.setText("");
             publicNameEditTextProfile.setText("");
             provinceEditTextProfile.setText("");
             cityEditTextProfile.setText("");
             return;
         }
         Log.d(TAG, "Poblando UI con datos de: " + user.getPublicName());
-        currentEditingUserId = user.getId(); // Guardar el ID del usuario actual
-        userNameTextViewEdit.setText(user.getPublicName()); // Mostrar el publicName actual
-        publicNameEditTextProfile.setText(user.getPublicName()); // Permitir editar publicName
+        currentEditingUserId = user.getId();
+        userNameTextViewEdit.setText(user.getPublicName());
+
+        // Poblar los EditText con los datos del usuario
+        nameEditTextProfile.setText(user.getName() != null ? user.getName() : ""); // Nombre real
+        publicNameEditTextProfile.setText(user.getPublicName() != null ? user.getPublicName() : ""); // Nombre público
         provinceEditTextProfile.setText(user.getProvince() != null ? user.getProvince() : "");
         cityEditTextProfile.setText(user.getCity() != null ? user.getCity() : "");
 
-        // Cargar imagen de perfil si tienes la URL y Glide
+        // Cargar imagen de perfil
         // if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
         //    Glide.with(this).load(user.getProfileImageUrl()).placeholder(R.drawable.perfil_usuario).into(userProfileImageViewEdit);
         // } else {
-        //    userProfileImageViewEdit.setImageResource(R.drawable.perfil_usuario); // Placeholder
+        //    userProfileImageViewEdit.setImageResource(R.drawable.perfil_usuario);
         // }
     }
 
     private void attemptSaveChanges() {
-        // String name = nameEditTextProfile.getText().toString().trim(); // Eliminado
-        String publicName = publicNameEditTextProfile.getText().toString().trim();
+        // Recoger datos de los EditText correctos
+        String name = nameEditTextProfile.getText().toString().trim(); // Nombre real del EditText
+        String publicName = publicNameEditTextProfile.getText().toString().trim(); // Nombre público del EditText
         String province = provinceEditTextProfile.getText().toString().trim();
         String city = cityEditTextProfile.getText().toString().trim();
+        String newPassword = passwordEditTextProfile.getText().toString().trim();
 
-        // Solo validamos los campos que se editan
-        if (publicName.isEmpty() || province.isEmpty() || city.isEmpty()) {
-            Toast.makeText(this, R.string.error_complete_all_editable_fields, Toast.LENGTH_SHORT).show(); // Nueva string
+        // Dentro de attemptSaveChanges, después de recoger los campos
+        if (name.isEmpty() || publicName.isEmpty() || province.isEmpty() || city.isEmpty()) {
+            Toast.makeText(this, R.string.error_complete_all_editable_fields, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+// Validación adicional para la nueva contraseña SI se introduce una
+        if (!newPassword.isEmpty() && newPassword.length() < 8) { // Ejemplo: longitud mínima de 8
+            Toast.makeText(this, R.string.error_password_length, Toast.LENGTH_SHORT).show(); // Necesitarás esta string
             return;
         }
 
@@ -137,22 +151,19 @@ public class EditProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // UserDTO para la actualización:
-        // 'name' (nombre real) no se envía o se envía como null si no se puede cambiar.
-        // 'email' y 'password' tampoco se actualizan desde este formulario.
         UserDTO updatedUserDTO = new UserDTO(
-                null, // name (nombre real) - no se edita aquí
+                name,
                 publicName,
-                null, // email
+                null,       // email (no se actualiza aquí)
                 province,
                 city,
-                null, // password
-                null, // registrationDate
-                null, // games
-                null  // roles
+                newPassword.isEmpty() ? null : newPassword, // Pasar null si está vacía, sino la nueva contraseña
+                null,       // registrationDate
+                null,       // games
+                null        // roles
         );
 
-        Log.d(TAG, "Intentando guardar cambios para userId: " + currentEditingUserId + " con publicName: " + publicName);
+        Log.d(TAG, "Intentando guardar cambios para userId: " + currentEditingUserId + " con Name: " + name + ", PublicName: " + publicName);
         editProfileViewModel.updateUserProfile(currentEditingUserId, updatedUserDTO);
     }
 
@@ -172,26 +183,22 @@ public class EditProfileActivity extends AppCompatActivity {
                 populateUI(user);
             } else {
                 Log.d(TAG, "userData LiveData es null (posiblemente después de un error de carga inicial).");
-                // No es necesariamente un error si es la primera carga y aún no hay datos,
-                // el error se manejaría con errorMessage LiveData.
-                // Si el usuario es null después de un intento de carga, populateUI mostrará el error.
-                populateUI(null); // Llamar para mostrar estado de error/vacío
+                populateUI(null);
             }
         });
 
         editProfileViewModel.updateSuccess.observe(this, isSuccess -> {
             if (isSuccess != null && isSuccess) {
-                Toast.makeText(EditProfileActivity.this, R.string.profile_updated_successfully, Toast.LENGTH_SHORT).show(); // Nueva string
-                finish(); // Volver a la pantalla anterior (UserProfileActivity)
+                Toast.makeText(EditProfileActivity.this, R.string.profile_updated_successfully, Toast.LENGTH_SHORT).show();
+                finish();
             }
-            // Si isSuccess es false, el error se maneja con errorMessage LiveData
         });
 
         editProfileViewModel.errorMessage.observe(this, error -> {
             if (error != null && !error.isEmpty()) {
                 Log.e(TAG, "errorMessage LiveData changed: " + error);
                 Toast.makeText(EditProfileActivity.this, error, Toast.LENGTH_LONG).show();
-                editProfileViewModel.clearErrorMessage(); // Limpiar el error después de mostrarlo
+                editProfileViewModel.clearErrorMessage();
             }
         });
     }

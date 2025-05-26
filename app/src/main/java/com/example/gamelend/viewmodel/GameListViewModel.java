@@ -2,22 +2,26 @@ package com.example.gamelend.viewmodel;
 
 import android.app.Application;
 import android.util.Log;
+
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer; // Asegúrate de tener este import si lo usas
+import androidx.lifecycle.Observer; // Importar Observer
+
 import com.example.gamelend.dto.GameSummaryDTO;
+// ErrorResponseDTO y Gson no son necesarios aquí si el GameRepository los maneja internamente
+// import com.example.gamelend.dto.ErrorResponseDTO;
+// import com.google.gson.Gson;
 import com.example.gamelend.repository.GameRepository;
-import com.example.gamelend.dto.ErrorResponseDTO; // Para parsear errores
-import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.util.List;
+// import java.io.IOException; // No es necesario aquí
 import java.util.ArrayList;
+import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+// Retrofit Call, Callback, Response no son necesarios aquí
+// import retrofit2.Call;
+// import retrofit2.Callback;
+// import retrofit2.Response;
 
 public class GameListViewModel extends AndroidViewModel {
 
@@ -34,82 +38,73 @@ public class GameListViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> _isLoadingLiveData = new MutableLiveData<>();
     public final LiveData<Boolean> isLoadingLiveData = _isLoadingLiveData;
 
+    // Observador para el LiveData de resultado del repositorio
+    private Observer<List<GameSummaryDTO>> gamesListApiObserver;
+    private LiveData<List<GameSummaryDTO>> currentGamesListApiLiveData;
+
+    // Observador para el LiveData de error del repositorio
+    private Observer<String> gamesListErrorObserver;
+
     public GameListViewModel(Application application) {
         super(application);
         this.gameRepository = new GameRepository(application.getApplicationContext());
 
-        // Si GameRepository expone un LiveData de error específico para la lista de juegos,
-        // podrías observarlo aquí. Si no, el manejo de error se hace en el callback.
-        /*
-        gameListErrorObserver = errorMsg -> {
+        // Crear el observador para los errores de carga de la lista de juegos del repositorio
+        gamesListErrorObserver = errorMsg -> {
             if (errorMsg != null) {
-                Log.d(TAG, "Error recibido del GameRepository: " + errorMsg);
-                _isLoadingLiveData.postValue(false);
+                Log.d(TAG, "Error de carga de lista de juegos recibido del GameRepository: " + errorMsg);
+                _isLoadingLiveData.postValue(false); // Detener carga si hay error del repo
                 _errorLiveData.postValue(errorMsg);
-                _gamesListLiveData.postValue(new ArrayList<>());
+                _gamesListLiveData.postValue(new ArrayList<>()); // Postear lista vacía en caso de error
             }
         };
-        gameRepository.getGameListErrorLiveData().observeForever(gameListErrorObserver); // Asume que existe este método
-        */
+        // Observar el LiveData de error del GameRepository
+        this.gameRepository.getGameListErrorLiveData().observeForever(gamesListErrorObserver);
     }
 
-    public void fetchAllGames() { // Renombrado de fetchGameSummaries para consistencia
+    /**
+     * Obtiene la lista de todos los juegos (resúmenes) desde el repositorio.
+     */
+    public void fetchAllGames() {
         _isLoadingLiveData.setValue(true);
         _errorLiveData.setValue(null);
-        // _gamesListLiveData.setValue(null); // Opcional
+        // _gamesListLiveData.setValue(null); // Opcional: limpiar lista anterior
 
-        // Remover observador anterior si currentGameListApiLiveData y gamesListApiObserver son campos
-        // y se reutilizan. Si Call es nuevo cada vez, no es necesario para el Call en sí.
+        // Remover observador anterior si existe para la respuesta de la API
+        if (currentGamesListApiLiveData != null && gamesListApiObserver != null && currentGamesListApiLiveData.hasObservers()) {
+            currentGamesListApiLiveData.removeObserver(gamesListApiObserver);
+        }
 
-        Call<List<GameSummaryDTO>> call = gameRepository.getAllGames();
+        // GameRepository.getAllGames() ahora devuelve LiveData<List<GameSummaryDTO>>
+        currentGamesListApiLiveData = gameRepository.getAllGames();
 
-        call.enqueue(new Callback<List<GameSummaryDTO>>() {
+        gamesListApiObserver = new Observer<List<GameSummaryDTO>>() {
             @Override
-            public void onResponse(Call<List<GameSummaryDTO>> call, Response<List<GameSummaryDTO>> response) {
-                _isLoadingLiveData.postValue(false);
+            public void onChanged(List<GameSummaryDTO> gameSummaries) {
+                // Remover el observador después de la primera emisión
+                if (currentGamesListApiLiveData != null) {
+                    currentGamesListApiLiveData.removeObserver(this);
+                }
+                // El estado de carga se actualiza a false tanto en éxito como cuando el observador de error del repo se activa.
+                // _isLoadingLiveData.setValue(false); // Se podría mover aquí si el errorLiveData del repo no lo hace
 
-                if (response.isSuccessful()) {
-                    if (response.code() == 204 || response.body() == null) {
-                        // Servidor respondió OK pero sin contenido (lista vacía)
-                        Log.d(TAG, "Lista de juegos vacía recibida (Cód: " + response.code() + ")");
-                        _gamesListLiveData.postValue(new ArrayList<>()); // Enviar lista vacía, no error
-                        // _errorLiveData.postValue(null); // Asegurarse que no haya mensaje de error para 204
-                    } else {
-                        // Éxito con contenido
-                        Log.d(TAG, "Juegos obtenidos exitosamente: " + response.body().size() + " juegos.");
-                        _gamesListLiveData.postValue(response.body());
-                    }
-                } else {
-                    // Error del servidor (4xx, 5xx)
-                    String errorMessage = "Error al obtener la lista de juegos (Cód: " + response.code() + ")";
-                    if (response.errorBody() != null) {
-                        try {
-                            String errorBodyString = response.errorBody().string();
-                            Log.e(TAG, "Cuerpo del error al obtener juegos: " + errorBodyString);
-                            Gson gson = new Gson();
-                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyString, ErrorResponseDTO.class);
-                            if (errorResponse != null && errorResponse.getDetails() != null && !errorResponse.getDetails().isEmpty()) {
-                                errorMessage = String.join("\n", errorResponse.getDetails());
-                            } else if (errorResponse != null && errorResponse.getMessage() != null) {
-                                errorMessage = errorResponse.getMessage();
-                            }
-                        } catch (IOException e) {
-                            Log.e(TAG, "Error al parsear errorBody al obtener juegos", e);
-                        }
-                    }
-                    _errorLiveData.postValue(errorMessage);
-                    _gamesListLiveData.postValue(new ArrayList<>()); // Lista vacía en caso de error
+                if (gameSummaries != null) {
+                    // Si la respuesta del repo es exitosa (incluyendo un 204 que el repo convierte a lista vacía),
+                    // gameSummaries no será null.
+                    _isLoadingLiveData.setValue(false); // Asegurar que el loading se detenga
+                    Log.d(TAG, "Juegos obtenidos exitosamente: " + gameSummaries.size() + " juegos.");
+                    _gamesListLiveData.postValue(gameSummaries);
+                }
+                // Si gameSummaries es null, significa que el repositorio indicó un fallo.
+                // El observador de gameRepository.getGameListErrorLiveData() (en el constructor)
+                // ya debería haber actualizado _errorLiveData y _isLoadingLiveData.
+                else if (_errorLiveData.getValue() == null) { // Solo si el repo no posteó un error específico
+                    _isLoadingLiveData.setValue(false);
+                    _errorLiveData.postValue("Error desconocido al obtener la lista de juegos.");
                 }
             }
-
-            @Override
-            public void onFailure(Call<List<GameSummaryDTO>> call, Throwable t) {
-                _isLoadingLiveData.postValue(false);
-                Log.e(TAG, "Fallo en conexión al obtener juegos: " + t.getMessage(), t);
-                _errorLiveData.postValue("Error de conexión al obtener juegos: " + t.getMessage());
-                _gamesListLiveData.postValue(new ArrayList<>());
-            }
-        });
+        };
+        currentGamesListApiLiveData.observeForever(gamesListApiObserver);
     }
 
     public void clearFetchGamesError() {
@@ -119,14 +114,12 @@ public class GameListViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        // Limpiar observadores si se usó observeForever con campos de instancia
-        /*
-        if (currentGameListApiLiveData != null && gamesListApiObserver != null && currentGameListApiLiveData.hasObservers()) {
-            currentGameListApiLiveData.removeObserver(gamesListApiObserver);
+        // Limpiar observadores para evitar memory leaks
+        if (currentGamesListApiLiveData != null && gamesListApiObserver != null && currentGamesListApiLiveData.hasObservers()) {
+            currentGamesListApiLiveData.removeObserver(gamesListApiObserver);
         }
-        if (gameListErrorObserver != null && gameRepository.getGameListErrorLiveData().hasObservers()) { // Asume que existe
-            gameRepository.getGameListErrorLiveData().removeObserver(gameListErrorObserver);
+        if (gamesListErrorObserver != null && gameRepository.getGameListErrorLiveData().hasObservers()) {
+            gameRepository.getGameListErrorLiveData().removeObserver(gamesListErrorObserver);
         }
-        */
     }
 }
