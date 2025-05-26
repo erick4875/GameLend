@@ -78,4 +78,6 @@
     <string name="label_description">Descripción:</string>
     <string name="button_request_loan">SOLICITAR PRÉSTAMO</string>
 
+    <string name="button_view_users">Ver Lista de Usuarios</string>
+
 </resources>

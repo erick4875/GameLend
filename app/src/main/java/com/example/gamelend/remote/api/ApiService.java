@@ -49,6 +49,9 @@ public interface ApiService {
             @Body UserDTO userDTO
     );
 
+    @GET("api/games/user/{userId}")
+    Call<List<GameResponseDTO>> getGamesByUserId(@Path("userId") Long userId);
+
     @DELETE("api/users/{id}")
     Call<Void> deleteUser(@Path("id") Long id);
 

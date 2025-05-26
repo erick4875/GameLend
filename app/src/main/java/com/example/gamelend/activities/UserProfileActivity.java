@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-// import java.util.stream.Collectors; // Solo si usas streams (API 24+)
 
 // UserProfileActivity ahora implementa la interfaz OnGameItemClickListener de GameAdapter
 public class UserProfileActivity extends AppCompatActivity implements GameAdapter.OnGameItemClickListener {
@@ -43,7 +42,7 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
 
     private ImageView userProfileImageView, logoImageViewProfile;
     private TextView userNameTextView, registrationDateTextView;
-    private Button editProfileButton, addGameButton, logoutButton;
+    private Button editProfileButton, addGameButton, logoutButton, viewUsersButton;
     private RecyclerView gamesRecyclerView;
     private ProgressBar loadingProgressBarProfile;
 
@@ -73,12 +72,12 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
         logoutButton = findViewById(R.id.logoutButton);
         gamesRecyclerView = findViewById(R.id.gamesRecyclerView);
         loadingProgressBarProfile = findViewById(R.id.loadingProgressBarProfile);
+        viewUsersButton = findViewById(R.id.viewUsersButton);
 
         tokenManager = ApiClient.getTokenManager(getApplicationContext());
 
         gamesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         gamesRecyclerView.setHasFixedSize(true);
-        // Al crear el adaptador, pasamos 'this' como el listener
         gameAdapter = new GameAdapter(this, new ArrayList<>(), this);
         gamesRecyclerView.setAdapter(gameAdapter);
 
@@ -86,9 +85,8 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
         gameListViewModel = new ViewModelProvider(this).get(GameListViewModel.class);
 
         setupViewModelObservers();
-        setupButtonListeners(); // Mover listeners de botones a un método separado
+        setupButtonListeners();
 
-        // La carga de datos se hará en onResume
     }
 
     @Override
@@ -125,6 +123,12 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
         logoutButton.setOnClickListener(view -> {
             Log.d(TAG, "Botón Cerrar Sesión PRESIONADO");
             performLogout();
+        });
+
+        viewUsersButton.setOnClickListener(view -> {
+            Log.d(TAG, "Botón Ver Usuarios PRESIONADO");
+            Intent intent = new Intent(UserProfileActivity.this, UserListActivity.class);
+            startActivity(intent);
         });
     }
 
@@ -187,6 +191,7 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
         editProfileButton.setEnabled(enabled);
         addGameButton.setEnabled(enabled);
         logoutButton.setEnabled(enabled);
+        viewUsersButton.setEnabled(enabled);
     }
 
     private void updateLoadingState() {

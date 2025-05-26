@@ -1,6 +1,7 @@
-package com.example.gamelend.models; // Asegúrate que sea 'models' o el paquete correcto
+package com.example.gamelend.models;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,89 +18,114 @@ import com.example.gamelend.dto.UserResponseDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
+public class ListAdapter extends RecyclerView.Adapter<ListAdapter.UserViewHolder> {
 
-    private List<UserResponseDTO> userList; // Cambiado a userList (inglés)
+    private static final String TAG_ADAPTER = "ListAdapter";
+
+    private List<UserResponseDTO> userList;
     private Context context;
-    private OnItemClickListener onItemClickListener; // Cambiado a onItemClickListener (inglés)
+    private OnItemClickListener onItemClickListener;
 
-    // Constructor
-    public ListAdapter(Context context, OnItemClickListener listener) {
-        this.context = context;
-        this.onItemClickListener = listener;
-        this.userList = new ArrayList<>(); // Inicializar aquí
-    }
-
-    //metodo para actualizar la lista
-    public void submitList(List<UserResponseDTO> newUserList) {
-        this.userList.clear();
-        if (newUserList != null) {
-            this.userList.addAll(newUserList);
-        }
-        notifyDataSetChanged(); // Notifica al adaptador que los datos cambiaron DiffUtil
-    }
-
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.user_cardview, parent, false);
-        return new ViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        UserResponseDTO user = userList.get(position); // Cambiado a userList y user
-        holder.bind(user, onItemClickListener); // Pasa el onItemClickListener de la instancia
-    }
-
-    @Override
-    public int getItemCount() {
-        return userList.size(); // Cambiado a userList
-    }
-
-    // Interfaz para los clicks en los elementos
     public interface OnItemClickListener {
         void onEdit(UserResponseDTO user);
         void onDelete(UserResponseDTO user);
         void onGamesClick(UserResponseDTO user);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        // Nombres de vistas en inglés (asumiendo que los IDs en usuario_cardview.xml también se actualizarán)
-        TextView nameTextView; // Antes tvNombre
-        TextView cityTextView; // Antes tvCiudad
-        ImageView userImageView; // Antes ivFoto
-        ImageButton gamesImageButton; // Antes ibJuegos
+    public ListAdapter(Context context, OnItemClickListener listener) {
+        this.context = context;
+        this.onItemClickListener = listener;
+        this.userList = new ArrayList<>();
+    }
 
-        public ViewHolder(@NonNull View itemView) {
+    public void submitList(List<UserResponseDTO> newUserList) {
+        this.userList.clear();
+        if (newUserList != null) {
+            this.userList.addAll(newUserList);
+        }
+        notifyDataSetChanged();
+    }
+
+    @NonNull
+    @Override
+    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.user_cardview, parent, false);
+        return new UserViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
+        UserResponseDTO currentUser = userList.get(position);
+        holder.bind(currentUser, onItemClickListener);
+    }
+
+    @Override
+    public int getItemCount() {
+        return userList != null ? userList.size() : 0;
+    }
+
+    public static class UserViewHolder extends RecyclerView.ViewHolder {
+        TextView userNameTextViewVH; // Renombrado para evitar confusión con IDs XML
+        TextView userLocationTextViewVH;
+        ImageView userProfileImageViewVH;
+        ImageButton viewUserGamesButtonVH;
+
+        public UserViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Vinculamos las vistas con los IDs del layout (actualiza los IDs si los cambias en el XML)
-            nameTextView = itemView.findViewById(R.id.textViewNombre); // Mantenlo o cámbialo a R.id.nameTextView
-            cityTextView = itemView.findViewById(R.id.textViewLocalidad); // Mantenlo o cámbialo a R.id.cityTextView
-            userImageView = itemView.findViewById(R.id.imageViewUsuario); // Mantenlo o cámbialo a R.id.userImageView
-            gamesImageButton = itemView.findViewById(R.id.imageButtonJuegos); // Mantenlo o cámbialo a R.id.gamesImageButton
+            // --- IDs CORREGIDOS PARA COINCIDIR CON TU ÚLTIMO user_cardview.xml ---
+            userNameTextViewVH = itemView.findViewById(R.id.userNameTextView);
+            userLocationTextViewVH = itemView.findViewById(R.id.userLocationTextView);
+            userProfileImageViewVH = itemView.findViewById(R.id.userProfileImageView);
+            viewUserGamesButtonVH = itemView.findViewById(R.id.viewUserGamesButton);
+            // -----------------------------------------------------------------
+
+            if (userNameTextViewVH == null) Log.e(TAG_ADAPTER, "UserViewHolder: userNameTextViewVH es NULL - verifica ID userNameTextView en XML");
+            if (userLocationTextViewVH == null) Log.e(TAG_ADAPTER, "UserViewHolder: userLocationTextViewVH es NULL - verifica ID userLocationTextView en XML");
+            if (userProfileImageViewVH == null) Log.e(TAG_ADAPTER, "UserViewHolder: userProfileImageViewVH es NULL - verifica ID userProfileImageView en XML");
+            if (viewUserGamesButtonVH == null) Log.e(TAG_ADAPTER, "UserViewHolder: viewUserGamesButtonVH es NULL - verifica ID viewUserGamesButton en XML");
         }
 
         public void bind(final UserResponseDTO user, final OnItemClickListener listener) {
-            // Asignamos los datos del usuario a las vistas
-            nameTextView.setText(user.getPublicName()); // Asumiendo que UserResponseDTO tiene getPublicName()
-            cityTextView.setText(user.getCity()); // Asumiendo que UserResponseDTO tiene getCity()
-            userImageView.setImageResource(R.drawable.perfil_usuario); // Placeholder
+            if (userNameTextViewVH != null && user.getPublicName() != null) {
+                userNameTextViewVH.setText(user.getPublicName());
+            } else if (userNameTextViewVH != null) {
+                userNameTextViewVH.setText("Nombre no disponible");
+            }
 
-            // Asignamos el comportamiento de los botones de acción
-            gamesImageButton.setOnClickListener(v -> {
-                if (listener != null) { // Buena práctica verificar que el listener no sea nulo
-                    listener.onGamesClick(user); // Cambiado a onGamesClick
+            if (userLocationTextViewVH != null) {
+                String location = "";
+                if (user.getCity() != null && !user.getCity().isEmpty()) {
+                    location += user.getCity();
                 }
-            });
+                if (user.getProvince() != null && !user.getProvince().isEmpty()) {
+                    if (!location.isEmpty()) {
+                        location += ", ";
+                    }
+                    location += user.getProvince();
+                }
+                userLocationTextViewVH.setText(location.isEmpty() ? "Ubicación no disponible" : location);
+            }
 
-            // Implementa listeners para onEdit y onDelete si tienes botones para ello en tu item_layout
+            if (userProfileImageViewVH != null) {
+                userProfileImageViewVH.setImageResource(R.drawable.perfil_usuario); // Placeholder
+            }
+
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
-                    // Podrías tener un click general en el item, o botones específicos para edit/delete
-                    // Ejemplo: listener.onEdit(user);
+                    listener.onGamesClick(user);
                 }
             });
+
+            // El listener para viewUserGamesButtonVH es opcional si itemView ya maneja onGamesClick.
+            // Si quieres que SOLO el botón active onGamesClick, mueve el listener.onGamesClick(user) aquí
+            // y quítalo del itemView.setOnClickListener.
+            if (viewUserGamesButtonVH != null) {
+                viewUserGamesButtonVH.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onGamesClick(user);
+                    }
+                });
+            }
         }
     }
 }
