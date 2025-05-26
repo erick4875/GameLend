@@ -101,9 +101,11 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsersAsResponseDTO() {
         log.debug("Solicitando todos los usuarios para convertir a DTO");
         List<User> users = userRepository.findAll();
+        // la transaccion se mantiene abierta permitiendo que el mapper acceda a las entidades
         return userMapper.toResponseDTOList(users);
     }
 

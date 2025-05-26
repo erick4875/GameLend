@@ -10,6 +10,7 @@ import org.project.group5.gamelend.mapper.GameMapper;
 import org.project.group5.gamelend.service.GameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +41,6 @@ public class GameController {
         return ResponseEntity.ok(gameDTOs);
     }
 
-    // === NUEVO MÉTODO PARA OBTENER JUEGO POR ID ===
     /**
      * Obtiene los detalles de un juego específico por su ID.
      * 
@@ -71,6 +71,25 @@ public class GameController {
         return ResponseEntity.ok(gameResponseDTO);
     }
 
+    /**
+     * Obtiene todos los juegos registrados para un usuario específico.
+     * 
+     * @param userId El ID del usuario.
+     * @return Lista de GameResponseDTO para ese usuario.
+     */
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("isAuthenticated()") // Solo usuarios autenticados pueden ver listas de juegos de otros
+    public ResponseEntity<List<GameResponseDTO>> getGamesByUserId(@PathVariable Long userId) {
+        log.info("Solicitando lista de juegos para el usuario ID: {}", userId);
+        if (userId == null) {
+            throw new BadRequestException("El ID de usuario no puede ser nulo.");
+        }
+        List<GameResponseDTO> userGames = gameService.findByUserIdDTO(userId); // Este método ya lo tienes en
+                                                                               // GameService
+        // Devolver 200 OK con lista vacía [] si el usuario no tiene juegos.
+        return ResponseEntity.ok(userGames);
+    }
+
     @GetMapping("/user/{userId}/images")
     public ResponseEntity<List<GameResponseDTO>> getGamesByUserWithImages(@PathVariable Long userId) {
         log.info("Buscando juegos con imágenes para usuario con ID: {}", userId);
@@ -86,6 +105,7 @@ public class GameController {
     }
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()") // Solo usuarios autenticados pueden eliminar juegos
     public ResponseEntity<GameResponseDTO> createGame(@Valid @RequestBody GameDTO gameDTO) {
         log.info("Creando nuevo juego con título: {}", gameDTO.title());
         // La lógica de asociar el usuario y guardar ya está en GameService.create o
@@ -95,6 +115,7 @@ public class GameController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()") // Solo usuarios autenticados pueden eliminar juegos
     public ResponseEntity<GameResponseDTO> updateGame(
             @PathVariable Long id,
             @Valid @RequestBody GameDTO gameDTO) {
@@ -104,8 +125,7 @@ public class GameController {
     }
 
     @DeleteMapping("/{id}")
-    // @PreAuthorize("isAuthenticated() and
-    // @gameSecurityService.canDeleteGame(authentication, #id)")
+    @PreAuthorize("isAuthenticated()") // Solo usuarios autenticados pueden eliminar juegos
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         log.info("Eliminando juego con ID: {}", id);
         if (id == null) {
