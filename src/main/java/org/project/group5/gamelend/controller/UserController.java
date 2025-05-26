@@ -14,6 +14,9 @@ import org.project.group5.gamelend.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,21 +98,41 @@ public class UserController {
      * Actualiza un usuario.
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        log.info("Updating user with ID: {} with data: {}", id, userDTO);
-        validateId(id);
+    public ResponseEntity<UserResponseDTO> updateUserProfile(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        log.info("Updating profile for user ID: {} with data: {}", id, userDTO);
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principalObj = authentication.getPrincipal();
+        Long currentUserId = null;
+
+        if (principalObj instanceof User) {
+            currentUserId = ((User) principalObj).getId();
+        } else if (principalObj instanceof UserDetails) {
+            String username = ((UserDetails) principalObj).getUsername();
+            User userFromDb = userService.findUserByEmail(username);
+            if (userFromDb != null) {
+                currentUserId = userFromDb.getId();
+            }
+        }
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && (currentUserId == null || !currentUserId.equals(id))) {
+            log.warn("Acceso denegado: Usuario ID {} intentando editar perfil ID {} sin ser ADMIN.", currentUserId, id);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para editar este perfil.");
+        }
+        if (id == null) {
+            log.error("ID de usuario nulo al intentar actualizar perfil.");
+            throw new BadRequestException(ERR_ID_NULL);
+        }
         if (userDTO == null) {
+            log.error("Datos de usuario nulos al intentar actualizar perfil.");
             throw new BadRequestException(ERR_USER_DATA_NULL);
         }
 
-        User existingUser = userService.getUserById(id);
-        updateUserFields(existingUser, userDTO);
-
-        User updatedUser = userService.saveUser(existingUser);
-
-        return ResponseEntity.ok(userMapper.toResponseDTO(updatedUser));
+        UserResponseDTO updatedUserResponse = userService.updateUserProfile(id, userDTO);
+        return ResponseEntity.ok(updatedUserResponse);
     }
 
     /**
@@ -218,14 +242,4 @@ public class UserController {
         return user;
     }
 
-    /**
-     * Actualiza campos de un usuario existente desde un DTO.
-     */
-    private void updateUserFields(User existingUser, UserDTO userDTO) {
-        userMapper.updateUserFromDto(userDTO, existingUser);
-
-        if (userDTO.password() != null && !userDTO.password().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(userDTO.password()));
-        }
-    }
 }

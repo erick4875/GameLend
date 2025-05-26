@@ -55,6 +55,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     boolean existsByEmail(String email);
 
+    
+    boolean existsByPublicNameAndIdNot(String publicName, Long id);
+
+    /**
+     * Verifica si existe un usuario con el email dado, excluyendo un ID específico
+     * (para evitar conflictos al actualizar un usuario)
+     * 
+     * @param email Email a verificar
+     * @param id    ID del usuario a excluir de la búsqueda
+     * @return true si existe, false en caso contrario
+     */
+    boolean existsByEmailAndIdNot(String email, Long id);
+
     /**
      * Busca usuarios que tengan juegos asociados
      * 

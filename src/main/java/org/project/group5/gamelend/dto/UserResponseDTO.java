@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * No incluye información sensible como la contraseña
  *
  * @param id               ID del usuario
+ * @param name             Nombre completo del usuario
  * @param publicName       Nombre público del usuario
  * @param email            Correo electrónico del usuario
  * @param registrationDate Fecha de registro
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  */
 public record UserResponseDTO(
     Long id,
+    String name,
     String publicName,
     String email,
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")

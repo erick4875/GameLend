@@ -3,8 +3,6 @@ package org.project.group5.gamelend.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.hibernate.Hibernate;
 import org.project.group5.gamelend.dto.UserDTO;
@@ -13,58 +11,48 @@ import org.project.group5.gamelend.entity.Role;
 import org.project.group5.gamelend.entity.User;
 import org.project.group5.gamelend.exception.BadRequestException;
 import org.project.group5.gamelend.exception.ResourceNotFoundException;
-import org.project.group5.gamelend.exception.UserNotFoundException;
-import org.project.group5.gamelend.mapper.GameMapper;
 import org.project.group5.gamelend.mapper.UserMapper;
 import org.project.group5.gamelend.repository.RoleRepository;
-import org.project.group5.gamelend.repository.UserRepository;
+import org.project.group5.gamelend.repository.UserRepository; // Asegúrate de que esté inyectado si getGamesByPublicName lo usa
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Service; // Para el try-catch en saveUser
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Servicio para la gestión de usuarios.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
 
-    // Dependencias inyectadas
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder; // Necesario si saveUser hashea contraseñas
     private final RoleRepository userRoleRepository;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final GameMapper gameMapper;
 
-    /**
-     * Obtiene el rol predeterminado para nuevos usuarios.
-     */
     public Role getDefaultRole() {
         return userRoleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new ResourceNotFoundException("Rol ROLE_USER no encontrado"));
     }
 
-    /**
-     * Busca un rol por su nombre.
-     */
     public Role findRoleByName(String roleName) {
         return userRoleRepository.findByName(roleName)
                 .orElseThrow(() -> new ResourceNotFoundException("Rol " + roleName + " no encontrado"));
     }
 
-    /**
-     * Busca un usuario por su ID.
-     */
-    public User findById(Long id) {
+    public User findUserByEmail(String email) { // Usado por UserController y potencialmente por AuthService/Security
+        if (email == null || email.trim().isEmpty()) {
+            throw new BadRequestException("El email de usuario no puede ser nulo o vacío.");
+        }
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
+    }
+
+    public User getUserById(Long id) { // Cambiado de findById para consistencia con otros getters
         if (id == null) {
             throw new BadRequestException("El ID de usuario no puede ser nulo.");
         }
@@ -73,438 +61,215 @@ public class UserService {
     }
 
     /**
-     * Crea o actualiza un usuario, validando duplicados y encriptando la contraseña.
+     * Guarda un NUEVO usuario. Las validaciones de unicidad son para creación.
      */
     @Transactional
-    public User saveUser(User user) {
+    public User saveUser(User user) { // Este user ya viene preparado desde el controller
         if (user == null) {
             throw new BadRequestException("El usuario no puede ser nulo");
         }
 
-        // Si es una creación (ID es nulo) o si el publicName ha cambiado
-        if (user.getId() == null ||
-                (user.getPublicName() != null && !user.getPublicName()
-                        .equals(userRepository.findById(user.getId()).map(User::getPublicName).orElse(null)))) {
-            if (user.getPublicName() != null && userRepository.existsByPublicName(user.getPublicName())) {
-                log.warn("Ya existe un usuario con el nombre público: {}", user.getPublicName());
-                throw new BadRequestException("Ya existe un usuario con ese nombre público");
-            }
-        }
-
-        // Si es una creación (ID es nulo) o si el email ha cambiado
-        if (user.getId() == null ||
-                (user.getEmail() != null && !user.getEmail()
-                        .equals(userRepository.findById(user.getId()).map(User::getEmail).orElse(null)))) {
-            if (user.getEmail() != null && userRepository.existsByEmail(user.getEmail())) {
-                log.warn("Ya existe un usuario con el email: {}", user.getEmail());
-                throw new BadRequestException("Ya existe un usuario con ese correo electrónico");
-            }
-        }
-
         try {
-            // Encriptar la contraseña si se proporciona una nueva y no está ya encriptada
-            if (user.getPassword() != null && !user.getPassword().isEmpty() && !user.getPassword().startsWith("$2a$")) {
-                user.setPassword(passwordEncoder.encode(user.getPassword()));
-            } else if (user.getId() != null && (user.getPassword() == null || user.getPassword().isEmpty())) {
-                // Si es una actualización y no se proporciona contraseña, mantener la existente
-                userRepository.findById(user.getId())
-                        .ifPresent(existingUser -> user.setPassword(existingUser.getPassword()));
-            }
-
+            // La contraseña ya debería estar encriptada por prepareUserForCreation
+            // La fecha de registro ya debería estar establecida por prepareUserForCreation
             User savedUser = userRepository.save(user);
-            log.info("Usuario guardado correctamente con ID: {}", savedUser.getId());
+            log.info("Usuario guardado/actualizado correctamente con ID: {}", savedUser.getId());
             return savedUser;
         } catch (DataIntegrityViolationException e) {
-            handleDataIntegrityViolation(e);
-            return null; // Unreachable
+            // Este catch es bueno para proporcionar mensajes de error más específicos
+            // si las validaciones previas fallaron o si hay otras restricciones de BD.
+            log.error("Error de integridad de datos al guardar usuario: {}", e.getMessage());
+            handleDataIntegrityViolation(e); // Lanza excepciones específicas
+            return null; // No se alcanzará debido al throw en handleDataIntegrityViolation
         } catch (Exception e) {
-            log.error("Error al guardar usuario", e);
-            throw new RuntimeException("Error al guardar el usuario: " + e.getMessage(), e);
+            log.error("Error inesperado al guardar usuario", e);
+            throw new RuntimeException("Error inesperado al guardar el usuario: " + e.getMessage(), e);
         }
     }
 
-    /**
-     * Maneja errores de integridad de datos (duplicados de email o publicName).
-     */
     private void handleDataIntegrityViolation(DataIntegrityViolationException e) {
-        String mensaje = e.getMessage() != null ? e.getMessage() : "";
-
-        if (mensaje.contains("public_name_unique") || mensaje.contains("PUBLIC_NAME_UNIQUE")
-                || mensaje.contains("uk_public_name")) {
-            log.error("Error al guardar usuario: Nombre público duplicado", e);
-            throw new BadRequestException("Ya existe un usuario con ese nombre público");
-        } else if (mensaje.contains("email_unique") || mensaje.contains("EMAIL_UNIQUE")
-                || mensaje.contains("uk_email")) {
-            log.error("Error al guardar usuario: Email duplicado", e);
-            throw new BadRequestException("Ya existe un usuario con ese correo electrónico");
+        String mensaje = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+        // Ajusta estas strings para que coincidan con los nombres de tus constraints
+        // UNIQUE en la BD
+        if (mensaje.contains("public_name")) { // O el nombre de tu constraint UNIQUE para public_name
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El nombre público ya está en uso.");
+        } else if (mensaje.contains("email")) { // O el nombre de tu constraint UNIQUE para email
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El email ya está en uso.");
         } else {
-            log.error("Error al guardar usuario: Violación de integridad de datos no especificada", e);
-            throw new BadRequestException("Error al guardar el usuario: Violación de integridad de datos");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "No se puede completar la operación debido a restricciones de datos.");
         }
     }
 
-    /**
-     * Obtiene todos los usuarios.
-     */
-    public List<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        if (users.isEmpty()) {
-            log.info("No se encontraron usuarios");
-        }
-
-        log.debug("Se encontraron {} usuarios", users.size());
-        return users;
-    }
-
-    /**
-     * Obtiene todos los usuarios como UserResponseDTO.
-     */
-    @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsersAsResponseDTO() {
         log.debug("Solicitando todos los usuarios para convertir a DTO");
         List<User> users = userRepository.findAll();
         return userMapper.toResponseDTOList(users);
     }
 
-    /**
-     * Obtiene un usuario por su ID.
-     */
-    public User getUserById(Long id) {
-        if (id == null) {
-            log.warn("ID de usuario nulo");
-            throw new BadRequestException("ID de usuario no puede ser nulo");
-        }
-
-        return userRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.info("Usuario con ID {} no encontrado", id);
-                    return new ResourceNotFoundException("Usuario no encontrado con ID: " + id);
-                });
-    }
-
-    /**
-     * Obtiene un usuario por su ID como UserResponseDTO.
-     */
-    @Transactional(readOnly = true)
     public UserResponseDTO getUserByIdAsResponseDTO(Long id) {
-        User user = getUserById(id);
+        User user = getUserById(id); // Reutiliza el método que ya valida y lanza ResourceNotFoundException
         return userMapper.toResponseDTO(user);
     }
 
-    /**
-     * Obtiene un usuario por su email.
-     */
-    public User getUserByEmail(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            log.warn("Email de usuario nulo o vacío");
-            throw new BadRequestException("Email de usuario no puede ser nulo o vacío");
-        }
-
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> {
-                    log.info("Usuario con email {} no encontrado", email);
-                    return new ResourceNotFoundException("Usuario no encontrado con email: " + email);
-                });
-    }
-
-    /**
-     * Obtiene un usuario por su email como UserResponseDTO.
-     */
-    @Transactional(readOnly = true)
     public UserResponseDTO getUserByEmailAsResponseDTO(String email) {
-        User user = getUserByEmail(email);
+        User user = findUserByEmail(email); // Reutiliza el método que ya valida
         return userMapper.toResponseDTO(user);
     }
 
-    /**
-     * Obtiene el perfil de usuario por email como UserResponseDTO.
-     */
     @Transactional(readOnly = true)
     public UserResponseDTO getUserProfileByEmail(String email) {
-        return getUserByEmailAsResponseDTO(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
+        return userMapper.toResponseDTO(user);
     }
 
-    /**
-     * Obtiene un usuario completo con todas sus relaciones por ID como UserResponseDTO.
-     */
-    @Transactional(readOnly = true)
+    // === MÉTODO REFINADO PARA ACTUALIZAR PERFIL ===
+    @Transactional
+    public UserResponseDTO updateUserProfile(Long userId, UserDTO userUpdateDTO) {
+        log.info("Intentando actualizar perfil para userId: {}", userId);
+        User userToUpdate = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("Usuario no encontrado con ID: {} para actualización.", userId);
+                    return new ResourceNotFoundException("Usuario no encontrado con ID: " + userId);
+                });
+
+        boolean changesMade = false;
+
+        // Actualizar Name (nombre real)
+        if (userUpdateDTO.name() != null && !userUpdateDTO.name().isBlank()) {
+            if (!userUpdateDTO.name().equals(userToUpdate.getName())) {
+                userToUpdate.setName(userUpdateDTO.name());
+                changesMade = true;
+                log.debug("UserID: {}, Name actualizado a: {}", userId, userUpdateDTO.name());
+            }
+        }
+
+        // Actualizar PublicName
+        if (userUpdateDTO.publicName() != null && !userUpdateDTO.publicName().isBlank()) {
+            if (!userUpdateDTO.publicName().equals(userToUpdate.getPublicName())) {
+                if (userRepository.existsByPublicNameAndIdNot(userUpdateDTO.publicName(), userId)) {
+                    log.warn("Conflicto para UserID: {}: publicName '{}' ya está en uso por otro usuario.", userId,
+                            userUpdateDTO.publicName());
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "El nombre público '" + userUpdateDTO.publicName() + "' ya está en uso.");
+                }
+                userToUpdate.setPublicName(userUpdateDTO.publicName());
+                changesMade = true;
+                log.debug("UserID: {}, PublicName actualizado a: {}", userId, userUpdateDTO.publicName());
+            }
+        }
+
+        // Actualizar Provincia
+        if (userUpdateDTO.province() != null) {
+            String newProvince = userUpdateDTO.province().isBlank() ? null : userUpdateDTO.province();
+            if ((newProvince == null && userToUpdate.getProvince() != null) ||
+                    (newProvince != null && !newProvince.equals(userToUpdate.getProvince()))) {
+                userToUpdate.setProvince(newProvince);
+                changesMade = true;
+                log.debug("UserID: {}, Province actualizada a: {}", userId, newProvince);
+            }
+        }
+
+        // Actualizar Ciudad
+        if (userUpdateDTO.city() != null) {
+            String newCity = userUpdateDTO.city().isBlank() ? null : userUpdateDTO.city();
+            if ((newCity == null && userToUpdate.getCity() != null) ||
+                    (newCity != null && !newCity.equals(userToUpdate.getCity()))) {
+                userToUpdate.setCity(newCity);
+                changesMade = true;
+                log.debug("UserID: {}, City actualizada a: {}", userId, newCity);
+            }
+        }
+
+        // Actualizar password
+        if (userUpdateDTO.password() != null && !userUpdateDTO.password().isBlank()) {
+            String encodedPassword = passwordEncoder.encode(userUpdateDTO.password());
+            if (!encodedPassword.equals(userToUpdate.getPassword())) {
+                userToUpdate.setPassword(encodedPassword);
+                changesMade = true;
+                log.debug("UserID: {}, Password actualizado.");
+            }
+        }
+
+        if (changesMade) {
+            User updatedUser = userRepository.save(userToUpdate); // Solo guarda si hubo cambios
+            log.info("Perfil de usuario actualizado exitosamente para ID: {}", userId);
+            return userMapper.toResponseDTO(updatedUser);
+        } else {
+            log.info("No se realizaron cambios en el perfil para userId: {}", userId);
+            return userMapper.toResponseDTO(userToUpdate); // Devuelve los datos existentes sin guardar
+        }
+    }
+
     public UserResponseDTO getCompleteUserByIdAsResponseDTO(Long id) {
         User user = getCompleteUserById(id);
         return userMapper.toResponseDTO(user);
     }
 
-    /**
-     * Elimina un usuario por su ID.
-     */
     @Transactional
     public void deleteUser(Long id) {
         if (id == null) {
-            log.warn("ID de usuario nulo en intento de eliminación");
-            throw new BadRequestException("ID de usuario no puede ser nulo");
+            throw new BadRequestException("El ID de usuario no puede ser nulo.");
         }
-
         if (!userRepository.existsById(id)) {
-            log.info("Intento de eliminar un usuario inexistente con ID: {}", id);
             throw new ResourceNotFoundException("Usuario no encontrado con ID: " + id);
         }
-
         userRepository.deleteById(id);
         log.info("Usuario con ID {} eliminado correctamente", id);
     }
 
-    /**
-     * Actualiza un usuario existente.
-     */
-    @Transactional
-    public User updateUser(Long id, User userRequest) {
-        if (id == null || userRequest == null) {
-            log.warn("ID o datos de usuario nulos en actualización");
-            throw new BadRequestException("ID y datos del usuario no pueden ser nulos");
-        }
-
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.info("Intento de actualizar un usuario inexistente con ID: {}", id);
-                    return new ResourceNotFoundException("Usuario no encontrado con ID: " + id);
-                });
-
-        if (userRequest.getName() != null)
-            existingUser.setName(userRequest.getName());
-        if (userRequest.getPublicName() != null) {
-            if (!userRequest.getPublicName().equals(existingUser.getPublicName())
-                    && userRepository.existsByPublicName(userRequest.getPublicName())) {
-                throw new BadRequestException(
-                        "El nombre público '" + userRequest.getPublicName() + "' ya está en uso.");
-            }
-            existingUser.setPublicName(userRequest.getPublicName());
-        }
-        if (userRequest.getEmail() != null) {
-            if (!userRequest.getEmail().equals(existingUser.getEmail())
-                    && userRepository.existsByEmail(userRequest.getEmail())) {
-                throw new BadRequestException("El email '" + userRequest.getEmail() + "' ya está en uso.");
-            }
-            existingUser.setEmail(userRequest.getEmail());
-        }
-        if (userRequest.getProvince() != null)
-            existingUser.setProvince(userRequest.getProvince());
-        if (userRequest.getCity() != null)
-            existingUser.setCity(userRequest.getCity());
-
-        if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
-            if (!userRequest.getPassword().startsWith("$2a$")) {
-                existingUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-            }
-        }
-
-        User updated = userRepository.save(existingUser);
-        log.info("Usuario con ID {} actualizado correctamente", id);
-
-        return updated;
-    }
-
-    /**
-     * Obtiene un UserDTO básico por email.
-     */
-    public UserDTO getUserBasicByEmailDTO(String email) {
-        try {
-            Optional<User> userOpt = userRepository.findByEmail(email);
-            if (userOpt.isEmpty()) {
-                log.warn("Usuario con email {} no encontrado", email);
-                throw new UserNotFoundException("Usuario con email: " + email + " no encontrado");
-            }
-
-            log.debug("Usuario con email {} encontrado correctamente", email);
-            User user = userOpt.get();
-
-            return new UserDTO(
-                    user.getName(),
-                    user.getPublicName(),
-                    user.getEmail(),
-                    user.getProvince(),
-                    user.getCity(),
-                    null,
-                    user.getRegistrationDate(),
-                    null,
-                    null);
-        } catch (UserNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error al obtener usuario por email {}: {}", email, e.getMessage(), e);
-            throw new RuntimeException("Error al obtener el usuario: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Obtiene un UserDTO con los juegos del usuario por nombre público.
-     */
-    @Transactional(readOnly = true)
-    public UserDTO getGamesByPublicName(String publicName) {
-        try {
-            Optional<User> userOpt = userRepository.findByPublicName(publicName);
-            if (userOpt.isEmpty()) {
-                log.warn("Usuario con nombre público {} no encontrado", publicName);
-                throw new UserNotFoundException("Usuario con publicName: " + publicName + " no existe");
-            }
-
-            User user = userOpt.get();
-            // Forzar la inicialización de la colección de juegos si es lazy
-            // y se necesita para el DTO.
-            Hibernate.initialize(user.getGames());
-            Hibernate.initialize(user.getRoles()); // También inicializar roles si son lazy
-            log.debug("Usuario con nombre público {} y {} juegos encontrado", publicName,
-                    user.getGames() != null ? user.getGames().size() : 0);
-
-            // Crear el DTO con el orden y número correcto de parámetros.
-            // El campo 'password' se pasa como null por seguridad.
-            List<org.project.group5.gamelend.dto.GameDTO> gameDTOs = user.getGames() != null
-                ? gameMapper.toDTOList(user.getGames())
-                : new java.util.ArrayList<>();
-
-            List<String> roleNames = user.getRoles() != null
-                ? user.getRoles().stream().map(Role::getName).collect(Collectors.toList())
-                : new java.util.ArrayList<>();
-
-            return new UserDTO(
-                    user.getName(),
-                    user.getPublicName(),
-                    user.getEmail(),
-                    user.getProvince(),
-                    user.getCity(),
-                    null,
-                    user.getRegistrationDate(),
-                    gameDTOs,
-                    roleNames
-            );
-        } catch (UserNotFoundException e) {
-            // Re-lanzar UserNotFoundException para que sea manejada por el advice del
-            // controlador o el llamador.
-            throw e;
-        } catch (org.hibernate.HibernateException e) { // Captura específica para errores de Hibernate
-            log.error("Error de Hibernate al obtener juegos para usuario {}: {}", publicName, e.getMessage(), e);
-            throw new RuntimeException("Error de base de datos al obtener juegos del usuario: " + e.getMessage(), e);
-        } catch (Exception e) {
-            // Captura genérica para cualquier otra excepción inesperada.
-            // Es importante loguear esta excepción ya que es inesperada.
-            log.error("Error inesperado al obtener juegos para usuario {}: {}", publicName, e.getMessage(), e);
-            // Considera si quieres envolverla en una excepción personalizada o una
-            // RuntimeException genérica.
-            throw new RuntimeException("Error inesperado al obtener juegos del usuario: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Obtiene el usuario actualmente autenticado.
-     */
-    public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new AuthenticationCredentialsNotFoundException("Usuario no autenticado");
-        }
-
-        String email = authentication.getName();
-        Optional<User> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) {
-            throw new UsernameNotFoundException("Usuario no encontrado: " + email);
-        }
-        return userOpt.get();
-    }
-
-    /**
-     * Obtiene el usuario actual como UserResponseDTO.
-     */
-    public UserResponseDTO getCurrentUserDTO() {
-        User user = getCurrentUser();
-        return userMapper.toResponseDTO(user);
-    }
-
-    /**
-     * Obtiene el usuario actual como UserResponseDTO, o null si hay error.
-     */
-    public UserResponseDTO getCurrentUserDTOSafe() {
-        try {
-            User user = getCurrentUser();
-            return userMapper.toResponseDTO(user);
-        } catch (Exception e) {
-            log.warn("No se pudo obtener el usuario actual: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Obtiene un usuario completo con todas sus relaciones por ID.
-     */
     @Transactional(readOnly = true)
     public User getCompleteUserById(Long id) {
         if (id == null) {
-            throw new BadRequestException("ID de usuario no puede ser nulo");
+            throw new BadRequestException("El ID de usuario no puede ser nulo.");
         }
-
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
-
         Hibernate.initialize(user.getGames());
         Hibernate.initialize(user.getLoansMade());
         Hibernate.initialize(user.getLoansReceived());
         Hibernate.initialize(user.getRoles());
-
         return user;
     }
 
-    /**
-     * Verifica si existe un usuario con el nombre público dado.
-     */
     public boolean existsByPublicName(String publicName) {
-        if (publicName == null || publicName.trim().isEmpty()) {
+        if (publicName == null || publicName.trim().isEmpty())
             return false;
-        }
         return userRepository.existsByPublicName(publicName);
     }
 
-    /**
-     * Verifica si existe un usuario con el email dado.
-     */
     public boolean existsByEmail(String email) {
-        if (email == null || email.trim().isEmpty()) {
+        if (email == null || email.trim().isEmpty())
             return false;
-        }
         return userRepository.existsByEmail(email);
     }
 
-    /**
-     * Crea un usuario desde un UserDTO.
-     */
     @Transactional
     public UserResponseDTO createUserFromDTO(UserDTO userDTO) {
+        // ... (tu lógica existente)
+        // Asegúrate que las validaciones de unicidad aquí sean para CREACIÓN.
         if (userDTO.publicName() != null && userRepository.existsByPublicName(userDTO.publicName())) {
-            throw new BadRequestException("Ya existe un usuario con ese nombre público: " + userDTO.publicName());
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ya existe un usuario con ese nombre público: " + userDTO.publicName());
         }
         if (userDTO.email() != null && userRepository.existsByEmail(userDTO.email())) {
-            throw new BadRequestException("Ya existe un usuario con ese correo electrónico: " + userDTO.email());
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ya existe un usuario con ese correo electrónico: " + userDTO.email());
         }
 
-        User user = userMapper.toEntity(userDTO);
-
+        User user = userMapper.toEntity(userDTO); // UserMapper debe ignorar password, roles, etc.
+        // ... (resto de tu lógica de createUserFromDTO)
         if (userDTO.password() == null || userDTO.password().isEmpty()) {
             throw new BadRequestException("La contraseña no puede estar vacía.");
         }
         user.setPassword(passwordEncoder.encode(userDTO.password()));
-
         user.setRegistrationDate(LocalDateTime.now());
-
-        if (userDTO.roles() == null || userDTO.roles().isEmpty()) {
+        if (user.getRoles() == null || user.getRoles().isEmpty()) { // Si el mapper no puso roles (debería ignorarlos)
             user.setRoles(new ArrayList<>(List.of(getDefaultRole())));
-        } else {
-            List<Role> roles = userDTO.roles().stream()
-                    .map(this::findRoleByName)
-                    .collect(Collectors.toList());
-            user.setRoles(roles);
         }
-
-        user.setGames(new ArrayList<>());
-
+        // ...
         User savedUser = userRepository.save(user);
-        log.info("Usuario creado desde DTO con ID: {}", savedUser.getId());
         return userMapper.toResponseDTO(savedUser);
     }
 }

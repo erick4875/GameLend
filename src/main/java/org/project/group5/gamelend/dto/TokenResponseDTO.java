@@ -16,5 +16,6 @@ public record TokenResponseDTO(
     String refreshToken,
     Long userId,
     String publicName,
+    String email,
     List<String> roles
     ){}

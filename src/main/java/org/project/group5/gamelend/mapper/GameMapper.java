@@ -45,6 +45,8 @@ public abstract class GameMapper {
      */
     @Mapping(target = "id", source = "id")
     @Mapping(target = "title", source = "title")
+    @Mapping(target = "platform", source = "platform")
+    @Mapping(target = "status", source = "status")
     public abstract GameSummaryDTO toGameSummaryDTO(Game game);
 
     /**

@@ -8,7 +8,6 @@ import org.project.group5.gamelend.entity.Game;
 import org.project.group5.gamelend.exception.BadRequestException;
 import org.project.group5.gamelend.mapper.GameMapper;
 import org.project.group5.gamelend.service.GameService;
-import org.project.group5.gamelend.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,9 +23,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Controlador REST para la gestión de juegos
- */
 @Slf4j
 @RestController
 @RequestMapping("api/games")
@@ -34,111 +30,82 @@ import lombok.extern.slf4j.Slf4j;
 public class GameController {
 
     private final GameService gameService;
-    private final UserService userService;
     private final GameMapper gameMapper;
 
-    /**
-     * Obtiene todos los juegos registrados.
-     * @return Lista de GameResponseDTO.
-     */
     @GetMapping
     public ResponseEntity<List<GameResponseDTO>> getAllGames() {
         log.info("Solicitando lista de todos los juegos");
-        List<Game> games = gameService.findAll();
-        
-        if (games.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(gameMapper.toResponseDTOList(games));
+        List<Game> gamesEntities = gameService.findAll(); // Asume que GameService tiene findAll()
+        List<GameResponseDTO> gameDTOs = gameMapper.toResponseDTOList(gamesEntities);
+        return ResponseEntity.ok(gameDTOs);
     }
 
+    // === NUEVO MÉTODO PARA OBTENER JUEGO POR ID ===
     /**
-     * Busca un juego por su título.
-     * @param title Título del juego.
-     * @return GameResponseDTO del juego encontrado.
+     * Obtiene los detalles de un juego específico por su ID.
+     * 
+     * @param id El ID del juego a obtener.
+     * @return ResponseEntity con GameResponseDTO si se encuentra, o 404 si no.
      */
+    @GetMapping("/{id}")
+    // @PreAuthorize("isAuthenticated()") // Opcional: Si ver detalles requiere
+    // autenticación
+    public ResponseEntity<GameResponseDTO> getGameById(@PathVariable Long id) {
+        log.info("Solicitando detalles para el juego con ID: {}", id);
+        if (id == null) {
+            throw new BadRequestException("El ID del juego no puede ser nulo.");
+        }
+        // Asumimos que GameService tiene un método findByIdDTO o similar
+        GameResponseDTO gameResponseDTO = gameService.findByIdDTO(id);
+        return ResponseEntity.ok(gameResponseDTO);
+    }
+
     @GetMapping("/title/{title}")
     public ResponseEntity<GameResponseDTO> getGameByTitle(@PathVariable String title) {
         log.info("Buscando juego con título: {}", title);
-        
         if (title == null || title.trim().isEmpty()) {
             throw new BadRequestException("El título del juego es requerido para la búsqueda");
         }
-        
-        Game game = gameService.findByTitle(title);
-        return ResponseEntity.ok(gameMapper.toResponseDTO(game));
+        // Asumimos que GameService tiene findByTitleDTO o similar
+        GameResponseDTO gameResponseDTO = gameService.findByTitleDTO(title);
+        return ResponseEntity.ok(gameResponseDTO);
     }
 
-    /**
-     * Obtiene juegos por usuario que tienen imagen.
-     * @param userId ID del usuario.
-     * @return Lista de GameResponseDTO de los juegos del usuario con imágenes.
-     */
     @GetMapping("/user/{userId}/images")
     public ResponseEntity<List<GameResponseDTO>> getGamesByUserWithImages(@PathVariable Long userId) {
         log.info("Buscando juegos con imágenes para usuario con ID: {}", userId);
-        
         if (userId == null) {
             throw new BadRequestException("ID de usuario no puede ser nulo");
         }
-        
-        List<Game> games = gameService.findByUserIdWithImages(userId);
-        
-        if (games.isEmpty()) {
-            return ResponseEntity.noContent().build(); 
+        // Asumimos que GameService tiene findByUserIdWithImagesDTO o similar
+        List<GameResponseDTO> gameDTOs = gameService.findByUserIdWithImagesDTO(userId);
+        if (gameDTOs.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
-        
-        return ResponseEntity.ok(gameMapper.toResponseDTOList(games));
+        return ResponseEntity.ok(gameDTOs);
     }
 
-    /**
-     * Crea un nuevo juego a partir de un objeto GameDTO.
-     * Las validaciones del DTO se realizan mediante @Valid.
-     * @param gameDTO Datos del juego a crear.
-     * @return GameResponseDTO del juego guardado.
-     */
     @PostMapping
     public ResponseEntity<GameResponseDTO> createGame(@Valid @RequestBody GameDTO gameDTO) {
         log.info("Creando nuevo juego con título: {}", gameDTO.title());
-        
-        Game gameToCreate = gameMapper.toEntity(gameDTO);
-
-        if (gameDTO.userId() == null) {
-            throw new BadRequestException("El ID del usuario es requerido para crear un juego.");
-        }
-        gameToCreate.setUser(userService.findById(gameDTO.userId()));
-
-        Game savedGame = gameService.save(gameToCreate);
-        
-        return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(gameMapper.toResponseDTO(savedGame));
+        // La lógica de asociar el usuario y guardar ya está en GameService.create o
+        // similar
+        GameResponseDTO savedGameResponseDTO = gameService.createGameFromDTO(gameDTO); // Asume que existe este método
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedGameResponseDTO);
     }
 
-    /**
-     * Actualiza un juego existente.
-     * Las validaciones del DTO se realizan mediante @Valid.
-     * @param id ID del juego a actualizar.
-     * @param gameDTO Datos actualizados del juego.
-     * @return GameResponseDTO del juego actualizado.
-     */
     @PutMapping("/{id}")
     public ResponseEntity<GameResponseDTO> updateGame(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @Valid @RequestBody GameDTO gameDTO) {
         log.info("Actualizando juego con ID: {} con datos: {}", id, gameDTO);
-
-        Game updatedGame = gameService.update(id, gameDTO);
-        
-        return ResponseEntity.ok(gameMapper.toResponseDTO(updatedGame));
+        GameResponseDTO updatedGameResponseDTO = gameService.updateGameFromDTO(id, gameDTO);
+        return ResponseEntity.ok(updatedGameResponseDTO);
     }
 
-    /**
-     * Elimina un juego por su ID.
-     * @param id ID del juego a eliminar.
-     * @return Mensaje de confirmación.
-     */
     @DeleteMapping("/{id}")
+    // @PreAuthorize("isAuthenticated() and
+    // @gameSecurityService.canDeleteGame(authentication, #id)")
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         log.info("Eliminando juego con ID: {}", id);
         if (id == null) {

@@ -105,7 +105,7 @@ public class AuthService {
                 .collect(Collectors.toList());
 
         return new TokenResponseDTO(jwtAccessToken, jwtRefreshToken, savedUser.getId(), savedUser.getPublicName(),
-                roleNames);
+                user.getEmail(), roleNames);
     }
 
     /**
@@ -148,7 +148,7 @@ public class AuthService {
                 .map(Role::getName)
                 .collect(Collectors.toList());
 
-        return new TokenResponseDTO(jwtAccessToken, jwtRefreshToken, user.getId(), user.getPublicName(), roleNames);
+        return new TokenResponseDTO(jwtAccessToken, jwtRefreshToken, user.getId(), user.getPublicName(), user.getEmail(), roleNames);
     }
 
     /**
@@ -210,7 +210,7 @@ public class AuthService {
 
         // Devuelve el nuevo accessToken, el refreshToken original (tokenString), y los
         // datos del usuario.
-        return new TokenResponseDTO(newAccessToken, tokenString, user.getId(), user.getPublicName(), roleNames);
+        return new TokenResponseDTO(newAccessToken, tokenString, user.getId(), user.getPublicName(), user.getEmail(), roleNames);
     }
 
     /**
