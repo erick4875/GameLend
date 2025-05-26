@@ -20,9 +20,9 @@ import java.util.List;
 // y convertirlos en vistas individuales que se mostrarán en un RecyclerView.
 public class GameAdapter extends RecyclerView.Adapter<GameAdapter.GameViewHolder> {
 
-    private Context context; // Contexto de la aplicación o Activity, necesario para inflar layouts y otras operaciones.
-    private List<Game> gameList; // Lista de objetos 'Game' (tu modelo local) que el adaptador mostrará.
-    private OnGameItemClickListener onItemClickListener; // Interfaz para manejar clics
+    private final Context context; // Contexto de la aplicación o Activity, necesario para inflar layouts y otras operaciones.
+    private final List<Game> gameList; // Lista de objetos 'Game' (tu modelo local) que el adaptador mostrará.
+    private final OnGameItemClickListener onItemClickListener; // Interfaz para manejar clics
 
     /**
      * Interfaz para manejar clics en los ítems del RecyclerView.
