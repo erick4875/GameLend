@@ -201,7 +201,8 @@ public class UserService {
      * @throws IOException Si hay un error al guardar el archivo.
      */
     @Transactional
-    public UserResponseDTO setProfileImage(Long userId, MultipartFile file) throws IOException {
+    public UserResponseDTO setProfileImage(Long userId, MultipartFile file, DocumentUploadDTO uploadDTO_fromController)
+            throws IOException {
         log.info("Intentando establecer imagen de perfil para userId: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + userId));
@@ -215,31 +216,41 @@ public class UserService {
         if (oldProfileImage != null) {
             log.debug("Eliminando imagen de perfil anterior (ID: {}) para userId: {}", oldProfileImage.getId(), userId);
             user.setProfileImage(null); // Desvincular de la entidad User
-            // Guardar el usuario para que la desvinculación se refleje y se active
-            // orphanRemoval si está configurado en la entidad User para profileImage
-            userRepository.save(user);
-            documentService.deleteDocument(oldProfileImage.getId()); // Eliminar el archivo físico y la entidad Document
-            log.debug("Imagen de perfil anterior eliminada.");
+            userRepository.save(user); // Guardar para que orphanRemoval se active si está configurado Y para persistir
+                                       // la desvinculación
+
+            documentService.deleteDocument(oldProfileImage.getId()); // Llama a tu método en DocumentService que borra
+                                                                     // archivo y entidad
+            log.debug("Imagen de perfil anterior (Documento ID: {}) procesada para eliminación.",
+                    oldProfileImage.getId());
         }
 
         // 2. Guardar el nuevo documento de imagen usando DocumentService
-        // Asumimos que tu DocumentService.save toma el MultipartFile y un
-        // DocumentUploadDTO.
-        // Si tu DocumentService.save solo necesita el MultipartFile, ajusta esto.
-        // El DocumentUploadDTO puede ser simple o contener más metadatos si es
-        // necesario.
-        String fileNameForDTO = "profile_image_user_" + userId + "_" + System.currentTimeMillis();
-        String descriptionForDTO = "Imagen de perfil para usuario " + user.getPublicName();
-        DocumentUploadDTO imageUploadDTO = new DocumentUploadDTO(fileNameForDTO, descriptionForDTO);
+        DocumentUploadDTO imageUploadDetails;
+        if (uploadDTO_fromController != null && uploadDTO_fromController.name() != null
+                && !uploadDTO_fromController.name().isBlank()) {
+            imageUploadDetails = uploadDTO_fromController;
+        } else {
+            // Generar un nombre y descripción por defecto si no se proporcionan o el
+            // controlador pasa null
+            String defaultName = "profile_image_user_" + userId + "_" + System.currentTimeMillis();
+            String defaultDescription = "Imagen de perfil para usuario " + user.getPublicName();
+            imageUploadDetails = new DocumentUploadDTO(defaultName, defaultDescription);
+            log.debug("DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: {}", defaultName);
+        }
 
-        Document newProfileDocument = documentService.save(file, imageUploadDTO); // Llama al save de DocumentService
+        Document newProfileDocument = documentService.save(file, imageUploadDetails); // Llama al save de
+                                                                                      // DocumentService
 
         // 3. Asociar el nuevo documento con el usuario
         user.setProfileImage(newProfileDocument);
         User updatedUser = userRepository.save(user); // Guarda el usuario con la nueva referencia a la imagen
 
-        log.info("Nueva imagen de perfil actualizada para userId: {}. Nuevo Document ID: {}", userId,
-                newProfileDocument.getId());
+        log.info("Nueva imagen de perfil ID: {} asociada al usuario ID: {}", newProfileDocument.getId(), userId);
+
+        // Asegurar que la nueva imagen esté cargada para el mapper si es LAZY y la
+        // transacción está a punto de terminar
+        Hibernate.initialize(updatedUser.getProfileImage());
         return userMapper.toResponseDTO(updatedUser); // Devuelve el UserResponseDTO actualizado
     }
 
@@ -318,7 +329,8 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserProfileImage(Long userId, MultipartFile file, DocumentUploadDTO uploadDTO) throws IOException {
+    public void updateUserProfileImage(Long userId, MultipartFile file, DocumentUploadDTO uploadDTO)
+            throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 

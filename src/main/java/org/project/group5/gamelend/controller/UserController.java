@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.project.group5.gamelend.dto.DocumentUploadDTO;
 import org.project.group5.gamelend.dto.UserDTO;
 import org.project.group5.gamelend.dto.UserResponseDTO;
 import org.project.group5.gamelend.entity.Role;
@@ -22,7 +21,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -140,14 +137,21 @@ public class UserController {
         return ResponseEntity.ok(updatedUserResponse);
     }
 
-    @PostMapping("/{id}/photo")
-    public ResponseEntity<Void> uploadProfilePhoto(
-            @PathVariable Long id,
-            @RequestParam("file") MultipartFile file,
-            @ModelAttribute @Valid DocumentUploadDTO uploadDTO) throws IOException {
+@PostMapping("/{userId}/photo") // La ruta que usa tu app Android
+    @PreAuthorize("hasRole('ADMIN') or (isAuthenticated() and #userId == principal.id)")
+    public ResponseEntity<UserResponseDTO> uploadOrUpdateProfileImage(
+            @PathVariable Long userId,
+            @RequestParam("file") MultipartFile file) throws IOException {
         
-        userService.updateUserProfileImage(id, file, uploadDTO);
-        return ResponseEntity.ok().build();
+        log.info("Recibida solicitud para actualizar imagen de perfil para userId: {}", userId);
+
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo de imagen no puede estar vacío.");
+        }
+
+        UserResponseDTO updatedUser = userService.setProfileImage(userId, file, null); // Pasamos null para el DTO
+
+        return ResponseEntity.ok(updatedUser);
     }
 
     /**

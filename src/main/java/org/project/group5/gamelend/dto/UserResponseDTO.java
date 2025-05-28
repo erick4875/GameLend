@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * @param registrationDate Fecha de registro
  * @param province         Provincia del usuario
  * @param city             Ciudad del usuario
+ * @param profileImageUrl  URL de la imagen de perfil del usuario
  * @param games            Lista de juegos que posee el usuario (DTOs de respuesta)
  * @param gamesLent        Lista de juegos que el usuario ha prestado (DTOs resumidos)
  * @param roles            Lista de nombres de roles asignados al usuario
@@ -30,6 +31,7 @@ public record UserResponseDTO(
     LocalDateTime registrationDate,
     String province,
     String city,
+    String profileImageUrl,
     List<GameResponseDTO> games,
     List<GameSummaryDTO> gamesLent,
     List<String> roles
