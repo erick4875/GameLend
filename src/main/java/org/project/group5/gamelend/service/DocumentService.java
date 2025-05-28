@@ -1,6 +1,6 @@
 package org.project.group5.gamelend.service;
 
-import java.io.IOException;
+import java.time.LocalDateTime; // Todavía necesario para la firma de algunos métodos de MultipartFile si se usaran directamente
 import java.util.List;
 
 import org.project.group5.gamelend.dto.DocumentUploadDTO;
@@ -15,17 +15,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Servicio para la gestión de documentos (subida, descarga, eliminación).
- */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -35,84 +32,91 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
 
-    /**
-     * Lista todos los documentos disponibles.
-     */
+    @Transactional(readOnly = true)
     public List<Document> list() {
         log.debug("Listando todos los documentos");
         return documentRepository.findAll();
     }
 
-    /**
-     * Busca un documento por su ID.
-     */
+    @Transactional(readOnly = true)
     public Document find(Long id) {
         if (id == null) {
-            log.warn("ID de documento nulo");
-            throw new IllegalArgumentException("ID no puede ser nulo");
+            log.warn("ID de documento nulo al intentar buscar.");
+            throw new BadRequestException("El ID del documento no puede ser nulo.");
         }
         return documentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("Documento no encontrado con ID: {}", id);
+                    return new ResourceNotFoundException("Documento no encontrado con ID: " + id);
+                });
     }
 
-    /**
-     * Guarda un nuevo documento a partir de un archivo y metadatos DTO.
-     */
-    public Document save(MultipartFile file, DocumentUploadDTO uploadDTO) throws IOException {
+    
+    public Document save(MultipartFile file, DocumentUploadDTO uploadDTO) {
         if (file == null || file.isEmpty()) {
-            throw new BadRequestException("El archivo no puede estar vacío");
+            throw new BadRequestException("El archivo no puede estar vacío.");
         }
         if (uploadDTO == null) {
-            throw new BadRequestException("Los metadatos del documento son requeridos");
+            throw new BadRequestException("Los metadatos del documento (uploadDTO) son requeridos.");
         }
 
-        ImageType imageType = determineImageTypeFromName(uploadDTO.name());
+        ImageType imageType = determineImageTypeFromName(
+                uploadDTO.name() != null ? uploadDTO.name() : file.getOriginalFilename());
 
         try {
             String storedFileName = fileStorageService.storeImage(file, imageType);
-            String originalFileNameNullable = file.getOriginalFilename();
-            String originalFileName = (originalFileNameNullable == null) ? "" : StringUtils.cleanPath(originalFileNameNullable);
-            String extension = getFileExtension(originalFileName);
 
-            Document document = new Document();
-            document.setName(uploadDTO.name());
-            document.setFileName(storedFileName);
-            document.setExtension(extension);
-            document.setStatus("A");
-            document.setDeleted(false);
-            document.setLocalPath(getLocalPath(imageType, storedFileName));
-            document.setImage(null);
+            String originalFileName = StringUtils
+                    .cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown_file");
+            String extension = getFileExtension(originalFileName);
+            String documentName = uploadDTO.name() != null ? uploadDTO.name() : originalFileName;
+
+            Document document = Document.builder()
+                    .name(documentName)
+                    .fileName(storedFileName)
+                    .contentType(file.getContentType())
+                    .extension(extension)
+                    .size(file.getSize())
+                    .uploadDate(LocalDateTime.now())
+                    .status("A")
+                    .deleted(false)
+                    .localPath(fileStorageService.getLocalPath(imageType, storedFileName))
+                    .build();
 
             Document saved = documentRepository.save(document);
-            log.info("Documento guardado correctamente con ID: {}", saved.getId());
+            log.info("Documento guardado correctamente: '{}', ID: {}", saved.getName(), saved.getId());
             return saved;
 
-        } catch (FileStorageException e) {
-            log.error("Error al guardar el archivo para el documento '{}': {}", uploadDTO.name(), e.getMessage());
-            throw e;
+        } catch (FileStorageException e) { // Solo se necesita capturar FileStorageException (o RuntimeException)
+            log.error("Error al guardar el archivo para el documento '{}': {}",
+                    (uploadDTO.name() != null ? uploadDTO.name() : file.getOriginalFilename()), e.getMessage());
+            // Re-lanzar como FileStorageException o una excepción más genérica de servicio
+            // si se prefiere
+            throw new FileStorageException("No se pudo guardar el archivo: " +
+                    (file.getOriginalFilename() != null ? file.getOriginalFilename() : "nombre desconocido"), e);
         }
+        // Si quisieras manejar otras RuntimeExceptions de forma diferente, podrías
+        // añadir más catch blocks.
     }
 
-    /**
-     * Genera una respuesta para descargar un documento.
-     */
+    @Transactional(readOnly = true)
     public ResponseEntity<Resource> download(String fileName, HttpServletRequest request) {
         if (fileName == null || fileName.isEmpty()) {
-            throw new BadRequestException("Nombre de archivo vacío o nulo");
+            throw new BadRequestException("Nombre de archivo vacío o nulo.");
         }
-
-        log.info("Descargando documento: {}", fileName);
+        log.info("Descargando documento con nombre de archivo físico: {}", fileName);
 
         Document document = documentRepository.findByFileName(fileName);
         if (document == null) {
-            throw new ResourceNotFoundException("Document not found with file name: " + fileName);
+            log.warn("Documento no encontrado con nombre de archivo físico: {}", fileName);
+            throw new ResourceNotFoundException("Documento no encontrado: " + fileName);
         }
 
         ImageType imageType = determineImageType(document);
         Resource resource = fileStorageService.loadImageAsResource(document.getFileName(), imageType);
         String contentType = determineContentType(request, document.getFileName(), document);
 
-        String downloadFileName = document.getCompleteFileName();
+        String downloadFileName = document.getOriginalFileNameForDownload();
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
@@ -120,9 +124,39 @@ public class DocumentService {
                 .body(resource);
     }
 
-    /**
-     * Elimina un documento por su ID (marca como eliminado y elimina el archivo físico).
-     */
+    public void deleteDocument(Long documentId) {
+        if (documentId == null) {
+            log.warn("Intento de eliminar documento con ID nulo.");
+            return;
+        }
+        Document document = documentRepository.findById(documentId)
+                .orElse(null);
+
+        if (document != null) {
+            log.info("Iniciando eliminación para Documento ID: {}, FileName: {}", document.getId(),
+                    document.getFileName());
+            ImageType imageType = determineImageType(document);
+            try {
+                boolean filePhysicallyDeleted = fileStorageService.deleteImage(document.getFileName(), imageType);
+                if (filePhysicallyDeleted) {
+                    log.info("Archivo físico {} eliminado correctamente.", document.getFileName());
+                } else {
+                    log.warn("No se pudo eliminar el archivo físico: {} para el documento ID {}",
+                            document.getFileName(), documentId);
+                }
+            } catch (Exception e) {
+                log.error("Excepción al intentar eliminar el archivo físico para el documento ID {}: {}", documentId,
+                        e.getMessage(), e);
+            }
+
+            documentRepository.deleteById(documentId);
+            log.info("Entidad Document eliminada de la BD con ID: {}", documentId);
+
+        } else {
+            log.warn("No se encontró Document con ID: {} para eliminar.", documentId);
+        }
+    }
+
     public void delete(Long id) {
         Document document = find(id);
 
@@ -130,88 +164,77 @@ public class DocumentService {
         boolean fileDeleted = fileStorageService.deleteImage(document.getFileName(), imageType);
 
         if (!fileDeleted) {
-            log.warn("No se pudo eliminar el archivo físico: {} para el documento ID {}", document.getFileName(), id);
+            log.warn("No se pudo eliminar el archivo físico: {} para el documento ID {} durante el soft delete.",
+                    document.getFileName(), id);
         }
 
         document.setDeleted(true);
         document.setStatus("D");
         documentRepository.save(document);
 
-        log.info("Documento con ID {} marcado como eliminado", id);
+        log.info("Documento con ID {} marcado como eliminado (soft delete).", id);
     }
 
-    /**
-     * Determina el tipo de imagen a partir del nombre del documento.
-     */
-    private ImageType determineImageTypeFromName(String documentName) {
-        if (documentName != null && documentName.toLowerCase().contains("game")) {
-            return ImageType.GAME;
-        } else {
-            return ImageType.USER;
+    private ImageType determineImageTypeFromName(String documentNameOrOriginalFileName) {
+        if (documentNameOrOriginalFileName != null) {
+            String lowerName = documentNameOrOriginalFileName.toLowerCase();
+            if (lowerName.contains("profile_image_user") || lowerName.contains("user")) {
+                return FileStorageService.ImageType.USER;
+            } else if (lowerName.contains("game_image") || lowerName.contains("game")) {
+                return FileStorageService.ImageType.GAME;
+            }
         }
+        log.warn("No se pudo determinar un tipo de imagen específico para '{}', usando USER por defecto.",
+                documentNameOrOriginalFileName);
+        return FileStorageService.ImageType.USER;
     }
 
-    /**
-     * Determina el tipo de imagen a partir del documento.
-     */
     private ImageType determineImageType(Document document) {
-        return determineImageTypeFromName(document.getName());
+        return determineImageTypeFromName(document.getName() != null ? document.getName() : document.getFileName());
     }
 
-    /**
-     * Obtiene la extensión del archivo.
-     */
     private String getFileExtension(String filename) {
         if (filename != null && filename.contains(".")) {
-            int dotIndex = filename.lastIndexOf(".");
-            if (filename.length() - dotIndex - 1 <= 10) {
-                return filename.substring(dotIndex + 1).toLowerCase();
-            } else {
-                log.warn("Extensión del archivo original '{}' demasiado larga, truncando a 10 caracteres.", filename);
-                return filename.substring(dotIndex + 1, dotIndex + 11).toLowerCase();
-            }
+            return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         }
         return "";
     }
 
-    /**
-     * Obtiene la ruta local donde se almacena el archivo según el tipo.
-     */
-    private String getLocalPath(ImageType type, String fileName) {
-        return switch (type) {
-            case GAME -> "games/" + fileName;
-            case USER -> "users/" + fileName;
-        };
-    }
-
-    /**
-     * Determina el tipo MIME del archivo para la descarga.
-     */
     private String determineContentType(HttpServletRequest request, String storedFileName, Document document) {
         String contentType = null;
-        try {
-            contentType = request.getServletContext().getMimeType(storedFileName);
-            log.debug("Tipo MIME del ServletContext para {}: {}", storedFileName, contentType);
-        } catch (Exception e) {
-            log.warn("No se pudo obtener el tipo MIME del ServletContext para {}: {}", storedFileName, e.getMessage());
+        if (document.getContentType() != null && !document.getContentType().isBlank()) {
+            return document.getContentType();
         }
-
-        if (contentType == null && document.getExtension() != null && !document.getExtension().isEmpty()) {
-            String extension = document.getExtension().toLowerCase();
-            log.debug("Determinando tipo MIME basado en la extensión: {}", extension);
-            if ("jpg".equals(extension) || "jpeg".equals(extension)) {
-                contentType = MediaType.IMAGE_JPEG_VALUE;
-            } else {
-                log.warn("Extensión no esperada encontrada: {}, usando application/octet-stream", extension);
-                contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        if (request != null && request.getServletContext() != null) {
+            try {
+                contentType = request.getServletContext().getMimeType(storedFileName);
+            } catch (Exception e) {
+                log.warn("No se pudo obtener el tipo MIME del ServletContext para {}: {}", storedFileName,
+                        e.getMessage());
             }
         }
-
+        if (contentType == null && document.getExtension() != null && !document.getExtension().isEmpty()) {
+            String extension = document.getExtension().toLowerCase();
+            switch (extension) {
+                case "jpg":
+                case "jpeg":
+                    contentType = MediaType.IMAGE_JPEG_VALUE;
+                    break;
+                case "png":
+                    contentType = MediaType.IMAGE_PNG_VALUE;
+                    break;
+                case "gif":
+                    contentType = MediaType.IMAGE_GIF_VALUE;
+                    break;
+                default:
+                    log.warn("Extensión no mapeada a tipo MIME: {}, usando application/octet-stream", extension);
+                    contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+                    break;
+            }
+        }
         if (contentType == null) {
-            log.warn("No se pudo determinar el tipo MIME para {}, usando application/octet-stream", storedFileName);
             contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
-
         log.info("Tipo MIME determinado para {}: {}", storedFileName, contentType);
         return contentType;
     }

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths; // Import Paths
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,13 +13,14 @@ import java.util.UUID;
 
 import org.project.group5.gamelend.config.FileStorageProperties;
 import org.project.group5.gamelend.exception.FileStorageException;
-import org.project.group5.gamelend.exception.MyFileNotFoundException;
+import org.project.group5.gamelend.exception.MyFileNotFoundException; // Assuming you have this custom exception
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.PostConstruct; // Import PostConstruct
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,8 +42,33 @@ public class FileStorageService {
      */
     public enum ImageType {
         GAME,
-        USER
+        USER,
+        DEFAULT // Un tipo por defecto si no se puede determinar
     }
+
+    /**
+     * Se ejecuta después de la construcción del bean para inicializar los directorios.
+     */
+    @PostConstruct
+    public void init() {
+        try {
+            Path rootLocation = Paths.get(storageProperties.getUploadDir()).toAbsolutePath().normalize();
+            Files.createDirectories(rootLocation);
+
+            Path userImageLocation = Paths.get(storageProperties.getUserImagesPath()).toAbsolutePath().normalize();
+            Files.createDirectories(userImageLocation);
+
+            Path gameImageLocation = Paths.get(storageProperties.getGameImagesPath()).toAbsolutePath().normalize();
+            Files.createDirectories(gameImageLocation);
+
+            log.info("Directorios de subida creados/verificados: Root -> {}, User -> {}, Game -> {}",
+                    rootLocation, userImageLocation, gameImageLocation);
+        } catch (Exception ex) {
+            log.error("No se pudieron crear los directorios de subida.", ex);
+            throw new FileStorageException("No se pudieron crear los directorios de subida. " + ex.getMessage(), ex);
+        }
+    }
+
 
     /**
      * Almacena una imagen recibida como MultipartFile.
@@ -107,9 +134,6 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Lógica central para almacenar una imagen desde un InputStream.
-     */
     private String storeImageCore(InputStream inputStream, ImageType type, String extension,
             String originalFilenameForLog) throws IOException {
         String newFilename = generateUniqueFilename(extension);
@@ -122,39 +146,28 @@ public class FileStorageService {
         return newFilename;
     }
 
-    /**
-     * Valida el tamaño del archivo.
-     * Lanza excepción si excede el máximo permitido.
-     */
     private void validateFileSize(long fileSize) {
         long maxSizeInBytes = storageProperties.getMaxSize();
         if (fileSize > maxSizeInBytes) {
             long maxSizeInMB = maxSizeInBytes / (1024 * 1024);
-            String message = "El tamaño del archivo (%d bytes) excede el límite permitido de %dMB.".formatted(fileSize, maxSizeInMB);
+            String message = String.format("El tamaño del archivo (%d bytes) excede el límite permitido de %dMB.", fileSize, maxSizeInMB);
             log.warn(message);
             throw new FileStorageException(message);
         }
     }
 
-    /**
-     * Valida la extensión del archivo.
-     * Lanza excepción si no está permitida.
-     */
     private void validateFileExtension(String extension) {
         if (!storageProperties.isExtensionAllowed(extension)) {
             String allowedExtensionsString = "desconocidas (revisar configuración)";
             if (storageProperties.getAllowedExtensions() != null && !storageProperties.getAllowedExtensions().isEmpty()) {
                 allowedExtensionsString = String.join(", ", storageProperties.getAllowedExtensions());
             }
-            String message = "Extensión de archivo no permitida: '%s'. Permitidas: [%s]".formatted(extension, allowedExtensionsString);
+            String message = String.format("Extensión de archivo no permitida: '%s'. Permitidas: [%s]", extension, allowedExtensionsString);
             log.warn(message);
             throw new FileStorageException(message);
         }
     }
 
-    /**
-     * Limpia y normaliza la extensión del archivo.
-     */
     private String sanitizeExtension(String extension) {
         if (!StringUtils.hasText(extension)) {
             return DEFAULT_EXTENSION;
@@ -163,14 +176,6 @@ public class FileStorageService {
         return sanitized.toLowerCase();
     }
 
-    /**
-     * Carga una imagen como recurso.
-     * 
-     * @param filename Nombre del archivo.
-     * @param type     Tipo de imagen (GAME o USER).
-     * @return Recurso que representa la imagen.
-     * @throws MyFileNotFoundException Si la imagen no existe o no se puede acceder.
-     */
     public Resource loadImageAsResource(String filename, ImageType type) {
         if (!StringUtils.hasText(filename)) {
             log.warn("Intento de cargar imagen con nombre nulo o vacío (Tipo: {})", type);
@@ -195,13 +200,6 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Elimina una imagen del sistema de archivos.
-     * 
-     * @param filename Nombre del archivo.
-     * @param type     Tipo de imagen (GAME o USER).
-     * @return true si la imagen fue eliminada, false en caso contrario.
-     */
     public boolean deleteImage(String filename, ImageType type) {
         if (!StringUtils.hasText(filename)) {
             log.warn("Intento de eliminar imagen con nombre nulo o vacío (Tipo: {})", type);
@@ -223,18 +221,12 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Genera un nombre de archivo único usando timestamp y UUID.
-     */
     private String generateUniqueFilename(String extension) {
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
         String uuid = UUID.randomUUID().toString().substring(0, 8);
         return timestamp + "_" + uuid + "." + extension;
     }
 
-    /**
-     * Obtiene la extensión de un nombre de archivo.
-     */
     private String getFileExtension(String filename) {
         if (!StringUtils.hasText(filename)) {
             return "";
@@ -247,32 +239,77 @@ public class FileStorageService {
     }
 
     /**
-     * Determina la ubicación para almacenar un archivo según su tipo.
+     * Determina la ubicación de almacenamiento completa (absoluta) para un archivo según su tipo.
+     * @param type El tipo de imagen (USER, GAME).
+     * @param filename El nombre del archivo (ya debe ser único y con extensión).
+     * @return La ruta completa (Path) donde se almacenará o se encuentra el archivo.
      */
     private Path getTargetLocation(ImageType type, String filename) {
-        String basePathString = switch (type) {
-            case GAME -> storageProperties.getGameImagesPath();
-            case USER -> storageProperties.getUserImagesPath();
+        String specificDirectoryPathString = switch (type) {
+            case GAME -> storageProperties.getGameImagesPath(); // ej. "uploads/games" o "/var/www/uploads/games"
+            case USER -> storageProperties.getUserImagesPath(); // ej. "uploads/users" o "/var/www/uploads/users"
             default -> {
-                log.warn("Tipo de imagen desconocido: {}. Intentando usar directorio de subida por defecto.", type);
-                String defaultPath = storageProperties.getUploadDir();
-                if (!StringUtils.hasText(defaultPath)) {
-                    log.error(
-                            "Tipo de imagen no soportado ({}) y no hay directorio de subida por defecto configurado en FileStorageProperties.",
-                            type);
-                    throw new FileStorageException(
-                            "Tipo de imagen no soportado y no hay directorio de subida por defecto.");
+                log.warn("Tipo de imagen desconocido: {}. Usando subdirectorio 'default' en el directorio raíz de subida.", type);
+                String rootDir = storageProperties.getUploadDir();
+                if (!StringUtils.hasText(rootDir)) {
+                    log.error("Directorio de subida raíz no está configurado en FileStorageProperties.");
+                    throw new FileStorageException("Directorio de subida raíz no configurado.");
                 }
-                yield defaultPath;
+                yield Paths.get(rootDir, "default").toString(); // Devuelve la ruta al directorio "default"
             }
         };
 
-        if (!StringUtils.hasText(basePathString)) {
-            log.error("La ruta base para el tipo de imagen {} no está configurada en FileStorageProperties.", type);
+        if (!StringUtils.hasText(specificDirectoryPathString)) {
+            log.error("La ruta base para el tipo de imagen {} no está configurada o es inválida.", type);
             throw new FileStorageException("La ruta de almacenamiento para el tipo " + type + " no está configurada.");
         }
 
-        Path basePath = Path.of(basePathString).toAbsolutePath().normalize();
-        return basePath.resolve(StringUtils.cleanPath(filename)).normalize();
+        // Construye la ruta absoluta al archivo
+        return Paths.get(specificDirectoryPathString).resolve(StringUtils.cleanPath(filename)).toAbsolutePath().normalize();
+    }
+
+    /**
+     * Obtiene la ruta relativa local donde se almacena el archivo según el tipo.
+     * Esta ruta es la que se podría guardar en la base de datos en el campo 'localPath' de Document.
+     * @param type El tipo de imagen (USER, GAME).
+     * @param fileName El nombre del archivo almacenado (con extensión).
+     * @return La ruta relativa, ej. "users/nombre_archivo.jpg" o "games/nombre_archivo.png".
+     */
+    public String getLocalPath(ImageType type, String fileName) {
+        // Esta lógica asume que getUserImagesPath() y getGameImagesPath() son subdirectorios
+        // directos de getUploadDir(). Si son rutas completamente independientes, esta lógica de relativizar
+        // podría no ser lo que quieres, y simplemente podrías guardar el nombre de la subcarpeta + fileName.
+
+        Path rootUploadPath = Paths.get(storageProperties.getUploadDir()).toAbsolutePath().normalize();
+        Path subDirectoryFullPath;
+
+        switch (type) {
+            case USER:
+                subDirectoryFullPath = Paths.get(storageProperties.getUserImagesPath()).toAbsolutePath().normalize();
+                break;
+            case GAME:
+                subDirectoryFullPath = Paths.get(storageProperties.getGameImagesPath()).toAbsolutePath().normalize();
+                break;
+            default:
+                // Para el tipo DEFAULT, la ruta relativa sería simplemente "default/" + fileName
+                return Paths.get("default", StringUtils.cleanPath(fileName)).toString().replace("\\", "/");
+        }
+
+        // Calcular la ruta del subdirectorio relativa al directorio raíz de subida
+        // Esto solo funciona correctamente si subDirectoryFullPath es realmente un subdirectorio de rootUploadPath
+        Path relativePathToSubDir;
+        try {
+            relativePathToSubDir = rootUploadPath.relativize(subDirectoryFullPath);
+        } catch (IllegalArgumentException e) {
+            // Esto puede ocurrir si las rutas no tienen una base común o son diferentes unidades (en Windows)
+            log.warn("No se pudo relativizar la ruta del subdirectorio '{}' contra la raíz '{}'. Usando el nombre del último directorio.", subDirectoryFullPath, rootUploadPath);
+            // Como fallback, solo tomamos el nombre del último directorio (ej. "users" o "games")
+            relativePathToSubDir = subDirectoryFullPath.getFileName();
+            if (relativePathToSubDir == null) { // En caso de que la ruta sea solo la raíz
+                relativePathToSubDir = Paths.get("");
+            }
+        }
+        
+        return relativePathToSubDir.resolve(StringUtils.cleanPath(fileName)).toString().replace("\\", "/");
     }
 }

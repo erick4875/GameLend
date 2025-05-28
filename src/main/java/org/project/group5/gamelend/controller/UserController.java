@@ -1,9 +1,11 @@
 package org.project.group5.gamelend.controller;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.project.group5.gamelend.dto.DocumentUploadDTO;
 import org.project.group5.gamelend.dto.UserDTO;
 import org.project.group5.gamelend.dto.UserResponseDTO;
 import org.project.group5.gamelend.entity.Role;
@@ -20,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,8 +30,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -133,6 +138,16 @@ public class UserController {
 
         UserResponseDTO updatedUserResponse = userService.updateUserProfile(id, userDTO);
         return ResponseEntity.ok(updatedUserResponse);
+    }
+
+    @PostMapping("/{id}/photo")
+    public ResponseEntity<Void> uploadProfilePhoto(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @ModelAttribute @Valid DocumentUploadDTO uploadDTO) throws IOException {
+        
+        userService.updateUserProfileImage(id, file, uploadDTO);
+        return ResponseEntity.ok().build();
     }
 
     /**

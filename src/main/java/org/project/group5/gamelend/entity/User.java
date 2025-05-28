@@ -23,6 +23,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,7 +39,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User implements UserDetails { 
+public class User implements UserDetails {
 
     /**
      * Identificador único del usuario.
@@ -47,6 +48,10 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_user")
     private Long id;
+
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, orphanRemoval = true) 
+    @JoinColumn(name = "profile_image_id", referencedColumnName = "id")
+    private Document profileImage;
 
     /**
      * Nombre real del usuario.
@@ -118,10 +123,11 @@ public class User implements UserDetails {
      * cuando Spring Security lo necesite.
      */
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id_user"),
-        inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id_role") // Asegúrate que Role tenga id_role
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id_role") // Asegúrate
+                                                                                                                                                                                                        // que
+                                                                                                                                                                                                        // Role
+                                                                                                                                                                                                        // tenga
+                                                                                                                                                                                                        // id_role
     )
     @Builder.Default
     private List<Role> roles = new ArrayList<>();
@@ -129,7 +135,11 @@ public class User implements UserDetails {
     /**
      * Lista de tokens de autenticación asociados al usuario.
      */
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true) // orphanRemoval y CascadeType.ALL para tokens
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true) // orphanRemoval
+                                                                                                           // y
+                                                                                                           // CascadeType.ALL
+                                                                                                           // para
+                                                                                                           // tokens
     @Builder.Default
     private List<Token> tokens = new ArrayList<>();
 
@@ -142,7 +152,8 @@ public class User implements UserDetails {
             return List.of(); // O java.util.Collections.emptyList();
         }
         // Mapea tus entidades Role a SimpleGrantedAuthority.
-        // Asume que tu entidad Role tiene un método getName() que devuelve el nombre del rol (ej. "ROLE_USER").
+        // Asume que tu entidad Role tiene un método getName() que devuelve el nombre
+        // del rol (ej. "ROLE_USER").
         return this.roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
@@ -179,10 +190,10 @@ public class User implements UserDetails {
         return true; // O implementa lógica si los usuarios pueden ser deshabilitados.
     }
 
-
     // --- Métodos de utilidad que ya tenías ---
     /**
      * Añade un rol al usuario si no lo tiene ya.
+     * 
      * @param role El rol a añadir.
      */
     public void addRole(Role role) {
@@ -200,6 +211,7 @@ public class User implements UserDetails {
 
     /**
      * Elimina un rol del usuario.
+     * 
      * @param role El rol a eliminar.
      */
     public void removeRole(Role role) {

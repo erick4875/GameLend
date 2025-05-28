@@ -1,22 +1,19 @@
-package org.project.group5.gamelend.entity;
+package org.project.group5.gamelend.entity; // Asegúrate que este sea tu paquete de entidades
+
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.Lob; // Para el campo byte[] image si lo usas
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Entidad que representa un documento o archivo almacenado en el sistema
- * Puede ser una imagen de un juego o un avatar de usuario
- */
 @Entity
 @Table(name = "documents")
 @Data
@@ -25,76 +22,57 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Document {
 
-    /**
-     * Identificador único del documento.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * Nombre descriptivo o alias del documento, proporcionado por el usuario o sistema
-     */
-    @Column(nullable = false, length = 100)
-    @Builder.Default
-    private String name = "";
+    @Column(nullable = false, length = 255)
+    private String name; // Nombre descriptivo o dado por el usuario
 
-    /**
-     * Nombre del archivo tal como se almacena en el sistema de archivos o blob storage,
-     */
-    @Column(nullable = false, unique = true, length = 100)
-    @Builder.Default
-    private String fileName = "";
+    @Column(name = "file_name", nullable = false, length = 255, unique = true)
+    private String fileName; // Nombre del archivo físico almacenado (ej. UUID.jpg)
 
-    /**
-     * Ej: ".jpg", ".png". Incluye el punto
-     */
-    @Column(nullable = false, length = 10)
-    @Builder.Default
-    private String extension = "";
+    @Column(name = "content_type", length = 100) // <-- AÑADIDO/ASEGURADO
+    private String contentType; // ej. "image/jpeg", "image/png"
 
-    /**
-     * Ej: 'A' (Activo), 'P' (Pendiente), 'I' (Inactivo), 'D' (Default/Draft)
-     */
-    @Column(nullable = false, length = 1)
-    @Builder.Default
-    private String status = "D"; // Default status, e.g., Draft or Default
+    @Column(length = 10)
+    private String extension;
 
-    /**
-     * true si el documento ha sido marcado como eliminado, false en caso contrario
-     */
+    private Long size;
+
+    @Column(name = "upload_date")
+    private LocalDateTime uploadDate;
+
+    @Column(length = 10)
+    private String status; // Ej: "A" (Activo), "D" (Eliminado)
+
     @Column(nullable = false)
     @Builder.Default
     private boolean deleted = false;
 
-    /**
-     * Contenido binario del archivo, típicamente para imágenes pequeñas almacenadas directamente en la BD
-     * Para archivos grandes, es preferible usar localPath y almacenar el archivo externamente
-     */
-    @Lob
-    @Column(columnDefinition="LONGBLOB") // Especificar tipo para bases de datos como MySQL
-    private byte[] image;
-
-    /**
-     * Ruta local en el servidor donde se almacena el archivo físico, si no se guarda en la BD
-     * Ej: "/var/www/uploads/images/uuid_del_archivo_zelda.jpg"
-     */
-    @Column(length = 255)
+    @Column(name = "local_path", length = 512) // Ruta relativa donde se guarda, ej. "users/uuid.jpg"
     private String localPath;
 
-    /**
-     * URL completa para acceder al archivo.
-     * Este campo no se persiste en la base de datos, se calcula o se establece en tiempo de ejecución
-     * Ej: "https://servidor.com/api/documents/download/uuid_del_archivo_zelda.jpg"
-     */
-    @Transient
-    private String urlFile;
+    @Lob
+    @Column(name = "image_data", columnDefinition = "LONGBLOB") // Si decides guardar la imagen en la BD
+    private byte[] image; // Contenido binario del archivo (opcional si guardas en sistema de archivos)
 
     /**
-     * Devuelve el nombre completo del archivo, combinando el nombre base y la extensión
-     * @return El nombre completo del archivo (ej: "nombre_archivo.jpg")
+     * Devuelve el nombre completo del archivo incluyendo su extensión,
+     * útil para la cabecera Content-Disposition al descargar.
+     * Si el 'name' original no tiene extensión, usa la almacenada.
      */
-    public String getCompleteFileName() {
-        return fileName + extension;
+    public String getOriginalFileNameForDownload() {
+        if (this.name != null && this.name.contains(".")) {
+            return this.name; // Si 'name' ya tiene una extensión, úsalo.
+        } else if (this.name != null && this.extension != null && !this.extension.isBlank()) {
+            // Si 'name' no tiene extensión pero 'extension' sí, combínalos.
+            return this.name + "." + this.extension;
+        } else if (this.fileName != null) {
+            // Fallback al nombre de archivo almacenado (que debería tener extensión).
+            return this.fileName;
+        }
+        // Último fallback si todo lo demás falla.
+        return "downloaded_file" + (this.extension != null && !this.extension.isBlank() ? "." + this.extension : "");
     }
 }
