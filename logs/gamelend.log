@@ -1400,3 +1400,577 @@ Caused by: java.sql.SQLSyntaxErrorException: Unknown column 'u1_0.profile_image_
 2025-05-28 17:54:35 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
 2025-05-28 17:54:36 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
 2025-05-28 17:54:36 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 1 juegos.
+2025-05-28 17:59:59 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.UserController - Recibida solicitud para actualizar imagen de perfil para userId: 1
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.gamelend.service.UserService - Intentando establecer imagen de perfil para userId: 1
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.UserService - Eliminando imagen de perfil anterior (ID: 2) para userId: 1
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.service.DocumentService - Iniciando eliminación para Documento ID: 2, FileName: 20250528_175433764_2dc86246.jpg
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.service.FileStorageService - Imagen eliminada: 20250528_175433764_2dc86246.jpg (Tipo: USER) desde path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads\users\20250528_175433764_2dc86246.jpg
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.service.DocumentService - Archivo físico 20250528_175433764_2dc86246.jpg eliminado correctamente.
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.service.DocumentService - Entidad Document eliminada de la BD con ID: 2
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.UserService - Imagen de perfil anterior (Documento ID: 2) procesada para eliminación.
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.UserService - DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: profile_image_user_1_1748451605513
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.service.FileStorageService - Imagen 'temp_image_092495f7-8595-4d5f-a93d-953a2b4502bf.jpg' almacenada como '20250528_180005535_6348b6cf.jpg' (Tipo: USER) en path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads\users\20250528_180005535_6348b6cf.jpg
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.service.DocumentService - Documento guardado correctamente: 'profile_image_user_1_1748451605513', ID: 3
+2025-05-28 18:00:05 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.gamelend.service.UserService - Nueva imagen de perfil ID: 3 asociada al usuario ID: 1
+2025-05-28 18:00:06 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFPAdmin, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 18:00:06 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 18:00:07 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - No se realizaron cambios en el perfil para userId: 1
+2025-05-28 18:00:07 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 18:00:07 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 18:00:08 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 1 juegos.
+2025-05-28 18:04:20 [http-nio-0.0.0.0-8081-exec-4] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 1054, SQLState: 42S22
+2025-05-28 18:04:20 [http-nio-0.0.0.0-8081-exec-4] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Unknown column 'u1_0.profile_image_id' in 'field list'
+2025-05-28 18:04:20 [http-nio-0.0.0.0-8081-exec-4] WARN  o.p.g.gamelend.service.AuthService - Intento de login fallido para email admin@linkiafp.com: JDBC exception executing SQL [select u1_0.id_user,u1_0.city,u1_0.email,u1_0.name,u1_0.password,u1_0.profile_image_id,u1_0.province,u1_0.public_name,u1_0.registration_date from users u1_0 where u1_0.email=?] [Unknown column 'u1_0.profile_image_id' in 'field list'] [n/a]; SQL [n/a]
+2025-05-28 18:04:21 [http-nio-0.0.0.0-8081-exec-4] WARN  o.p.g.g.e.GlobalExceptionHandler - Credenciales incorrectas: Credenciales incorrectas
+2025-05-28 18:04:21 [http-nio-0.0.0.0-8081-exec-9] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 1054, SQLState: 42S22
+2025-05-28 18:04:21 [http-nio-0.0.0.0-8081-exec-9] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Unknown column 'u1_0.profile_image_id' in 'field list'
+2025-05-28 18:04:21 [http-nio-0.0.0.0-8081-exec-9] WARN  o.p.g.gamelend.service.AuthService - Intento de login fallido para email admin@linkiafp.com: JDBC exception executing SQL [select u1_0.id_user,u1_0.city,u1_0.email,u1_0.name,u1_0.password,u1_0.profile_image_id,u1_0.province,u1_0.public_name,u1_0.registration_date from users u1_0 where u1_0.email=?] [Unknown column 'u1_0.profile_image_id' in 'field list'] [n/a]; SQL [n/a]
+2025-05-28 18:04:21 [http-nio-0.0.0.0-8081-exec-9] WARN  o.p.g.g.e.GlobalExceptionHandler - Credenciales incorrectas: Credenciales incorrectas
+2025-05-28 18:04:21 [http-nio-0.0.0.0-8081-exec-8] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 1054, SQLState: 42S22
+2025-05-28 18:04:21 [http-nio-0.0.0.0-8081-exec-8] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Unknown column 'u1_0.profile_image_id' in 'field list'
+2025-05-28 18:04:21 [http-nio-0.0.0.0-8081-exec-8] ERROR o.p.g.g.e.GlobalExceptionHandler - Error de tiempo de ejecución: JDBC exception executing SQL [select u1_0.id_user,u1_0.city,u1_0.email,u1_0.name,u1_0.password,u1_0.profile_image_id,u1_0.province,u1_0.public_name,u1_0.registration_date from users u1_0 where u1_0.email=?] [Unknown column 'u1_0.profile_image_id' in 'field list'] [n/a]; SQL [n/a]
+org.springframework.dao.InvalidDataAccessResourceUsageException: JDBC exception executing SQL [select u1_0.id_user,u1_0.city,u1_0.email,u1_0.name,u1_0.password,u1_0.profile_image_id,u1_0.province,u1_0.public_name,u1_0.registration_date from users u1_0 where u1_0.email=?] [Unknown column 'u1_0.profile_image_id' in 'field list'] [n/a]; SQL [n/a]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:281)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:256)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:560)
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:343)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:160)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:136)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at jdk.proxy2/jdk.proxy2.$Proxy158.findByEmail(Unknown Source)
+	at org.project.group5.gamelend.service.AuthService.refreshToken(AuthService.java:186)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728)
+	at org.project.group5.gamelend.service.AuthService$$SpringCGLIB$$0.refreshToken(<generated>)
+	at org.project.group5.gamelend.controller.AuthController.refreshToken(AuthController.java:67)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:986)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:891)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:479)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:340)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:82)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:128)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.project.group5.gamelend.config.JwtAuthFilter.doFilterInternal(JwtAuthFilter.java:59)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107)
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:227)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:240)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:323)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:224)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:137)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238)
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362)
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:114)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:116)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:398)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1740)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1189)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:658)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.hibernate.exception.SQLGrammarException: JDBC exception executing SQL [select u1_0.id_user,u1_0.city,u1_0.email,u1_0.name,u1_0.password,u1_0.profile_image_id,u1_0.province,u1_0.public_name,u1_0.registration_date from users u1_0 where u1_0.email=?] [Unknown column 'u1_0.profile_image_id' in 'field list'] [n/a]
+	at org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:66)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:94)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:268)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:171)
+	at org.hibernate.sql.results.jdbc.internal.JdbcValuesResultSetImpl.<init>(JdbcValuesResultSetImpl.java:74)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.resolveJdbcValuesSource(JdbcSelectExecutorStandardImpl.java:355)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:137)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:102)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.executeQuery(JdbcSelectExecutor.java:91)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:165)
+	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.lambda$new$1(ConcreteSqmSelectQueryPlan.java:152)
+	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.withCacheableSqmInterpretation(ConcreteSqmSelectQueryPlan.java:442)
+	at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.performList(ConcreteSqmSelectQueryPlan.java:362)
+	at org.hibernate.query.sqm.internal.QuerySqmImpl.doList(QuerySqmImpl.java:380)
+	at org.hibernate.query.spi.AbstractSelectionQuery.list(AbstractSelectionQuery.java:143)
+	at org.hibernate.query.spi.AbstractSelectionQuery.getSingleResult(AbstractSelectionQuery.java:275)
+	at org.springframework.data.jpa.repository.query.JpaQueryExecution$SingleEntityExecution.doExecute(JpaQueryExecution.java:224)
+	at org.springframework.data.jpa.repository.query.JpaQueryExecution.execute(JpaQueryExecution.java:93)
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.doExecute(AbstractJpaQuery.java:152)
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute(AbstractJpaQuery.java:140)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:170)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:149)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:69)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138)
+	... 147 common frames omitted
+Caused by: java.sql.SQLSyntaxErrorException: Unknown column 'u1_0.profile_image_id' in 'field list'
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:112)
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:114)
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:988)
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeQuery(ClientPreparedStatement.java:1056)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeQuery(ProxyPreparedStatement.java:52)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeQuery(HikariProxyPreparedStatement.java)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:250)
+	... 175 common frames omitted
+2025-05-28 18:04:24 [http-nio-0.0.0.0-8081-exec-7] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 1054, SQLState: 42S22
+2025-05-28 18:04:24 [http-nio-0.0.0.0-8081-exec-7] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Unknown column 'u1_0.profile_image_id' in 'field list'
+2025-05-28 18:04:24 [http-nio-0.0.0.0-8081-exec-7] WARN  o.p.g.gamelend.service.AuthService - Intento de login fallido para email admin@linkiafp.com: JDBC exception executing SQL [select u1_0.id_user,u1_0.city,u1_0.email,u1_0.name,u1_0.password,u1_0.profile_image_id,u1_0.province,u1_0.public_name,u1_0.registration_date from users u1_0 where u1_0.email=?] [Unknown column 'u1_0.profile_image_id' in 'field list'] [n/a]; SQL [n/a]
+2025-05-28 18:04:24 [http-nio-0.0.0.0-8081-exec-7] WARN  o.p.g.g.e.GlobalExceptionHandler - Credenciales incorrectas: Credenciales incorrectas
+2025-05-28 18:04:30 [http-nio-0.0.0.0-8081-exec-1] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 1054, SQLState: 42S22
+2025-05-28 18:04:30 [http-nio-0.0.0.0-8081-exec-1] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Unknown column 'u1_0.profile_image_id' in 'field list'
+2025-05-28 18:04:30 [http-nio-0.0.0.0-8081-exec-1] WARN  o.p.g.gamelend.service.AuthService - Intento de login fallido para email admin@linkiafp.com: JDBC exception executing SQL [select u1_0.id_user,u1_0.city,u1_0.email,u1_0.name,u1_0.password,u1_0.profile_image_id,u1_0.province,u1_0.public_name,u1_0.registration_date from users u1_0 where u1_0.email=?] [Unknown column 'u1_0.profile_image_id' in 'field list'] [n/a]; SQL [n/a]
+2025-05-28 18:04:30 [http-nio-0.0.0.0-8081-exec-1] WARN  o.p.g.g.e.GlobalExceptionHandler - Credenciales incorrectas: Credenciales incorrectas
+2025-05-28 18:04:49 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 29316 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-28 18:04:49 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-28 18:04:52 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-28 18:04:52 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-28 18:04:52 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-28 18:04:54 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-28 18:04:55 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@391b01c5
+2025-05-28 18:04:55 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-28 18:05:01 [main] INFO  o.p.g.g.service.FileStorageService - Directorios de subida creados/verificados: Root -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads, User -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads\users, Game -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads\games
+2025-05-28 18:05:03 [main] INFO  o.p.group5.gamelend.GameLendApp - Started GameLendApp in 13.881 seconds (process running for 14.449)
+2025-05-28 18:05:03 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicializando roles y usuario administrador...
+2025-05-28 18:05:03 [main] INFO  o.p.g.g.config.DatabaseInitializer - Usuario administrador admin@linkiafp.com ya existe.
+2025-05-28 18:05:03 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicialización de base de datos completada.
+2025-05-28 18:05:04 [RMI TCP Connection(2)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-28 18:05:16 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-28 18:05:17 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-28 18:05:18 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 18:05:18 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 18:05:18 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.gamelend.service.GameService - No se encontraron juegos en la base de datos.
+2025-05-28 18:05:21 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 18:05:27 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Recibida solicitud para actualizar imagen de perfil para userId: 1
+2025-05-28 18:05:27 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - Intentando establecer imagen de perfil para userId: 1
+2025-05-28 18:05:27 [http-nio-0.0.0.0-8081-exec-7] DEBUG o.p.g.gamelend.service.UserService - DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: profile_image_user_1_1748451927811
+2025-05-28 18:05:27 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.service.FileStorageService - Imagen 'temp_image_bdc76b54-9214-48d4-ad25-519f243de773.jpg' almacenada como '20250528_180527826_2780b72f.jpg' (Tipo: USER) en path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads\users\20250528_180527826_2780b72f.jpg
+2025-05-28 18:05:27 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.service.DocumentService - Documento guardado correctamente: 'profile_image_user_1_1748451927811', ID: 4
+2025-05-28 18:05:27 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - Nueva imagen de perfil ID: 4 asociada al usuario ID: 1
+2025-05-28 18:05:28 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFPAdmin, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 18:05:29 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 18:05:29 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.UserService - No se realizaron cambios en el perfil para userId: 1
+2025-05-28 18:05:30 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 18:05:30 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 18:05:30 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.gamelend.service.GameService - No se encontraron juegos en la base de datos.
+2025-05-28 18:36:39 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 31668 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-28 18:36:39 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-28 18:36:42 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-28 18:36:42 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-28 18:36:42 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-28 18:36:43 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-28 18:36:44 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@3b64f131
+2025-05-28 18:36:44 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-28 18:36:48 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.boot.context.properties.ConfigurationPropertiesBindException: Error creating bean with name 'fileStorageProperties': Could not bind properties to 'FileStorageProperties' : prefix=file, ignoreInvalidFields=false, ignoreUnknownFields=true
+2025-05-28 18:36:48 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-05-28 18:36:48 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-05-28 18:36:48 [main] INFO  o.a.catalina.core.StandardService - Stopping service [Tomcat]
+2025-05-28 18:36:48 [main] ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to bind properties under 'file' to org.project.group5.gamelend.config.FileStorageProperties:
+
+    Property: file.game-images-path
+    Value: "./uploads/games"
+    Origin: class path resource [application.properties] - 62:23
+    Reason: java.lang.IllegalStateException: No setter found for property: game-images-path
+
+Action:
+
+Update your application's configuration
+
+2025-05-28 18:39:14 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 27504 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-28 18:39:14 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-28 18:39:16 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-28 18:39:16 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-28 18:39:16 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-28 18:39:17 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-28 18:39:18 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@391b01c5
+2025-05-28 18:39:18 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-28 18:39:22 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.boot.context.properties.ConfigurationPropertiesBindException: Error creating bean with name 'fileStorageProperties': Could not bind properties to 'FileStorageProperties' : prefix=file, ignoreInvalidFields=false, ignoreUnknownFields=true
+2025-05-28 18:39:22 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-05-28 18:39:22 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-05-28 18:39:22 [main] INFO  o.a.catalina.core.StandardService - Stopping service [Tomcat]
+2025-05-28 18:39:22 [main] ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to bind properties under 'file' to org.project.group5.gamelend.config.FileStorageProperties:
+
+    Property: file.game-images-path
+    Value: "./uploads/games"
+    Origin: class path resource [application.properties] - 62:23
+    Reason: java.lang.IllegalStateException: No setter found for property: game-images-path
+
+Action:
+
+Update your application's configuration
+
+2025-05-28 18:43:48 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 25968 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-28 18:43:48 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-28 18:43:51 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-28 18:43:51 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-28 18:43:51 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-28 18:43:52 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-28 18:43:53 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5d6d424d
+2025-05-28 18:43:53 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-28 18:43:57 [main] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'documentController' defined in file [C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes\org\project\group5\gamelend\controller\DocumentController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'documentService' defined in file [C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes\org\project\group5\gamelend\service\DocumentService.class]: Unsatisfied dependency expressed through constructor parameter 1: Error creating bean with name 'fileStorageService' defined in file [C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes\org\project\group5\gamelend\service\FileStorageService.class]: Unsatisfied dependency expressed through constructor parameter 0: No qualifying bean of type 'org.project.group5.gamelend.config.FileStorageProperties' available: expected single matching bean but found 2: fileStorageProperties,file-org.project.group5.gamelend.config.FileStorageProperties
+2025-05-28 18:43:57 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-05-28 18:43:57 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-05-28 18:43:57 [main] INFO  o.a.catalina.core.StandardService - Stopping service [Tomcat]
+2025-05-28 18:43:57 [main] ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 0 of constructor in org.project.group5.gamelend.service.FileStorageService required a single bean, but 2 were found:
+	- fileStorageProperties: defined in file [C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes\org\project\group5\gamelend\config\FileStorageProperties.class]
+	- file-org.project.group5.gamelend.config.FileStorageProperties: defined in unknown location
+
+This may be due to missing parameter name information
+
+Action:
+
+Consider marking one of the beans as @Primary, updating the consumer to accept multiple beans, or using @Qualifier to identify the bean that should be consumed
+
+Ensure that your compiler is configured to use the '-parameters' flag.
+You may need to update both your build tool settings as well as your IDE.
+(See https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-6.1-Release-Notes#parameter-name-retention)
+
+
+2025-05-28 18:51:37 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 26460 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-28 18:51:37 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-28 18:51:39 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-28 18:51:39 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-28 18:51:39 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-28 18:51:40 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-28 18:51:41 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@67c2b55d
+2025-05-28 18:51:41 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-28 18:51:45 [main] INFO  o.p.g.g.service.FileStorageService - Directorios de subida creados/verificados: Root -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas, User -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario, Game -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\game_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de juego
+2025-05-28 18:51:47 [main] INFO  o.p.group5.gamelend.GameLendApp - Started GameLendApp in 10.837 seconds (process running for 11.519)
+2025-05-28 18:51:47 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicializando roles y usuario administrador...
+2025-05-28 18:51:47 [main] INFO  o.p.g.g.config.DatabaseInitializer - Usuario administrador admin@linkiafp.com ya existe.
+2025-05-28 18:51:47 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicialización de base de datos completada.
+2025-05-28 18:51:48 [RMI TCP Connection(2)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-28 18:52:15 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-28 18:52:15 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-28 18:52:15 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-28 18:52:16 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 18:52:16 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 18:52:16 [http-nio-0.0.0.0-8081-exec-2] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 2 juegos.
+2025-05-28 18:52:19 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 18:52:24 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.UserController - Recibida solicitud para actualizar imagen de perfil para userId: 1
+2025-05-28 18:52:24 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.gamelend.service.UserService - Intentando establecer imagen de perfil para userId: 1
+2025-05-28 18:52:24 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.UserService - DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: profile_image_user_1_1748454744701
+2025-05-28 18:52:24 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.service.FileStorageService - Imagen 'temp_image_e5c18a32-c3ca-430e-8f2e-7383d1e41b07.jpg' almacenada como '20250528_185224712_1ebe7651.jpg' (Tipo: USER) en path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_185224712_1ebe7651.jpg
+2025-05-28 18:52:24 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.service.DocumentService - Documento guardado correctamente: 'profile_image_user_1_1748454744701', ID: 1
+2025-05-28 18:52:24 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.gamelend.service.UserService - Nueva imagen de perfil ID: 1 asociada al usuario ID: 1
+2025-05-28 18:52:25 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFPAdmin, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 18:52:26 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 18:52:26 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.gamelend.service.UserService - No se realizaron cambios en el perfil para userId: 1
+2025-05-28 18:52:26 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 18:52:27 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 18:52:27 [http-nio-0.0.0.0-8081-exec-10] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 2 juegos.
+2025-05-28 19:25:04 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Recibida solicitud para actualizar imagen de perfil para userId: 1
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.UserService - Intentando establecer imagen de perfil para userId: 1
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.UserService - Eliminando imagen de perfil anterior (ID: 1) para userId: 1
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.DocumentService - Iniciando eliminación para Documento ID: 1, FileName: 20250528_185224712_1ebe7651.jpg
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.FileStorageService - Imagen eliminada: 20250528_185224712_1ebe7651.jpg (Tipo: USER) desde path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_185224712_1ebe7651.jpg
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.DocumentService - Archivo físico 20250528_185224712_1ebe7651.jpg eliminado correctamente.
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.DocumentService - Entidad Document eliminada de la BD con ID: 1
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.UserService - Imagen de perfil anterior (Documento ID: 1) procesada para eliminación.
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.UserService - DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: profile_image_user_1_1748456709841
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.FileStorageService - Imagen 'temp_image_ed527546-d2a9-4d3f-87cc-bc27b969b1e1.jpg' almacenada como '20250528_192509853_aa1f68c1.jpg' (Tipo: USER) en path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_192509853_aa1f68c1.jpg
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.DocumentService - Documento guardado correctamente: 'profile_image_user_1_1748456709841', ID: 2
+2025-05-28 19:25:09 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.UserService - Nueva imagen de perfil ID: 2 asociada al usuario ID: 1
+2025-05-28 19:25:10 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFPAdmin, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 19:25:11 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 19:25:11 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.gamelend.service.UserService - No se realizaron cambios en el perfil para userId: 1
+2025-05-28 19:25:12 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:25:12 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:25:12 [http-nio-0.0.0.0-8081-exec-10] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 2 juegos.
+2025-05-28 19:30:28 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 28584 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-28 19:30:28 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-28 19:30:31 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-28 19:30:31 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-28 19:30:31 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-28 19:30:32 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-28 19:30:33 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@18ff1520
+2025-05-28 19:30:33 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-28 19:30:38 [main] INFO  o.p.g.g.service.FileStorageService - Directorios de subida creados/verificados: Root -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas, User -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario, Game -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\game_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de juego
+2025-05-28 19:30:39 [main] INFO  o.p.group5.gamelend.GameLendApp - Started GameLendApp in 11.179 seconds (process running for 11.749)
+2025-05-28 19:30:39 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicializando roles y usuario administrador...
+2025-05-28 19:30:39 [main] INFO  o.p.g.g.config.DatabaseInitializer - Usuario administrador admin@linkiafp.com ya existe.
+2025-05-28 19:30:39 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicialización de base de datos completada.
+2025-05-28 19:30:40 [RMI TCP Connection(2)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-28 19:31:05 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-28 19:31:05 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-28 19:31:05 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-28 19:31:06 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:31:06 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:31:07 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 2 juegos.
+2025-05-28 19:31:09 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.UserController - Recibida solicitud para actualizar imagen de perfil para userId: 1
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.gamelend.service.UserService - Intentando establecer imagen de perfil para userId: 1
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] DEBUG o.p.g.gamelend.service.UserService - Eliminando imagen de perfil anterior (ID: 2) para userId: 1
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.service.DocumentService - Iniciando eliminación para Documento ID: 2, FileName: 20250528_192509853_aa1f68c1.jpg
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.service.FileStorageService - Imagen eliminada: 20250528_192509853_aa1f68c1.jpg (Tipo: USER) desde path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_192509853_aa1f68c1.jpg
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.service.DocumentService - Archivo físico 20250528_192509853_aa1f68c1.jpg eliminado correctamente.
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.service.DocumentService - Entidad Document eliminada de la BD con ID: 2
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] DEBUG o.p.g.gamelend.service.UserService - Imagen de perfil anterior (Documento ID: 2) procesada para eliminación.
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] DEBUG o.p.g.gamelend.service.UserService - DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: profile_image_user_1_1748457074612
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.service.FileStorageService - Imagen 'temp_image_43ac45cb-1583-4413-ab86-ccad3df47106.jpg' almacenada como '20250528_193114626_87fb6c13.jpg' (Tipo: USER) en path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_193114626_87fb6c13.jpg
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.service.DocumentService - Documento guardado correctamente: 'profile_image_user_1_1748457074612', ID: 3
+2025-05-28 19:31:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.gamelend.service.UserService - Nueva imagen de perfil ID: 3 asociada al usuario ID: 1
+2025-05-28 19:31:15 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFPAdmin, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 19:31:16 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 19:31:16 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - No se realizaron cambios en el perfil para userId: 1
+2025-05-28 19:31:17 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:31:17 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:31:17 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 2 juegos.
+2025-05-28 19:42:16 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Recibida solicitud para actualizar imagen de perfil para userId: 1
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.UserService - Intentando establecer imagen de perfil para userId: 1
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.UserService - Eliminando imagen de perfil anterior (ID: 3) para userId: 1
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.DocumentService - Iniciando eliminación para Documento ID: 3, FileName: 20250528_193114626_87fb6c13.jpg
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.FileStorageService - Imagen eliminada: 20250528_193114626_87fb6c13.jpg (Tipo: USER) desde path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_193114626_87fb6c13.jpg
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.DocumentService - Archivo físico 20250528_193114626_87fb6c13.jpg eliminado correctamente.
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.DocumentService - Entidad Document eliminada de la BD con ID: 3
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.UserService - Imagen de perfil anterior (Documento ID: 3) procesada para eliminación.
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.UserService - DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: profile_image_user_1_1748457781426
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.FileStorageService - Imagen 'temp_image_d1cd396c-c69d-4893-952b-f95e86d65919.jpg' almacenada como '20250528_194301440_dd593563.jpg' (Tipo: USER) en path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_194301440_dd593563.jpg
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.service.DocumentService - Documento guardado correctamente: 'profile_image_user_1_1748457781426', ID: 4
+2025-05-28 19:43:01 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.UserService - Nueva imagen de perfil ID: 4 asociada al usuario ID: 1
+2025-05-28 19:43:02 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFPAdmin, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 19:43:02 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 19:43:03 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - No se realizaron cambios en el perfil para userId: 1
+2025-05-28 19:43:03 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:43:03 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:43:04 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:43:17 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-28 19:43:17 [http-nio-0.0.0.0-8081-exec-2] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-28 19:43:17 [http-nio-0.0.0.0-8081-exec-2] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-28 19:43:18 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:43:18 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:43:19 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:43:22 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:43:28 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFP, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 19:43:29 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 19:43:29 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.gamelend.service.UserService - Perfil de usuario actualizado exitosamente para ID: 1
+2025-05-28 19:43:30 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:43:30 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:43:30 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:43:36 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-28 19:43:48 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:43:48 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:43:49 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:43:51 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-28 19:43:57 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:43:57 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:43:58 [http-nio-0.0.0.0-8081-exec-6] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:44:04 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:44:06 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:44:06 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:44:08 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-28 19:44:14 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:44:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:44:14 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:44:16 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 3
+2025-05-28 19:44:19 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:44:19 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:44:20 [http-nio-0.0.0.0-8081-exec-6] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:44:21 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 3
+2025-05-28 19:44:27 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:44:27 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:44:27 [http-nio-0.0.0.0-8081-exec-7] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:44:28 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-28 19:44:32 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:44:32 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:44:33 [http-nio-0.0.0.0-8081-exec-10] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:44:34 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 2
+2025-05-28 19:44:38 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:44:38 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:44:39 [http-nio-0.0.0.0-8081-exec-6] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:44:51 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:44:54 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:44:54 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:44:54 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:53:13 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-28 19:53:13 [http-nio-0.0.0.0-8081-exec-2] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-28 19:53:13 [http-nio-0.0.0.0-8081-exec-2] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-28 19:53:14 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:53:15 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:53:15 [http-nio-0.0.0.0-8081-exec-4] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:53:17 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Recibida solicitud para actualizar imagen de perfil para userId: 1
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.gamelend.service.UserService - Intentando establecer imagen de perfil para userId: 1
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.UserService - Eliminando imagen de perfil anterior (ID: 4) para userId: 1
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.service.DocumentService - Iniciando eliminación para Documento ID: 4, FileName: 20250528_194301440_dd593563.jpg
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.service.FileStorageService - Imagen eliminada: 20250528_194301440_dd593563.jpg (Tipo: USER) desde path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_194301440_dd593563.jpg
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.service.DocumentService - Archivo físico 20250528_194301440_dd593563.jpg eliminado correctamente.
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.service.DocumentService - Entidad Document eliminada de la BD con ID: 4
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.UserService - Imagen de perfil anterior (Documento ID: 4) procesada para eliminación.
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.UserService - DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: profile_image_user_1_1748458403396
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.service.FileStorageService - Imagen 'temp_image_4dd39d2e-b3d9-4587-a2bc-6813ea7bdd49.jpg' almacenada como '20250528_195323412_a58f47c8.jpg' (Tipo: USER) en path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_195323412_a58f47c8.jpg
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.service.DocumentService - Documento guardado correctamente: 'profile_image_user_1_1748458403396', ID: 5
+2025-05-28 19:53:23 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.gamelend.service.UserService - Nueva imagen de perfil ID: 5 asociada al usuario ID: 1
+2025-05-28 19:53:24 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFP, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 19:53:25 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 19:53:25 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.gamelend.service.UserService - No se realizaron cambios en el perfil para userId: 1
+2025-05-28 19:53:26 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:53:26 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:53:26 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:58:03 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-28 19:58:03 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-28 19:58:03 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-28 19:58:04 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:58:04 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:58:05 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.
+2025-05-28 19:58:07 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.UserController - Recibida solicitud para actualizar imagen de perfil para userId: 1
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.gamelend.service.UserService - Intentando establecer imagen de perfil para userId: 1
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.UserService - Eliminando imagen de perfil anterior (ID: 5) para userId: 1
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.service.DocumentService - Iniciando eliminación para Documento ID: 5, FileName: 20250528_195323412_a58f47c8.jpg
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.service.FileStorageService - Imagen eliminada: 20250528_195323412_a58f47c8.jpg (Tipo: USER) desde path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_195323412_a58f47c8.jpg
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.service.DocumentService - Archivo físico 20250528_195323412_a58f47c8.jpg eliminado correctamente.
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.service.DocumentService - Entidad Document eliminada de la BD con ID: 5
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.UserService - Imagen de perfil anterior (Documento ID: 5) procesada para eliminación.
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.UserService - DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: profile_image_user_1_1748458694779
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.service.FileStorageService - Imagen 'temp_image_31557455-ea3d-4cce-80a2-52660ca5f7fb.jpg' almacenada como '20250528_195814793_62a387d1.jpg' (Tipo: USER) en path: c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario\20250528_195814793_62a387d1.jpg
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.service.DocumentService - Documento guardado correctamente: 'profile_image_user_1_1748458694779', ID: 6
+2025-05-28 19:58:14 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.gamelend.service.UserService - Nueva imagen de perfil ID: 6 asociada al usuario ID: 1
+2025-05-28 19:58:15 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.UserController - Updating profile for user ID: 1 with data: UserDTO[name=Administrador LinkiaFP, publicName=linkiaFP, email=null, province=Barcelona, city=Badalona, password=null, registrationDate=null, games=[], roles=[]]
+2025-05-28 19:58:16 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.gamelend.service.UserService - Intentando actualizar perfil para userId: 1
+2025-05-28 19:58:16 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.gamelend.service.UserService - No se realizaron cambios en el perfil para userId: 1
+2025-05-28 19:58:17 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-28 19:58:17 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-28 19:58:17 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 3 juegos.

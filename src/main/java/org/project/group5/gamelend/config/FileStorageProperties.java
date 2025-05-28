@@ -1,50 +1,90 @@
-package org.project.group5.gamelend.config;
+package org.project.group5.gamelend.config; // Asegúrate que el paquete sea correcto
 
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties; // Importar Paths
+import org.springframework.util.unit.DataSize;
 
-/**
- * @ConfigurationProperties(prefix = "file"): Carga propiedades desde `application.properties`
- *                                          que empiezan con "file." (ej. file.upload-dir).
- *
- * Almacena configuraciones para la subida de archivos.
- */
 @ConfigurationProperties(prefix = "file")
 public class FileStorageProperties {
 
-    private String uploadDir; // Directorio principal para archivos subidos.
-    private String gameImagesPath; // Subdirectorio para imágenes de juegos.
-    private String userImagesPath; // Subdirectorio para imágenes de usuarios.
-    private long maxSize; // Tamaño máximo de archivo permitido (en bytes).
-    private List<String> allowedExtensions; // Extensiones de archivo permitidas (ej. "png", "jpg").
+    private String uploadDir = "./uploads_gamelend"; // Directorio raíz por defecto
+    private String userImagesSubDir = "users";    // Subdirectorio para imágenes de usuario
+    private String gameImagesSubDir = "games";    // Subdirectorio para imágenes de juego
+    private String defaultSubDir = "default_files"; // Subdirectorio por defecto
 
-    // Getters y Setters: Necesarios para que Spring inyecte y otros servicios lean los valores.
+    private String maxSize = "10MB";
+    private List<String> allowedExtensions = new ArrayList<>(List.of("png", "jpg", "jpeg", "gif"));
 
-    public String getUploadDir() { return uploadDir; }
-    public void setUploadDir(String uploadDir) { this.uploadDir = uploadDir; }
+    // Getters y Setters para todos los campos que Spring necesita para el binding
 
-    public String getGameImagesPath() { return gameImagesPath; }
-    public void setGameImagesPath(String gameImagesPath) { this.gameImagesPath = gameImagesPath; }
+    public String getUploadDir() {
+        return uploadDir;
+    }
 
-    public String getUserImagesPath() { return userImagesPath; }
-    public void setUserImagesPath(String userImagesPath) { this.userImagesPath = userImagesPath; }
+    public void setUploadDir(String uploadDir) {
+        this.uploadDir = uploadDir;
+    }
 
-    public long getMaxSize() { return maxSize; }
-    public void setMaxSize(long maxSize) { this.maxSize = maxSize; }
+    public String getUserImagesSubDir() {
+        return userImagesSubDir;
+    }
 
-    public List<String> getAllowedExtensions() { return allowedExtensions; }
-    public void setAllowedExtensions(List<String> allowedExtensions) { this.allowedExtensions = allowedExtensions; }
+    public void setUserImagesSubDir(String userImagesSubDir) {
+        this.userImagesSubDir = userImagesSubDir;
+    }
 
-    /**
-     * Comprueba si una extensión de archivo está en la lista de permitidas.
-     */
+    public String getGameImagesSubDir() {
+        return gameImagesSubDir;
+    }
+
+    public void setGameImagesSubDir(String gameImagesSubDir) {
+        this.gameImagesSubDir = gameImagesSubDir;
+    }
+
+    public String getDefaultSubDir() {
+        return defaultSubDir;
+    }
+
+    public void setDefaultSubDir(String defaultSubDir) {
+        this.defaultSubDir = defaultSubDir;
+    }
+
+    // Métodos de conveniencia para obtener las rutas completas
+    public String getUserImagesPath() {
+        return Paths.get(uploadDir, userImagesSubDir).toString();
+    }
+
+    public String getGameImagesPath() {
+        return Paths.get(uploadDir, gameImagesSubDir).toString();
+    }
+    
+    public String getDefaultImagesPath() { // Para el caso 'default' en FileStorageService
+        return Paths.get(uploadDir, defaultSubDir).toString();
+    }
+
+    public long getMaxSize() {
+        return DataSize.parse(maxSize).toBytes();
+    }
+
+    public void setMaxSize(String maxSize) {
+        this.maxSize = maxSize;
+    }
+
+    public List<String> getAllowedExtensions() {
+        return allowedExtensions;
+    }
+
+    public void setAllowedExtensions(List<String> allowedExtensions) {
+        this.allowedExtensions = allowedExtensions;
+    }
+
     public boolean isExtensionAllowed(String extension) {
-        // Si no hay lista de permitidas, se asume que todas lo son.
-        if (allowedExtensions == null || allowedExtensions.isEmpty()) {
-            return true;
+        if (extension == null || extension.isEmpty()) {
+            return false;
         }
-        // Verifica si la extensión (ignorando mayúsculas/minúsculas) está en la lista.
-        return allowedExtensions.stream().anyMatch(ext -> ext.equalsIgnoreCase(extension));
+        return allowedExtensions.contains(extension.toLowerCase());
     }
 }

@@ -1,6 +1,6 @@
 package org.project.group5.gamelend.service;
 
-import java.time.LocalDateTime; // Todavía necesario para la firma de algunos métodos de MultipartFile si se usaran directamente
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.project.group5.gamelend.dto.DocumentUploadDTO;
@@ -23,6 +23,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Servicio para la gestión de documentos (subida, descarga, eliminación).
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -51,7 +54,6 @@ public class DocumentService {
                 });
     }
 
-    
     public Document save(MultipartFile file, DocumentUploadDTO uploadDTO) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("El archivo no puede estar vacío.");
@@ -87,16 +89,12 @@ public class DocumentService {
             log.info("Documento guardado correctamente: '{}', ID: {}", saved.getName(), saved.getId());
             return saved;
 
-        } catch (FileStorageException e) { // Solo se necesita capturar FileStorageException (o RuntimeException)
+        } catch (FileStorageException e) {
             log.error("Error al guardar el archivo para el documento '{}': {}",
                     (uploadDTO.name() != null ? uploadDTO.name() : file.getOriginalFilename()), e.getMessage());
-            // Re-lanzar como FileStorageException o una excepción más genérica de servicio
-            // si se prefiere
             throw new FileStorageException("No se pudo guardar el archivo: " +
                     (file.getOriginalFilename() != null ? file.getOriginalFilename() : "nombre desconocido"), e);
         }
-        // Si quisieras manejar otras RuntimeExceptions de forma diferente, podrías
-        // añadir más catch blocks.
     }
 
     @Transactional(readOnly = true)
@@ -175,7 +173,7 @@ public class DocumentService {
         log.info("Documento con ID {} marcado como eliminado (soft delete).", id);
     }
 
-    private ImageType determineImageTypeFromName(String documentNameOrOriginalFileName) {
+    public ImageType determineImageTypeFromName(String documentNameOrOriginalFileName) {
         if (documentNameOrOriginalFileName != null) {
             String lowerName = documentNameOrOriginalFileName.toLowerCase();
             if (lowerName.contains("profile_image_user") || lowerName.contains("user")) {
@@ -189,7 +187,9 @@ public class DocumentService {
         return FileStorageService.ImageType.USER;
     }
 
-    private ImageType determineImageType(Document document) {
+    public ImageType determineImageType(Document document) {
+        // Asegúrate que este método sea público si es llamado desde fuera de esta clase
+        // (ej. DocumentController)
         return determineImageTypeFromName(document.getName() != null ? document.getName() : document.getFileName());
     }
 
@@ -200,7 +200,9 @@ public class DocumentService {
         return "";
     }
 
-    private String determineContentType(HttpServletRequest request, String storedFileName, Document document) {
+    public String determineContentType(HttpServletRequest request, String storedFileName, Document document) {
+        // Asegúrate que este método sea público si es llamado desde fuera de esta clase
+        // (ej. DocumentController)
         String contentType = null;
         if (document.getContentType() != null && !document.getContentType().isBlank()) {
             return document.getContentType();

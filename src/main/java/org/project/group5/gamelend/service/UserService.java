@@ -40,7 +40,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final DocumentService documentService; // Inyectar DocumentService
     // private final DocumentMapper documentMapper; // No es necesario aquí si
-    // DocumentService devuelve la entidad Document
+    // UserMapper maneja la URL
 
     public Role getDefaultRole() {
         return userRoleRepository.findByName("ROLE_USER")
@@ -71,13 +71,16 @@ public class UserService {
     }
 
     @Transactional
-    public User saveUser(User user) {
+    public User saveUser(User user) { // Para creación de usuario, usualmente llamado desde AuthService o un método
+                                      // createUser
         if (user == null) {
             throw new BadRequestException("El usuario no puede ser nulo");
         }
         try {
+            // Asumimos que la contraseña ya está encriptada y la fecha de registro
+            // establecida
             User savedUser = userRepository.save(user);
-            log.info("Usuario guardado/actualizado correctamente con ID: {}", savedUser.getId());
+            log.info("Usuario guardado correctamente con ID: {}", savedUser.getId());
             return savedUser;
         } catch (DataIntegrityViolationException e) {
             log.error("Error de integridad de datos al guardar usuario: {}", e.getMessage());
@@ -105,18 +108,34 @@ public class UserService {
     public List<UserResponseDTO> getAllUsersAsResponseDTO() {
         log.debug("Solicitando todos los usuarios para convertir a DTO");
         List<User> users = userRepository.findAll();
+        // Asegurar que las relaciones LAZY necesarias para UserResponseDTO se carguen
+        // para cada usuario
+        users.forEach(user -> {
+            Hibernate.initialize(user.getProfileImage());
+            Hibernate.initialize(user.getGames());
+            Hibernate.initialize(user.getLoansMade());
+            Hibernate.initialize(user.getRoles());
+        });
         return userMapper.toResponseDTOList(users);
     }
 
     @Transactional(readOnly = true)
     public UserResponseDTO getUserByIdAsResponseDTO(Long id) {
-        User user = getUserById(id);
+        User user = getUserById(id); // Este método ya obtiene el User
+        Hibernate.initialize(user.getProfileImage());
+        Hibernate.initialize(user.getGames());
+        Hibernate.initialize(user.getLoansMade());
+        Hibernate.initialize(user.getRoles());
         return userMapper.toResponseDTO(user);
     }
 
     @Transactional(readOnly = true)
     public UserResponseDTO getUserByEmailAsResponseDTO(String email) {
-        User user = findUserByEmail(email);
+        User user = findUserByEmail(email); // Este método ya obtiene el User
+        Hibernate.initialize(user.getProfileImage());
+        Hibernate.initialize(user.getGames());
+        Hibernate.initialize(user.getLoansMade());
+        Hibernate.initialize(user.getRoles());
         return userMapper.toResponseDTO(user);
     }
 
@@ -124,48 +143,47 @@ public class UserService {
     public UserResponseDTO getUserProfileByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
+        Hibernate.initialize(user.getProfileImage());
+        Hibernate.initialize(user.getGames());
+        Hibernate.initialize(user.getLoansMade());
+        Hibernate.initialize(user.getRoles());
         return userMapper.toResponseDTO(user);
     }
 
     @Transactional
     public UserResponseDTO updateUserProfile(Long userId, UserDTO userUpdateDTO) {
-        log.info("Intentando actualizar perfil para userId: {}", userId);
+        log.info("UserService: Actualizando perfil de texto para userId: {}", userId);
         User userToUpdate = userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.warn("Usuario no encontrado con ID: {} para actualización.", userId);
-                    return new ResourceNotFoundException("Usuario no encontrado con ID: " + userId);
-                });
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Usuario no encontrado con ID: " + userId + " para actualización de perfil."));
 
         boolean changesMade = false;
-
-        if (userUpdateDTO.name() != null && !userUpdateDTO.name().isBlank()) {
-            if (!userUpdateDTO.name().equals(userToUpdate.getName())) {
-                userToUpdate.setName(userUpdateDTO.name());
-                changesMade = true;
-            }
+        if (userUpdateDTO.name() != null && !userUpdateDTO.name().isBlank()
+                && !userUpdateDTO.name().equals(userToUpdate.getName())) {
+            userToUpdate.setName(userUpdateDTO.name());
+            changesMade = true;
         }
-        if (userUpdateDTO.publicName() != null && !userUpdateDTO.publicName().isBlank()) {
-            if (!userUpdateDTO.publicName().equals(userToUpdate.getPublicName())) {
-                if (userRepository.existsByPublicNameAndIdNot(userUpdateDTO.publicName(), userId)) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT,
-                            "El nombre público '" + userUpdateDTO.publicName() + "' ya está en uso.");
-                }
-                userToUpdate.setPublicName(userUpdateDTO.publicName());
-                changesMade = true;
+        if (userUpdateDTO.publicName() != null && !userUpdateDTO.publicName().isBlank()
+                && !userUpdateDTO.publicName().equals(userToUpdate.getPublicName())) {
+            if (userRepository.existsByPublicNameAndIdNot(userUpdateDTO.publicName(), userId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "El nombre público '" + userUpdateDTO.publicName() + "' ya está en uso.");
             }
+            userToUpdate.setPublicName(userUpdateDTO.publicName());
+            changesMade = true;
         }
         if (userUpdateDTO.province() != null) {
             String newProvince = userUpdateDTO.province().isBlank() ? null : userUpdateDTO.province();
-            if ((newProvince == null && userToUpdate.getProvince() != null) ||
-                    (newProvince != null && !newProvince.equals(userToUpdate.getProvince()))) {
+            if ((newProvince == null && userToUpdate.getProvince() != null)
+                    || (newProvince != null && !newProvince.equals(userToUpdate.getProvince()))) {
                 userToUpdate.setProvince(newProvince);
                 changesMade = true;
             }
         }
         if (userUpdateDTO.city() != null) {
             String newCity = userUpdateDTO.city().isBlank() ? null : userUpdateDTO.city();
-            if ((newCity == null && userToUpdate.getCity() != null) ||
-                    (newCity != null && !newCity.equals(userToUpdate.getCity()))) {
+            if ((newCity == null && userToUpdate.getCity() != null)
+                    || (newCity != null && !newCity.equals(userToUpdate.getCity()))) {
                 userToUpdate.setCity(newCity);
                 changesMade = true;
             }
@@ -174,36 +192,51 @@ public class UserService {
             if (!passwordEncoder.matches(userUpdateDTO.password(), userToUpdate.getPassword())) {
                 userToUpdate.setPassword(passwordEncoder.encode(userUpdateDTO.password()));
                 changesMade = true;
-                log.info("UserID: {}, Contraseña actualizada.", userId);
+                log.info("UserID: {}, Contraseña actualizada en updateUserProfile.", userId);
             }
-
         }
 
-        User updatedUserEntity;
+        User finalUserToMap;
         if (changesMade) {
-            updatedUserEntity = userRepository.save(userToUpdate);
-            log.info("Perfil de usuario actualizado exitosamente para ID: {}", userId);
+            finalUserToMap = userRepository.save(userToUpdate);
+            log.info("Datos de texto del perfil actualizados y guardados para userId: {}", userId);
         } else {
-            updatedUserEntity = userToUpdate;
-            log.info("No se realizaron cambios en el perfil para userId: {}", userId);
+            // Si no hubo cambios de texto, igual necesitamos el estado más reciente del
+            // usuario
+            // por si la imagen de perfil se actualizó en una transacción previa (la de
+            // subida de imagen).
+            // Es crucial recargar aquí para obtener la referencia a la nueva profileImage.
+            finalUserToMap = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + userId
+                            + " después de intento de actualización sin cambios."));
+            log.info("No se realizaron cambios de texto en el perfil para userId: {}, pero se recargó el usuario.",
+                    userId);
         }
-        return userMapper.toResponseDTO(updatedUserEntity);
+
+        Hibernate.initialize(finalUserToMap.getProfileImage());
+        Hibernate.initialize(finalUserToMap.getGames());
+        Hibernate.initialize(finalUserToMap.getLoansMade());
+        Hibernate.initialize(finalUserToMap.getRoles());
+
+        return userMapper.toResponseDTO(finalUserToMap);
     }
 
     /**
      * Establece o actualiza la imagen de perfil para un usuario.
-     * Si ya existe una imagen de perfil, se elimina la anterior.
+     * Si ya existe una imagen de perfil, se elimina la anterior (archivo físico y
+     * registro de BD).
      * 
-     * @param userId El ID del usuario.
-     * @param file   El archivo de imagen a subir.
-     * @return UserResponseDTO con la información actualizada del usuario
-     *         (incluyendo la nueva URL de imagen de perfil).
+     * @param userId                   El ID del usuario.
+     * @param file                     El archivo de imagen a subir.
+     * @param uploadDTO_fromController DTO con metadatos (puede ser null si el
+     *                                 controlador no lo envía).
+     * @return UserResponseDTO con la información actualizada del usuario.
      * @throws IOException Si hay un error al guardar el archivo.
      */
     @Transactional
     public UserResponseDTO setProfileImage(Long userId, MultipartFile file, DocumentUploadDTO uploadDTO_fromController)
             throws IOException {
-        log.info("Intentando establecer imagen de perfil para userId: {}", userId);
+        log.info("UserService: Estableciendo imagen de perfil para userId: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + userId));
 
@@ -211,52 +244,43 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo de imagen no puede estar vacío.");
         }
 
-        // 1. Eliminar la imagen de perfil anterior si existe
         Document oldProfileImage = user.getProfileImage();
         if (oldProfileImage != null) {
             log.debug("Eliminando imagen de perfil anterior (ID: {}) para userId: {}", oldProfileImage.getId(), userId);
-            user.setProfileImage(null); // Desvincular de la entidad User
-            userRepository.save(user); // Guardar para que orphanRemoval se active si está configurado Y para persistir
-                                       // la desvinculación
-
-            documentService.deleteDocument(oldProfileImage.getId()); // Llama a tu método en DocumentService que borra
-                                                                     // archivo y entidad
-            log.debug("Imagen de perfil anterior (Documento ID: {}) procesada para eliminación.",
-                    oldProfileImage.getId());
+            user.setProfileImage(null);
+            userRepository.saveAndFlush(user);
+            documentService.deleteDocument(oldProfileImage.getId());
+            log.debug("Imagen de perfil anterior (Documento ID: {}) eliminada.", oldProfileImage.getId());
         }
 
-        // 2. Guardar el nuevo documento de imagen usando DocumentService
         DocumentUploadDTO imageUploadDetails;
         if (uploadDTO_fromController != null && uploadDTO_fromController.name() != null
                 && !uploadDTO_fromController.name().isBlank()) {
             imageUploadDetails = uploadDTO_fromController;
         } else {
-            // Generar un nombre y descripción por defecto si no se proporcionan o el
-            // controlador pasa null
             String defaultName = "profile_image_user_" + userId + "_" + System.currentTimeMillis();
             String defaultDescription = "Imagen de perfil para usuario " + user.getPublicName();
             imageUploadDetails = new DocumentUploadDTO(defaultName, defaultDescription);
             log.debug("DocumentUploadDTO no proporcionado o nombre vacío, usando por defecto: {}", defaultName);
         }
 
-        Document newProfileDocument = documentService.save(file, imageUploadDetails); // Llama al save de
-                                                                                      // DocumentService
-
-        // 3. Asociar el nuevo documento con el usuario
+        Document newProfileDocument = documentService.save(file, imageUploadDetails);
         user.setProfileImage(newProfileDocument);
-        User updatedUser = userRepository.save(user); // Guarda el usuario con la nueva referencia a la imagen
+        User updatedUser = userRepository.save(user);
 
         log.info("Nueva imagen de perfil ID: {} asociada al usuario ID: {}", newProfileDocument.getId(), userId);
 
-        // Asegurar que la nueva imagen esté cargada para el mapper si es LAZY y la
-        // transacción está a punto de terminar
         Hibernate.initialize(updatedUser.getProfileImage());
-        return userMapper.toResponseDTO(updatedUser); // Devuelve el UserResponseDTO actualizado
+        // También inicializar otras colecciones que UserResponseDTO podría necesitar
+        Hibernate.initialize(updatedUser.getGames());
+        Hibernate.initialize(updatedUser.getLoansMade());
+        Hibernate.initialize(updatedUser.getRoles());
+        return userMapper.toResponseDTO(updatedUser);
     }
 
     @Transactional(readOnly = true)
     public UserResponseDTO getCompleteUserByIdAsResponseDTO(Long id) {
-        User user = getCompleteUserById(id);
+        User user = getCompleteUserById(id); // Este método ya inicializa las colecciones
         return userMapper.toResponseDTO(user);
     }
 
@@ -268,6 +292,11 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Usuario no encontrado con ID: " + id);
         }
+        // Antes de eliminar el usuario, considera si necesitas eliminar sus documentos
+        // asociados
+        // o si la configuración de la BD (ON DELETE CASCADE) o orphanRemoval se
+        // encarga.
+        // Si no, podrías necesitar eliminar manualmente los documentos aquí.
         userRepository.deleteById(id);
         log.info("Usuario con ID {} eliminado correctamente", id);
     }
@@ -279,6 +308,7 @@ public class UserService {
         }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+        Hibernate.initialize(user.getProfileImage());
         Hibernate.initialize(user.getGames());
         Hibernate.initialize(user.getLoansMade());
         Hibernate.initialize(user.getLoansReceived());
@@ -320,25 +350,19 @@ public class UserService {
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
             user.setRoles(new ArrayList<>(List.of(getDefaultRole())));
         }
-
-        user.setGames(new ArrayList<>());
+        user.setGames(new ArrayList<>()); // Inicializar la lista de juegos
+        user.setLoansMade(new ArrayList<>()); // Inicializar
+        user.setLoansReceived(new ArrayList<>()); // Inicializar
+        // profileImage se establece por separado
 
         User savedUser = userRepository.save(user);
         log.info("Usuario creado desde DTO con ID: {}", savedUser.getId());
+        // Asegurar que las relaciones estén cargadas para el DTO de respuesta
+        Hibernate.initialize(savedUser.getProfileImage());
+        Hibernate.initialize(savedUser.getGames());
+        Hibernate.initialize(savedUser.getLoansMade());
+        Hibernate.initialize(savedUser.getRoles());
         return userMapper.toResponseDTO(savedUser);
     }
 
-    @Transactional
-    public void updateUserProfileImage(Long userId, MultipartFile file, DocumentUploadDTO uploadDTO)
-            throws IOException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
-
-        // Guardar el documento usando la lógica existente
-        Document newProfileImage = documentService.save(file, uploadDTO);
-
-        // Reemplazar imagen anterior si existe (gracias a orphanRemoval = true)
-        user.setProfileImage(newProfileImage);
-        userRepository.save(user);
-    }
 }
