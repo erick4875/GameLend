@@ -1,55 +1,43 @@
 package com.example.gamelend.dto;
 
-import com.google.gson.annotations.SerializedName;
+import com.example.gamelend.models.GameStatus;
 
 public class GameDTO {
+
     private Long id;
-
-    @SerializedName("title")
     private String title;
-
-    @SerializedName("platform")
     private String platform;
-
-    @SerializedName("genre")
     private String genre;
-
-    @SerializedName("description")
     private String description;
-
-    @SerializedName("status")
-    private String status;
-
-    @SerializedName("userId")
+    private GameStatus status;
     private Long userId;
-
-    @SerializedName("imageId")
     private Long imageId;
-
-    @SerializedName("imagePath")
-    private String imagePath;
-
-    @SerializedName("catalog")
+    private String imageUrl;
     private Boolean catalog;
-
-    @SerializedName("catalogGameId")
     private Long catalogGameId;
 
-    // Constructor
-    public GameDTO(Long id, String title, String platform, String genre, String description, String status, Long userId, Long imageId, String imagePath, Boolean catalog, Long catalogGameId) {
+    // Constructor vacío
+    public GameDTO() {
+    }
+
+    // Constructor con todos los campos
+    public GameDTO(Long id, String title, String platform, String genre, String description,
+                   GameStatus status, Long userId, Long imageId, String imageUrl,
+                   Boolean catalog, Long catalogGameId) {
         this.id = id;
-        this.title = title;
+        this.setTitle(title); // Usar el setter si quieres la lógica de trim
         this.platform = platform;
         this.genre = genre;
         this.description = description;
         this.status = status;
         this.userId = userId;
         this.imageId = imageId;
-        this.imagePath = imagePath;
+        this.imageUrl = imageUrl;
         this.catalog = catalog;
         this.catalogGameId = catalogGameId;
     }
 
+    // Getters y Setters
     public Long getId() {
         return id;
     }
@@ -63,7 +51,12 @@ public class GameDTO {
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        // lógica del constructor del record
+        if (title != null) {
+            this.title = title.trim();
+        } else {
+            this.title = null;
+        }
     }
 
     public String getPlatform() {
@@ -90,11 +83,11 @@ public class GameDTO {
         this.description = description;
     }
 
-    public String getStatus() {
+    public GameStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(GameStatus status) {
         this.status = status;
     }
 
@@ -114,12 +107,12 @@ public class GameDTO {
         this.imageId = imageId;
     }
 
-    public String getImagePath() {
-        return imagePath;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public Boolean getCatalog() {
@@ -137,4 +130,6 @@ public class GameDTO {
     public void setCatalogGameId(Long catalogGameId) {
         this.catalogGameId = catalogGameId;
     }
+
 }
+

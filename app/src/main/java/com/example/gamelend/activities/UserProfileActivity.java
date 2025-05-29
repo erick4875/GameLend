@@ -1,0 +1,322 @@
+package com.example.gamelend.activities;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher; // Importar
+import androidx.activity.result.contract.ActivityResultContracts; // Importar
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide; // Importar Glide
+import com.example.gamelend.R;
+import com.example.gamelend.auth.TokenManager;
+import com.example.gamelend.dto.GameSummaryDTO;
+import com.example.gamelend.dto.UserResponseDTO;
+import com.example.gamelend.models.Game;
+import com.example.gamelend.models.GameAdapter;
+import com.example.gamelend.remote.api.ApiClient;
+import com.example.gamelend.viewmodel.GameListViewModel;
+import com.example.gamelend.viewmodel.UserProfileViewModel;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+public class UserProfileActivity extends AppCompatActivity implements GameAdapter.OnGameItemClickListener {
+
+    private static final String TAG = "UserProfileActivity";
+
+    private ImageView userProfileImageView, logoImageViewProfile;
+    private TextView userNameTextView, registrationDateTextView;
+    private Button editProfileButton, addGameButton, logoutButton, viewUsersButton;
+    private RecyclerView gamesRecyclerView;
+    private ProgressBar loadingProgressBarProfile;
+
+    private GameAdapter gameAdapter;
+    private TokenManager tokenManager;
+    private UserProfileViewModel userProfileViewModel;
+    private GameListViewModel gameListViewModel;
+    private ActivityResultLauncher<Intent> editProfileLauncher;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_user_profile);
+
+        Toolbar toolbar = findViewById(R.id.profileToolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(R.string.title_activity_user_profile);
+        }
+
+        userProfileImageView = findViewById(R.id.userProfileImageView);
+        logoImageViewProfile = findViewById(R.id.logoImageViewProfile);
+        userNameTextView = findViewById(R.id.userNameTextView);
+        registrationDateTextView = findViewById(R.id.registrationDateTextView);
+        editProfileButton = findViewById(R.id.editProfileButton);
+        addGameButton = findViewById(R.id.addGameButton);
+        logoutButton = findViewById(R.id.logoutButton);
+        gamesRecyclerView = findViewById(R.id.gamesRecyclerView);
+        loadingProgressBarProfile = findViewById(R.id.loadingProgressBarProfile);
+        viewUsersButton = findViewById(R.id.viewUsersButton);
+
+        tokenManager = ApiClient.getTokenManager(getApplicationContext());
+
+        gamesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        gamesRecyclerView.setHasFixedSize(true);
+        gameAdapter = new GameAdapter(this, new ArrayList<>(), this);
+        gamesRecyclerView.setAdapter(gameAdapter);
+
+        userProfileViewModel = new ViewModelProvider(this).get(UserProfileViewModel.class);
+        gameListViewModel = new ViewModelProvider(this).get(GameListViewModel.class);
+
+        // === INICIALIZAR EL LAUNCHER ===
+        editProfileLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Log.d(TAG, "Regresando de EditProfileActivity con RESULT_OK, recargando perfil.");
+                        if (userProfileViewModel != null) {
+                            userProfileViewModel.fetchUserProfileData();
+                        }
+                    } else {
+                        Log.d(TAG, "Regresando de EditProfileActivity con resultado: " + result.getResultCode());
+                    }
+                }
+        );
+
+        setupViewModelObservers();
+        setupButtonListeners();
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: Solicitando datos...");
+
+        if (userProfileViewModel != null) {
+            userProfileViewModel.fetchUserProfileData();
+        }
+        if (gameListViewModel != null) {
+            gameListViewModel.fetchAllGames();
+        }
+    }
+
+    private void setupButtonListeners() {
+        editProfileButton.setOnClickListener(view -> {
+            Log.d(TAG, "Botón Editar Perfil PRESIONADO");
+            Intent intent = new Intent(UserProfileActivity.this, EditProfileActivity.class);
+            editProfileLauncher.launch(intent);
+        });
+
+        addGameButton.setOnClickListener(view -> {
+            Log.d(TAG, "Botón Añadir Juego PRESIONADO");
+            Intent intent = new Intent(UserProfileActivity.this, AddGameActivity.class);
+            startActivity(intent);
+        });
+
+        logoutButton.setOnClickListener(view -> {
+            Log.d(TAG, "Botón Cerrar Sesión PRESIONADO");
+            performLogout();
+        });
+
+        viewUsersButton.setOnClickListener(view -> {
+            Log.d(TAG, "Botón Ver Usuarios PRESIONADO");
+            Intent intent = new Intent(UserProfileActivity.this, UserListActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void setupViewModelObservers() {
+        userProfileViewModel.isLoading.observe(this, isLoading -> {
+            Log.d(TAG, "UserProfile isLoading: " + isLoading);
+            updateLoadingState();
+        });
+
+        gameListViewModel.isLoadingLiveData.observe(this, isLoading -> {
+            Log.d(TAG, "GameList isLoading: " + isLoading);
+            updateLoadingState();
+        });
+
+        userProfileViewModel.userData.observe(this, user -> {
+            if (user != null) {
+                Log.d(TAG, "userData LiveData changed en UserProfileActivity: " + user.getPublicName());
+                userNameTextView.setText(user.getPublicName());
+                if (user.getRegistrationDate() != null && !user.getRegistrationDate().isEmpty()) {
+                    String formattedDate = formatDateString(user.getRegistrationDate());
+                    registrationDateTextView.setText(getString(R.string.registration_date_prefix) + formattedDate);
+                } else {
+                    registrationDateTextView.setText(getString(R.string.registration_date_prefix) + "No disponible");
+                }
+
+                // === CARGAR IMAGEN DE PERFIL ===
+                if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
+                    String relativeUrl = user.getProfileImageUrl();
+                    String baseUrl = ApiClient.BASE_URL;
+                    String fullImageUrl;
+
+                    if (baseUrl.endsWith("/") && relativeUrl.startsWith("/")) {
+                        fullImageUrl = baseUrl + relativeUrl.substring(1);
+                    } else if (!baseUrl.endsWith("/") && !relativeUrl.startsWith("/")) {
+                        fullImageUrl = baseUrl + "/" + relativeUrl;
+                    } else {
+                        fullImageUrl = baseUrl + relativeUrl;
+                    }
+
+                    Log.d(TAG, "UserProfileActivity: Cargando imagen de perfil con Glide desde: " + fullImageUrl);
+                    Glide.with(this)
+                            .load(fullImageUrl)
+                            .placeholder(R.drawable.perfil_usuario)
+                            .error(R.drawable.perfil_usuario_error)
+                            .circleCrop()
+                            .into(userProfileImageView);
+                } else {
+                    Log.d(TAG, "UserProfileActivity: No hay profileImageUrl, usando placeholder.");
+                    if (userProfileImageView != null) {
+                        userProfileImageView.setImageResource(R.drawable.perfil_usuario);
+                    }
+                }
+
+            } else {
+                Log.d(TAG, "userData LiveData es null en UserProfileActivity");
+                userNameTextView.setText("");
+                registrationDateTextView.setText("");
+                if (userProfileImageView != null) {
+                    userProfileImageView.setImageResource(R.drawable.perfil_usuario); // Placeholder
+                }
+            }
+        });
+
+        userProfileViewModel.errorMessage.observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Log.e(TAG, "UserProfile errorMessage: " + error);
+                Toast.makeText(UserProfileActivity.this, "Perfil: " + error, Toast.LENGTH_LONG).show();
+                userProfileViewModel.clearErrorMessage();
+            }
+        });
+
+        gameListViewModel.allGamesSummaryLiveData.observe(this, gameSummaryDTOs -> {
+            if (gameSummaryDTOs != null) {
+                Log.d(TAG, "GamesList LiveData (DTOs) changed, count: " + gameSummaryDTOs.size());
+                List<Game> uiGameList = mapGameSummaryDTOsToGames(gameSummaryDTOs);
+                gameAdapter.submitList(uiGameList);
+            } else {
+                gameAdapter.submitList(new ArrayList<>());
+            }
+        });
+
+        gameListViewModel.errorLiveData.observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Log.e(TAG, "GameList errorMessage: " + error);
+                Toast.makeText(UserProfileActivity.this, "Juegos: " + error, Toast.LENGTH_LONG).show();
+                gameListViewModel.clearFetchGamesError();
+            }
+        });
+    }
+
+    private void setButtonsEnabled(boolean enabled) {
+        editProfileButton.setEnabled(enabled);
+        addGameButton.setEnabled(enabled);
+        logoutButton.setEnabled(enabled);
+        viewUsersButton.setEnabled(enabled);
+    }
+
+    private void updateLoadingState() {
+        Boolean profileIsLoading = userProfileViewModel.isLoading.getValue();
+        Boolean gamesAreLoading = gameListViewModel.isLoadingLiveData.getValue();
+
+        boolean pLoading = profileIsLoading != null && profileIsLoading;
+        boolean gLoading = gamesAreLoading != null && gamesAreLoading;
+        boolean overallLoading = pLoading || gLoading;
+
+        Log.d(TAG, "updateLoadingState - profileLoading: " + pLoading + ", gamesLoading: " + gLoading + ", overallLoading: " + overallLoading);
+
+        loadingProgressBarProfile.setVisibility(overallLoading ? View.VISIBLE : View.GONE);
+        setButtonsEnabled(!overallLoading);
+    }
+
+    private List<Game> mapGameSummaryDTOsToGames(List<GameSummaryDTO> dtos) {
+        List<Game> uiGames = new ArrayList<>();
+        if (dtos == null) return uiGames;
+        for (GameSummaryDTO dto : dtos) {
+            if (dto != null) {
+                String title = dto.getTitle() != null ? dto.getTitle() : "N/A";
+                Long gameId = dto.getId();
+                uiGames.add(new Game(gameId, title, R.drawable.mando)); // Asume que R.drawable.mando existe
+            }
+        }
+        return uiGames;
+    }
+
+    private String formatDateString(String dateString) {
+        if (dateString == null) return "N/A";
+        try {
+            // Intenta parsear con milisegundos opcionales
+            SimpleDateFormat inputFormatWithMillis = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault());
+            SimpleDateFormat inputFormatWithoutMillis = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
+            Date date;
+            try {
+                date = inputFormatWithMillis.parse(dateString);
+            } catch (ParseException e) {
+                date = inputFormatWithoutMillis.parse(dateString); // Intenta sin milisegundos
+            }
+            if (date != null) {
+                return outputFormat.format(date);
+            }
+        } catch (ParseException e) {
+            Log.e(TAG, "Error al parsear la fecha: " + dateString, e);
+            // Devuelve la fecha original o una parte si es muy larga
+            return dateString.length() > 10 ? dateString.substring(0, 10) : dateString;
+        }
+        return dateString;
+    }
+
+    private void performLogout() {
+        Log.d(TAG, "Realizando logout...");
+        tokenManager.clearTokens();
+        Intent intent = new Intent(UserProfileActivity.this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed(); // Si habilitas DisplayHomeAsUpEnabled
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onGameItemClick(Game clickedGame) {
+        Log.d(TAG, "Juego clickeado: " + clickedGame.getName() + " (ID: " + clickedGame.getId() + ")");
+        if (clickedGame.getId() != null) {
+            Intent intent = new Intent(UserProfileActivity.this, GameDetailActivity.class);
+            intent.putExtra(GameListActivity.EXTRA_GAME_ID, clickedGame.getId());
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "No se pudo obtener el ID del juego.", Toast.LENGTH_SHORT).show();
+        }
+    }
+}
