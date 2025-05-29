@@ -27,6 +27,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.UserViewHolder
     private OnItemClickListener onItemClickListener;
 
     public interface OnItemClickListener {
+        void onItemClick(UserResponseDTO user);
         void onEdit(UserResponseDTO user);
         void onDelete(UserResponseDTO user);
         void onGamesClick(UserResponseDTO user);
@@ -111,7 +112,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.UserViewHolder
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
-                    listener.onGamesClick(user);
+                    listener.onItemClick(user);
                 }
             });
 

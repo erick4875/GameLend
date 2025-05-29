@@ -54,5 +54,10 @@
             android:label="@string/title_activity_game_detail"
             android:exported="false" />
 
+        <activity
+            android:name=".activities.UserDetailActivity"
+            android:label="@string/title_activity_user_detail"
+            android:exported="false" />
+
     </application>
 </manifest>

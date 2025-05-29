@@ -138,6 +138,15 @@ public class UserListActivity extends AppCompatActivity implements ListAdapter.O
         });
     }
 
+    @Override
+    public void onItemClick(UserResponseDTO user) {
+        Log.d(TAG, "Usuario clickeado: " + user.getPublicName() + " (ID: " + user.getId() + ")");
+        Intent intent = new Intent(UserListActivity.this, UserDetailActivity.class);
+        intent.putExtra(UserDetailActivity.EXTRA_USER_PUBLIC_NAME, user.getPublicName());
+        intent.putExtra(UserDetailActivity.EXTRA_USER_EMAIL, user.getEmail());
+        startActivity(intent);
+    }
+
     // --- Implementación de los métodos de OnItemClickListener ---
     @Override
     public void onEdit(UserResponseDTO user) {

@@ -81,5 +81,6 @@
     <string name="button_view_users">LISTA DE USUARIOS</string>
     <string name="button_loan_requested"></string>
     <string name="error_complete_required_fields">Por favor, completa todos los campos obligatorios.</string>
+    <string name="title_activity_user_detail">Detalles de Usuario</string>
 
 </resources>

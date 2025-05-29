@@ -96,6 +96,8 @@ public interface ApiService {
     @DELETE("api/games/{id}")
     Call<Void> deleteGame(@Path("id") Long id);
 
+    // ===== Loan Endpoints =====
+
     @POST("api/loans/request")
     Call<LoanResponseDTO> requestLoan(@Body LoanRequestDTO loanRequest);
 
