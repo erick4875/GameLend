@@ -169,6 +169,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/button_my_games"
+            android:backgroundTint="#00796B"
+            android:textColor="@android:color/white"
             android:layout_marginEnd="8dp"/>
 
         <Button

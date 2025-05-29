@@ -6,6 +6,7 @@ import com.example.gamelend.dto.GameResponseDTO;
 import com.example.gamelend.dto.GameSummaryDTO;
 import com.example.gamelend.dto.LoanRequestDTO;
 import com.example.gamelend.dto.LoanResponseDTO;
+import com.example.gamelend.dto.LoanReturnDTO;
 import com.example.gamelend.dto.LoginRequestDTO;
 import com.example.gamelend.dto.RegisterRequestDTO;
 import com.example.gamelend.dto.TokenResponseDTO;
@@ -92,9 +93,12 @@ public interface ApiService {
     @PUT("api/games/{id}")
     Call<GameResponseDTO> updateGame(@Path("id") Long id, @Body GameDTO gameDTO);
 
+    @DELETE("api/games/{id}")
+    Call<Void> deleteGame(@Path("id") Long id);
+
     @POST("api/loans/request")
     Call<LoanResponseDTO> requestLoan(@Body LoanRequestDTO loanRequest);
 
-    @DELETE("api/games/{id}")
-    Call<Void> deleteGame(@Path("id") Long id);
+    @PUT("api/loans/{loanId}/return")
+    Call<LoanResponseDTO> recordLoanReturn(@Path("loanId") Long loanId, @Body LoanReturnDTO loanReturnDTO);
 }

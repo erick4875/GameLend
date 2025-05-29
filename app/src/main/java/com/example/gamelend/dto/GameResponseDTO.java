@@ -11,6 +11,7 @@ public class GameResponseDTO {
     private String description;
     private GameStatus status;
     private Long userId;
+    private Long activeLoanId;
     private String userName;
     private Long imageId;
     private String imageUrl;
@@ -136,5 +137,14 @@ public class GameResponseDTO {
     public void setCatalogGameId(Long catalogGameId) {
         this.catalogGameId = catalogGameId;
     }
+
+    public Long getActiveLoanId() {
+        return activeLoanId;
+    }
+
+    public void setActiveLoanId(Long activeLoanId) {
+        this.activeLoanId = activeLoanId;
+    }
+
 
 }

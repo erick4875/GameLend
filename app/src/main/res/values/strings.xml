@@ -38,9 +38,9 @@
 
     <string name="user_profile_image_description">Imagen de perfil del usuario</string>
     <string name="loading_username">Cargando nombre...</string>
-    <string name="button_edit_profile">Editar Perfil</string>
-    <string name="button_add_game">Añadir Juego</string>
-    <string name="button_logout">Cerrar Sesión</string>
+    <string name="button_edit_profile">EDITAR PERFIL</string>
+    <string name="button_add_game">AÑADIR JUEGO</string>
+    <string name="button_logout">CERRAR SESIÓN</string>
 
     <string name="hint_game_title">Título del juego</string>
     <string name="hint_platform">Plataforma (ej. PS5, PC, Switch)</string>
@@ -54,7 +54,7 @@
     <string name="game_added_successfully">Juego agregado con éxito</string>
 
     <string name="hint_last_name">Apellidos</string>
-    <string name="button_my_games">Mis Juegos</string>
+    <string name="button_my_games">MIS JUEGOS</string>
     <string name="button_save_changes">GUARDAR CAMBIOS</string>
 
     <string name="user_profile_load_error">Error al cargar datos del perfil</string>
@@ -78,7 +78,7 @@
     <string name="label_description">Descripción:</string>
     <string name="button_request_loan">SOLICITAR PRÉSTAMO</string>
 
-    <string name="button_view_users">Ver Lista de Usuarios</string>
+    <string name="button_view_users">LISTA DE USUARIOS</string>
     <string name="button_loan_requested"></string>
     <string name="error_complete_required_fields">Por favor, completa todos los campos obligatorios.</string>
 

@@ -106,7 +106,7 @@ public class GameListViewModel extends AndroidViewModel {
         }
 
         _isLoadingLiveData.setValue(true);
-        _errorLiveData.setValue(null); // Limpiar error anterior
+        _errorLiveData.setValue(null);
 
         if (currentGamesByUserIdApiLiveData != null && gamesByUserIdObserver != null && currentGamesByUserIdApiLiveData.hasObservers()) {
             currentGamesByUserIdApiLiveData.removeObserver(gamesByUserIdObserver);
