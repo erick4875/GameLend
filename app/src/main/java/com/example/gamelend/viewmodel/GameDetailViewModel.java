@@ -10,13 +10,13 @@ import androidx.lifecycle.Observer;
 
 import com.example.gamelend.auth.TokenManager;
 import com.example.gamelend.dto.GameResponseDTO;
-import com.example.gamelend.dto.LoanRequestDTO; // DTO para la petición de préstamo (solo gameId desde Android)
+import com.example.gamelend.dto.LoanRequestDTO;
 import com.example.gamelend.dto.LoanResponseDTO;
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.repository.GameRepository;
 import com.example.gamelend.repository.LoanRepository;
 
-import java.io.IOException; // Para el errorBody
+import java.io.IOException;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -62,8 +62,6 @@ public class GameDetailViewModel extends AndroidViewModel {
                 _loanRequestSuccess.postValue(false);
             }
         };
-        // Si LoanRepository tiene un LiveData específico para errores de solicitud de préstamo, obsérvalo.
-        // loanRepository.getLoanRequestErrorLiveData().observeForever(loanRequestErrorObserverFromRepo);
     }
 
     public void fetchGameDetails(Long gameId) {
@@ -177,8 +175,5 @@ public class GameDetailViewModel extends AndroidViewModel {
         if (currentGameDetailsApiLiveData != null && gameDetailsObserver != null && currentGameDetailsApiLiveData.hasObservers()) {
             currentGameDetailsApiLiveData.removeObserver(gameDetailsObserver);
         }
-        // if (loanRequestErrorObserverFromRepo != null && loanRepository.getLoanRequestErrorLiveData().hasObservers()) {
-        //    loanRepository.getLoanRequestErrorLiveData().removeObserver(loanRequestErrorObserverFromRepo);
-        // }
     }
 }

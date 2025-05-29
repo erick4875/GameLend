@@ -69,8 +69,6 @@ public class MainActivity extends AppCompatActivity { // Considera renombrar a L
     }
 
     private void setupLoginObservers() {
-        // Observar el estado de carga
-        // Asumiendo que en LoginViewModel tienes: public LiveData<Boolean> isLoadingLiveData;
         loginViewModel.isLoadingLiveData.observe(this, isLoading -> {
             if (isLoading != null && isLoading) {
                 loadingProgressBar.setVisibility(View.VISIBLE);
@@ -83,27 +81,17 @@ public class MainActivity extends AppCompatActivity { // Considera renombrar a L
             }
         });
 
-        // Observar el resultado del login
-        // Asumiendo que en LoginViewModel tienes: public LiveData<TokenResponseDTO> loginResultLiveData;
         loginViewModel.loginResultLiveData.observe(this, tokenResponseDTO -> {
-            // El null check para tokenResponseDTO ya se hace en el ViewModel antes de postear a _loginResultLiveData
-            // pero una doble verificación aquí no hace daño si el LiveData pudiera ser null por otras razones.
             if (tokenResponseDTO != null && tokenResponseDTO.getAccessToken() != null) {
-                // El ViewModel (a través de TokenManager) ya guardó los tokens
                 Toast.makeText(MainActivity.this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
                 navigateToUserProfile(tokenResponseDTO.getPublicName());
             }
-            // Si tokenResponseDTO es null o no tiene accessToken, significa que el login falló.
-            // Ese caso se maneja principalmente observando errorLiveData.
         });
 
-        // Observar errores de login
-        // Asumiendo que en LoginViewModel tienes: public LiveData<String> errorLiveData;
         loginViewModel.errorLiveData.observe(this, errorMessage -> {
             if (errorMessage != null && !errorMessage.isEmpty()) {
                 Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                // Limpiar el error en el ViewModel para que no se muestre de nuevo en un cambio de configuración
-                loginViewModel.clearLoginError(); // Asegúrate de tener este método en LoginViewModel
+                loginViewModel.clearLoginError();
             }
         });
     }

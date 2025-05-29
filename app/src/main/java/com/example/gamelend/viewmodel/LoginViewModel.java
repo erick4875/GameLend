@@ -9,7 +9,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import com.example.gamelend.auth.TokenManager;
-import com.example.gamelend.dto.LoginRequestDTO;
 import com.example.gamelend.dto.TokenResponseDTO;
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.repository.UserRepository;
@@ -29,7 +28,7 @@ public class LoginViewModel extends AndroidViewModel {
     public final LiveData<Boolean> isLoadingLiveData = _isLoadingLiveData;
 
     private Observer<TokenResponseDTO> loginObserver;
-    private String emailUsedForLogin; // Email que el usuario introdujo en el formulario
+    private String emailUsedForLogin;
 
     public LoginViewModel(Application application) {
         super(application);

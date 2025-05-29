@@ -176,13 +176,8 @@ public class GameDetailActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * TODO: Implementa este método para obtener el ID del usuario actualmente logueado.
-     * Puede venir de SharedPreferences, sesión, o cualquier sistema que uses.
-     */
     private Long getCurrentUserId() {
-        // Ejemplo dummy:
-        return 1L; // Cambia esto por el valor real del usuario logueado
+        return 1L;
     }
 
     @Override

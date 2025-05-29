@@ -1,7 +1,6 @@
 package com.example.gamelend.repository;
 
 import android.content.Context;
-// import android.net.Uri; // No se usa directamente en los métodos mostrados
 import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -9,20 +8,12 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.gamelend.dto.GameDTO;
 import com.example.gamelend.dto.GameResponseDTO;
 import com.example.gamelend.dto.GameSummaryDTO;
-import com.example.gamelend.dto.ErrorResponseDTO; // Para parsear errores
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.remote.api.ApiService;
-// import com.example.gamelend.utils.FileUtils; // No se usa directamente aquí
-
-import com.google.gson.Gson; // Para parsear errores
-// import java.io.File; // No se usa directamente aquí
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-// import okhttp3.MediaType; // No se usa directamente aquí
-// import okhttp3.MultipartBody; // No se usa directamente aquí
-// import okhttp3.RequestBody; // No se usa directamente aquí
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -125,7 +116,7 @@ public class GameRepository {
      * @return LiveData que emitirá GameResponseDTO si la llamada es exitosa,
      * o null en caso de error (el error específico se posteará a gameDetailErrorLiveData).
      */
-    public LiveData<GameResponseDTO> getGameDetailsById(Long gameId) { // Esta es la implementación completa
+    public LiveData<GameResponseDTO> getGameDetailsById(Long gameId) {
         MutableLiveData<GameResponseDTO> gameDetailLiveData = new MutableLiveData<>();
         gameDetailErrorLiveData.postValue(null); // Limpiar error anterior
 
@@ -149,10 +140,6 @@ public class GameRepository {
                         try {
                             String errorBodyStr = response.errorBody().string();
                             Log.e(TAG, "GameRepository: Cuerpo del error de detalles del juego: " + errorBodyStr);
-                            // Aquí podrías intentar parsear ErrorResponseDTO si es relevante
-                            // Gson gson = new Gson();
-                            // ErrorResponseDTO errorResponse = gson.fromJson(errorBodyStr, ErrorResponseDTO.class);
-                            // if (errorResponse != null && errorResponse.getMessage() != null) errorMessage = errorResponse.getMessage();
                         } catch (IOException e) {
                             Log.e(TAG, "GameRepository: Error al parsear errorBody de detalles del juego", e);
                         }
@@ -181,7 +168,6 @@ public class GameRepository {
             public void onResponse(Call<GameResponseDTO> call, Response<GameResponseDTO> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     resultLiveData.postValue(response.body());
-                    // createGameErrorLiveData.postValue(null); // No es necesario si no hubo error
                     Log.d(TAG, "Juego creado exitosamente: " + response.body().getTitle());
                 } else {
                     String errorMsg = "Error al crear juego (Cód: " + response.code() + ")";

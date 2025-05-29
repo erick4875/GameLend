@@ -20,7 +20,6 @@ import com.example.gamelend.viewmodel.RegisterViewModel;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    // Variables para los campos de entrada (nombres en inglés)
     private EditText nameEditText, publicNameEditText, passwordEditText,
             emailEditText, provinceEditText, cityEditText;
     private Button registerButtonSubmit;
@@ -31,20 +30,19 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register); // Tu layout XML con la Toolbar
+        setContentView(R.layout.activity_register);
 
-        // 1. Configurar la Toolbar
+        // Configurar la Toolbar
         Toolbar toolbar = findViewById(R.id.toolbarRegister); // ID de tu Toolbar en el XML
         setSupportActionBar(toolbar); // Establece la Toolbar como la ActionBar de la Activity
 
-        // Habilitar el botón de "atrás" (flecha) en la Toolbar
+        // Habilitar el botón de "atrás" en la Toolbar
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            // El título se establece desde el XML (app:title="@string/title_register_user")
         }
 
-        // Inicializar vistas usando los IDs en inglés de tu XML
+        // Inicializar vistas
         nameEditText = findViewById(R.id.nameEditText);
         publicNameEditText = findViewById(R.id.publicNameEditText);
         passwordEditText = findViewById(R.id.passwordEditTextRegister);
@@ -66,13 +64,11 @@ public class RegisterActivity extends AppCompatActivity {
         registerButtonSubmit.setOnClickListener(v -> attemptRegistration());
     }
 
-    // 2. Manejar el clic en el botón de "atrás" de la Toolbar
+    // Manejar el clic en el botón de "atrás" de la Toolbar
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        // El ID android.R.id.home corresponde al botón de "atrás" o "up" en la Toolbar
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed(); // Llama al comportamiento estándar del botón "atrás" (finaliza la Activity)
-            // Alternativamente, podrías usar finish(); directamente si es el comportamiento deseado.
+            onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);

@@ -1,21 +1,19 @@
 package com.example.gamelend.activities;
 
-import android.content.Intent; // Para la 'navegación'
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem; // Para la Toolbar
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import androidx.appcompat.widget.SearchView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar; // Para la Toolbar
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-// Ya no se necesita AppCompatImageButton
-// import androidx.appcompat.widget.AppCompatImageButton;
 
 import com.example.gamelend.R;
 import com.example.gamelend.dto.UserResponseDTO;
@@ -41,21 +39,20 @@ public class UserListActivity extends AppCompatActivity implements ListAdapter.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user_list); // Tu layout con Toolbar y SearchView
+        setContentView(R.layout.activity_user_list);
 
         // Configurar Toolbar
-        Toolbar toolbar = findViewById(R.id.userListToolbar); // ID de tu Toolbar en el XML
+        Toolbar toolbar = findViewById(R.id.userListToolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Muestra la flecha de "atrás"
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle(R.string.title_activity_user_list); // Establece el título
+            getSupportActionBar().setTitle(R.string.title_activity_user_list);
         }
 
         recyclerViewUsers = findViewById(R.id.recyclerViewUsers);
         progressBarUsers = findViewById(R.id.progressBarUsers);
-        searchViewUsers = findViewById(R.id.searchViewUsers); // Usar el ID del XML
-        // backButton = findViewById(R.id.btnRegresar); // Eliminado, ya no existe este botón
+        searchViewUsers = findViewById(R.id.searchViewUsers);
 
         recyclerViewUsers.setHasFixedSize(true);
         recyclerViewUsers.setLayoutManager(new LinearLayoutManager(this));
@@ -68,7 +65,7 @@ public class UserListActivity extends AppCompatActivity implements ListAdapter.O
                 .get(UserListViewModel.class);
 
         observeViewModel();
-        setupSearchViewListener(); // Renombrado de setupSearchAndBackButton
+        setupSearchViewListener();
 
         Log.d(TAG, "onCreate: Solicitando lista de usuarios...");
         if (userListViewModel != null) {
@@ -80,15 +77,13 @@ public class UserListActivity extends AppCompatActivity implements ListAdapter.O
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed(); // Comportamiento estándar del botón "atrás"
+            onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void setupSearchViewListener() { // Renombrado
-        // La lógica para backButton.setOnClickListener(v -> onBackPressed()); se elimina
-        // porque la Toolbar ya maneja esto a través de onOptionsItemSelected.
+    private void setupSearchViewListener() {
 
         searchViewUsers.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -96,14 +91,12 @@ public class UserListActivity extends AppCompatActivity implements ListAdapter.O
                 Log.d(TAG, "SearchView query submitted: " + query);
                 Toast.makeText(UserListActivity.this, "Buscando: " + query, Toast.LENGTH_SHORT).show();
                 searchViewUsers.clearFocus();
-                // if (userListViewModel != null) userListViewModel.searchUsers(query); // Lógica de búsqueda
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 Log.d(TAG, "SearchView text changed: " + newText);
-                // if (userListViewModel != null) userListViewModel.filterUsers(newText); // Lógica de filtrado
                 return true;
             }
         });
@@ -166,6 +159,5 @@ public class UserListActivity extends AppCompatActivity implements ListAdapter.O
         intent.putExtra(EXTRA_USER_PUBLIC_NAME, user.getPublicName());
         startActivity(intent);
     }
-    // ---------------------------------------------------------
 }
 

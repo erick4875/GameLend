@@ -10,7 +10,6 @@ import androidx.lifecycle.Observer;
 import com.example.gamelend.auth.TokenManager;
 import com.example.gamelend.dto.UserDTO;
 import com.example.gamelend.dto.UserResponseDTO;
-import com.example.gamelend.dto.DocumentResponseDTO; // Para el resultado de la subida de imagen, si el backend devuelve esto
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.repository.UserRepository;
 
@@ -138,13 +137,12 @@ public class EditProfileViewModel extends AndroidViewModel {
             if (currentProfileUpdateLiveData != null) currentProfileUpdateLiveData.removeObserver(profileUpdateObserver);
             _isLoading.setValue(false);
             if (updatedUser != null) {
-                _userData.postValue(updatedUser); // Actualiza con la respuesta del perfil actualizado
+                _userData.postValue(updatedUser);
                 _updateSuccess.postValue(true);
                 Log.d(TAG, "Datos de texto del perfil actualizados para userId: " + userId);
                 if (updatedUser.getPublicName() != null) {
                     tokenManager.savePublicName(updatedUser.getPublicName());
                 }
-                // NO actualizamos el email aquí
             } else {
                 if (_errorMessage.getValue() == null) _errorMessage.postValue("Error al actualizar datos del perfil.");
                 _updateSuccess.postValue(false);
@@ -172,19 +170,17 @@ public class EditProfileViewModel extends AndroidViewModel {
             currentProfileImageUploadApiLiveData.removeObserver(profileImageUploadApiObserver);
         }
 
-        // Asumimos que UserRepository.uploadProfileImage devuelve LiveData<UserResponseDTO>
         currentProfileImageUploadApiLiveData = userRepository.uploadProfileImage(userId, imageUri);
 
         profileImageUploadApiObserver = userResponseAfterUpload -> {
             if (currentProfileImageUploadApiLiveData != null) currentProfileImageUploadApiLiveData.removeObserver(profileImageUploadApiObserver);
-            // isLoading se maneja por el observador de error del repo o aquí al éxito
 
             if (userResponseAfterUpload != null && userResponseAfterUpload.getProfileImageUrl() != null) {
                 _isLoading.setValue(false);
                 Log.d(TAG, "Imagen de perfil subida, nueva URL: " + userResponseAfterUpload.getProfileImageUrl());
                 _profileImageUploadResult.postValue(userResponseAfterUpload);
-                _userData.postValue(userResponseAfterUpload); // Actualizar userData para que la UI refleje la nueva imagen
-                if (userResponseAfterUpload.getPublicName() != null) { // Actualizar publicName si también se devuelve
+                _userData.postValue(userResponseAfterUpload); //
+                if (userResponseAfterUpload.getPublicName() != null) {
                     tokenManager.savePublicName(userResponseAfterUpload.getPublicName());
                 }
             } else {

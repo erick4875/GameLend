@@ -112,9 +112,8 @@ public class TokenManager {
     public String getEmail() {
         return prefs.getString(KEY_USER_EMAIL, null);
     }
-    // =================================
 
-    public void clearTokens() { // Ahora también limpia el email
+    public void clearTokens() {
         SharedPreferences.Editor editor = prefs.edit();
         editor.remove(KEY_ACCESS_TOKEN);
         editor.remove(KEY_REFRESH_TOKEN);

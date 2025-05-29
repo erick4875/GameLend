@@ -53,10 +53,7 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
     private TokenManager tokenManager;
     private UserProfileViewModel userProfileViewModel;
     private GameListViewModel gameListViewModel;
-
-    // === DECLARAR EL LAUNCHER PARA EDITPROFILEACTIVITY ===
     private ActivityResultLauncher<Intent> editProfileLauncher;
-    // =====================================================
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,36 +92,26 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        // EditProfileActivity terminó con RESULT_OK, los datos podrían haber cambiado.
-                        // Recargar los datos del perfil.
                         Log.d(TAG, "Regresando de EditProfileActivity con RESULT_OK, recargando perfil.");
                         if (userProfileViewModel != null) {
-                            userProfileViewModel.fetchUserProfileData(); // Llama al método para refrescar
+                            userProfileViewModel.fetchUserProfileData();
                         }
                     } else {
                         Log.d(TAG, "Regresando de EditProfileActivity con resultado: " + result.getResultCode());
                     }
                 }
         );
-        // ===============================
 
         setupViewModelObservers();
         setupButtonListeners();
 
-        // Carga inicial de datos (se moverá a onResume o se manejará de forma más granular)
-        // userProfileViewModel.fetchUserProfileData();
-        // gameListViewModel.fetchAllGames();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: Solicitando datos...");
-        // No mostramos el ProgressBar aquí directamente, updateLoadingState lo hará
-        // loadingProgressBarProfile.setVisibility(View.VISIBLE);
-        // setButtonsEnabled(false);
 
-        // Siempre refrescar datos al volver a esta actividad
         if (userProfileViewModel != null) {
             userProfileViewModel.fetchUserProfileData();
         }
@@ -137,15 +124,13 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
         editProfileButton.setOnClickListener(view -> {
             Log.d(TAG, "Botón Editar Perfil PRESIONADO");
             Intent intent = new Intent(UserProfileActivity.this, EditProfileActivity.class);
-            // === USAR EL LAUNCHER PARA INICIAR EDITPROFILEACTIVITY ===
             editProfileLauncher.launch(intent);
-            // =======================================================
         });
 
         addGameButton.setOnClickListener(view -> {
             Log.d(TAG, "Botón Añadir Juego PRESIONADO");
             Intent intent = new Intent(UserProfileActivity.this, AddGameActivity.class);
-            startActivity(intent); // Para AddGameActivity, startActivity está bien si no esperas resultado directo
+            startActivity(intent);
         });
 
         logoutButton.setOnClickListener(view -> {
@@ -182,10 +167,10 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
                     registrationDateTextView.setText(getString(R.string.registration_date_prefix) + "No disponible");
                 }
 
-                // === CARGAR IMAGEN DE PERFIL CON GLIDE AQUÍ ===
+                // === CARGAR IMAGEN DE PERFIL ===
                 if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
                     String relativeUrl = user.getProfileImageUrl();
-                    String baseUrl = ApiClient.BASE_URL; // ej. "http://10.0.2.2:8081" (SIN / al final)
+                    String baseUrl = ApiClient.BASE_URL;
                     String fullImageUrl;
 
                     if (baseUrl.endsWith("/") && relativeUrl.startsWith("/")) {
@@ -200,7 +185,7 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
                     Glide.with(this)
                             .load(fullImageUrl)
                             .placeholder(R.drawable.perfil_usuario)
-                            .error(R.drawable.perfil_usuario_error) // Asegúrate de tener este drawable
+                            .error(R.drawable.perfil_usuario_error)
                             .circleCrop()
                             .into(userProfileImageView);
                 } else {
@@ -209,7 +194,6 @@ public class UserProfileActivity extends AppCompatActivity implements GameAdapte
                         userProfileImageView.setImageResource(R.drawable.perfil_usuario);
                     }
                 }
-                // =============================================
 
             } else {
                 Log.d(TAG, "userData LiveData es null en UserProfileActivity");

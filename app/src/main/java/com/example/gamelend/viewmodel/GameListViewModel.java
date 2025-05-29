@@ -19,13 +19,10 @@ import java.util.ArrayList;
 public class GameListViewModel extends AndroidViewModel {
     private static final String TAG = "GameListViewModel";
     private GameRepository gameRepository;
-    private TokenManager tokenManager; // Para obtener el ID del usuario actual
+    private TokenManager tokenManager;
 
-    // Cambiado para manejar GameResponseDTO si getGamesByUserId devuelve eso
     private final MutableLiveData<List<GameResponseDTO>> _gamesListLiveData = new MutableLiveData<>();
     public final LiveData<List<GameResponseDTO>> gamesListResponseLiveData = _gamesListLiveData;
-
-    // Si fetchAllGames devuelve GameSummaryDTO, necesitarás un LiveData separado o unificar
     private final MutableLiveData<List<GameSummaryDTO>> _allGamesSummaryLiveData = new MutableLiveData<>();
     public final LiveData<List<GameSummaryDTO>> allGamesSummaryLiveData = _allGamesSummaryLiveData;
 
@@ -48,14 +45,13 @@ public class GameListViewModel extends AndroidViewModel {
     public GameListViewModel(@NonNull Application application) {
         super(application);
         gameRepository = new GameRepository(application.getApplicationContext());
-        tokenManager = ApiClient.getTokenManager(application.getApplicationContext()); // Inicializar TokenManager
+        tokenManager = ApiClient.getTokenManager(application.getApplicationContext());
 
         // Observador para errores de fetchGamesByUserId
         gamesByUserIdErrorObserver = errorMsg -> {
             if (errorMsg != null) {
                 _isLoadingLiveData.postValue(false);
                 _errorLiveData.postValue(errorMsg);
-                // _gamesListLiveData.postValue(new ArrayList<>()); // Opcional, el repositorio ya podría hacerlo
             }
         };
         gameRepository.getFetchGamesByUserIdErrorLiveData().observeForever(gamesByUserIdErrorObserver);
@@ -65,7 +61,6 @@ public class GameListViewModel extends AndroidViewModel {
             if (errorMsg != null) {
                 _isLoadingLiveData.postValue(false);
                 _errorLiveData.postValue(errorMsg);
-                // _allGamesSummaryLiveData.postValue(new ArrayList<>());
             }
         };
         gameRepository.getFetchAllGamesErrorLiveData().observeForever(allGamesErrorObserver);

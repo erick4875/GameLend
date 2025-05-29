@@ -44,16 +44,12 @@ public class LoanRepository {
     public Call<LoanResponseDTO> requestLoanApiCall(LoanRequestDTO loanRequest) {
         if (loanRequest == null || loanRequest.getGameId() == null || loanRequest.getGameId() <= 0) {
             Log.e(TAG, "LoanRequestDTO o Game ID inválido para requestLoanApiCall: " + loanRequest);
-            // Devolver null podría ser una opción, pero el ViewModel debería manejarlo.
-            // Alternativamente, el ViewModel podría hacer esta validación antes de llamar.
-            // Por ahora, permitimos que la llamada a la API falle si los datos son incorrectos.
         }
         return apiService.requestLoan(loanRequest);
     }
 
 
     /**
-     * Método alternativo si prefieres que el Repositorio maneje el enqueue y devuelva LiveData.
      * Solicita un préstamo para un juego.
      * @param loanRequest DTO con la información de la solicitud.
      * @return LiveData que emitirá LoanResponseDTO si la solicitud es exitosa,

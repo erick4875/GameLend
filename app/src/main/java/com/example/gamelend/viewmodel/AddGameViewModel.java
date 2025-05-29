@@ -6,7 +6,7 @@ import android.util.Log;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer; // Importar Observer
+import androidx.lifecycle.Observer;
 
 import com.example.gamelend.auth.TokenManager;
 import com.example.gamelend.dto.GameDTO;
@@ -51,12 +51,11 @@ public class AddGameViewModel extends AndroidViewModel {
         gameCreationErrorObserver = errorMsg -> {
             if (errorMsg != null) {
                 Log.d(TAG, "Error de creación de juego recibido del GameRepository: " + errorMsg);
-                _isLoadingLiveData.postValue(false); // Detener carga si hay error del repo
+                _isLoadingLiveData.postValue(false);
                 _errorLiveData.postValue(errorMsg);
-                _gameSaveResultLiveData.postValue(null); // Asegurar que el resultado de éxito esté nulo
+                _gameSaveResultLiveData.postValue(null);
             }
         };
-        // Observar el LiveData de error del GameRepository
         this.gameRepository.getCreateGameErrorLiveData().observeForever(gameCreationErrorObserver);
     }
 
@@ -72,7 +71,7 @@ public class AddGameViewModel extends AndroidViewModel {
      * @param catalogGameId ID del juego de catálogo base (si aplica).
      */
     public void saveNewGame(String title, String platform, String genre, String description,
-                            GameStatus status, // Este es com.example.gamelend.models.GameStatus
+                            GameStatus status,
                             boolean isCatalog, Long catalogGameId) {
 
         _isLoadingLiveData.setValue(true);
@@ -99,7 +98,6 @@ public class AddGameViewModel extends AndroidViewModel {
             currentGameCreationApiLiveData.removeObserver(gameCreationApiObserver);
         }
 
-        // GameRepository.createGame ahora devuelve LiveData<GameResponseDTO>
         currentGameCreationApiLiveData = gameRepository.createGame(gameDtoToSend);
 
         gameCreationApiObserver = new Observer<GameResponseDTO>() {
@@ -109,17 +107,12 @@ public class AddGameViewModel extends AndroidViewModel {
                 if (currentGameCreationApiLiveData != null) {
                     currentGameCreationApiLiveData.removeObserver(this);
                 }
-                // El estado de carga se actualiza a false tanto en éxito como cuando el observador de error del repo se activa.
-                // _isLoadingLiveData.setValue(false); // Se podría mover aquí si el errorLiveData del repo no lo hace
 
                 if (gameResponse != null) { // El éxito es simplemente que no sea null
                     _isLoadingLiveData.setValue(false); // Asegurar que el loading se detenga
                     Log.d(TAG, "Juego creado/guardado exitosamente: " + (gameResponse.getTitle() != null ? gameResponse.getTitle() : "N/A"));
                     _gameSaveResultLiveData.postValue(gameResponse);
                 }
-                // Si gameResponse es null, significa que el repositorio indicó un fallo.
-                // El observador de gameRepository.getCreateGameErrorLiveData() (en el constructor)
-                // ya debería haber actualizado _errorLiveData y _isLoadingLiveData.
                 else if (_errorLiveData.getValue() == null) { // Solo si el repo no posteó un error específico
                     _isLoadingLiveData.setValue(false);
                     _errorLiveData.postValue("Error desconocido al guardar el juego.");

@@ -62,11 +62,6 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
 
         setupViewModelObservers();
 
-        // En lugar de fetchAllGames, podrías tener una lógica para decidir
-        // si cargar todos los juegos o solo los de un usuario.
-        // Por ahora, la modificaremos para cargar los del usuario actual si se llama
-        // desde UserProfileActivity sin un EXTRA_USER_ID, o todos si se llama de otra forma.
-        // O, si esta activity SIEMPRE muestra los juegos del usuario actual:
         Log.d(TAG, "Solicitando la lista de juegos del usuario actual...");
         gameListViewModel.fetchCurrentUserGames();
     }
@@ -89,7 +84,6 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
             }
         });
 
-        // Observar gamesListResponseLiveData que ahora es List<GameResponseDTO>
         gameListViewModel.gamesListResponseLiveData.observe(this, gameResponseDTOs -> {
             if (gameResponseDTOs != null) {
                 Log.d(TAG, "GamesList LiveData (GameResponseDTOs) changed, count: " + gameResponseDTOs.size());
@@ -99,10 +93,6 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
                 gameAdapter.submitList(new ArrayList<>());
             }
         });
-
-        // Si también necesitas observar allGamesSummaryLiveData para una vista de "todos los juegos"
-        // gameListViewModel.allGamesSummaryLiveData.observe(this, gameSummaryDTOs -> { ... });
-
 
         gameListViewModel.errorLiveData.observe(this, error -> {
             if (error != null && !error.isEmpty()) {
@@ -126,7 +116,6 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
             if (dto != null) {
                 String title = dto.getTitle() != null ? dto.getTitle() : "Título no disponible";
                 Long gameId = dto.getId();
-                // Asumiendo que tu modelo Game de UI necesita id, título e imagen de placeholder
                 uiGames.add(new Game(gameId, title, R.drawable.mando));
             }
         }

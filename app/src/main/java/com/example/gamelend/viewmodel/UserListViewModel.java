@@ -25,7 +25,6 @@ public class UserListViewModel extends AndroidViewModel {
     // Constructor para inicializar UserRepository
     public UserListViewModel(Application application) {
         super(application);
-        // El UserRepository ahora necesita un Context para obtener ApiService
         this.userRepository = new UserRepository(application.getApplicationContext());
     }
 
@@ -46,9 +45,7 @@ public class UserListViewModel extends AndroidViewModel {
 
     // metodo para cargar/refrescar la lista de usuarios
     public void fetchUsers() {
-        isLoadingLiveData.setValue(true); // Indicar que la carga ha comenzado
-        // Eliminar observador anterior si existe para evitar múltiples observadores
-        // en el mismo LiveData del repositorio si fetchUsers se llama varias veces.
+        isLoadingLiveData.setValue(true);
         if (usersObserver != null && userRepository.getAllUsers().hasObservers()) {
             userRepository.getAllUsers().removeObserver(usersObserver);
         }

@@ -81,9 +81,6 @@ public class TokenAuthenticator implements Authenticator {
             if (refreshTokenString == null || refreshTokenString.isEmpty()) {
                 Log.e(TAG, "No hay refresh token disponible. Deslogueando.");
                 tokenManager.clearTokens();
-                // Aquí deberías tener un mecanismo para notificar a la app que navegue a Login
-                // Ejemplo: EventBus, BroadcastReceiver, o un LiveData de estado de sesión.
-                // ((YourApplicationClass) applicationContext).navigateToLoginScreen();
                 return null; // No se puede autenticar
             }
 
@@ -103,10 +100,6 @@ public class TokenAuthenticator implements Authenticator {
 
                     // Guardar los nuevos tokens
                     tokenManager.saveAccessToken(newTokens.getAccessToken());
-                    // Tu backend devuelve el mismo refresh token, así que solo guardamos el de acceso si es diferente.
-                    // Si tu backend rotara refresh tokens, aquí guardarías el nuevo refresh token:
-                    // tokenManager.saveRefreshToken(newTokens.getRefreshToken());
-
 
                     // Reintentar la petición original con el nuevo access token
                     return response.request().newBuilder()
@@ -116,13 +109,12 @@ public class TokenAuthenticator implements Authenticator {
                     Log.e(TAG, "La llamada de refresh falló con código: " + refreshResponse.code() + " - " + refreshResponse.message());
                     // Si el refresh token es rechazado (ej. expirado, revocado), desloguear.
                     tokenManager.clearTokens();
-                    // Notificar para navegar a Login
-                    // ((YourApplicationClass) applicationContext).navigateToLoginScreen();
+                    // Notificar para navegar a Login);
                     return null;
                 }
             } catch (IOException e) {
                 Log.e(TAG, "IOException durante la llamada de refresh: " + e.getMessage(), e);
-                return null; // Error de red, no se puede autenticar
+                return null;
             }
         } // fin del bloque synchronized
     }
@@ -135,7 +127,6 @@ public class TokenAuthenticator implements Authenticator {
     }
 
     // metodo para crear una instancia de ApiService específica para la llamada de refresh
-    // no tiene TokenAuthenticator para evitar bucles.
     private ApiService createRefreshService() {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // O Level.NONE si no quieres loguear la llamada de refresh
