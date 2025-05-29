@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.hibernate.Hibernate;
 import org.project.group5.gamelend.dto.DocumentUploadDTO;
@@ -265,17 +266,18 @@ public class UserService {
         }
 
         Document newProfileDocument = documentService.save(file, imageUploadDetails);
-        user.setProfileImage(newProfileDocument);
-        User updatedUser = userRepository.save(user);
+        log.info("Documento guardado por DocumentService. ID: {}, Nombre: {}", newProfileDocument.getId(),
+                newProfileDocument.getName());
 
-        log.info("Nueva imagen de perfil ID: {} asociada al usuario ID: {}", newProfileDocument.getId(), userId);
+        user.setProfileImage(newProfileDocument);
+        User updatedUser = userRepository.save(user); // O saveAndFlush(user)
+        log.info("Usuario actualizado con nueva imagen. User ID: {}, ProfileImage ID: {}", updatedUser.getId(),
+                (updatedUser.getProfileImage() != null ? updatedUser.getProfileImage().getId() : "null"));
 
         Hibernate.initialize(updatedUser.getProfileImage());
-        // También inicializar otras colecciones que UserResponseDTO podría necesitar
-        Hibernate.initialize(updatedUser.getGames());
-        Hibernate.initialize(updatedUser.getLoansMade());
-        Hibernate.initialize(updatedUser.getRoles());
-        return userMapper.toResponseDTO(updatedUser);
+        UserResponseDTO responseDTO = userMapper.toResponseDTO(updatedUser);
+        log.info("UserResponseDTO a devolver: {}", responseDTO); // Verifica profileImageUrl aquí
+        return responseDTO;
     }
 
     @Transactional(readOnly = true)
@@ -363,6 +365,10 @@ public class UserService {
         Hibernate.initialize(savedUser.getLoansMade());
         Hibernate.initialize(savedUser.getRoles());
         return userMapper.toResponseDTO(savedUser);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
 }

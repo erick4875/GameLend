@@ -200,6 +200,7 @@ public class DocumentService {
         return "";
     }
 
+
     public String determineContentType(HttpServletRequest request, String storedFileName, Document document) {
         // Asegúrate que este método sea público si es llamado desde fuera de esta clase
         // (ej. DocumentController)

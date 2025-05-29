@@ -8,7 +8,7 @@ import org.project.group5.gamelend.dto.DocumentSummaryDTO;
 import org.project.group5.gamelend.dto.DocumentUploadDTO;
 import org.project.group5.gamelend.entity.Document;
 import org.project.group5.gamelend.mapper.DocumentMapper;
-import org.project.group5.gamelend.repository.DocumentRepository; // Importar
+import org.project.group5.gamelend.repository.DocumentRepository;
 import org.project.group5.gamelend.service.DocumentService;
 import org.project.group5.gamelend.service.FileStorageService;
 import org.springframework.core.io.Resource;
@@ -55,14 +55,15 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}")
-    // @PreAuthorize("permitAll()") // Descomenta y ajusta según tu política de seguridad
+    // @PreAuthorize("permitAll()") // Descomenta y ajusta según tu política de
+    // seguridad
     public ResponseEntity<Resource> getDocumentFileById(@PathVariable Long id, HttpServletRequest request) {
         log.info("Solicitando contenido del documento con ID: {}", id);
         Document document = documentService.find(id);
 
         FileStorageService.ImageType imageType = documentService.determineImageType(document);
         Resource resource = fileStorageService.loadImageAsResource(document.getFileName(), imageType);
-        
+
         String contentType = document.getContentType();
         if (contentType == null || contentType.isBlank()) {
             contentType = documentService.determineContentType(request, document.getFileName(), document);
@@ -72,7 +73,7 @@ public class DocumentController {
             log.warn("Recurso no encontrado o no legible para el documento ID: {}", id);
             return ResponseEntity.notFound().build();
         }
-        
+
         long contentLength = 0;
         try {
             contentLength = resource.contentLength();

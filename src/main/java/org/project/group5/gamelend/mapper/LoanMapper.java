@@ -8,6 +8,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.project.group5.gamelend.dto.GameSummaryDTO;
 import org.project.group5.gamelend.dto.LoanDTO;
+import org.project.group5.gamelend.dto.LoanRequestDTO;
 import org.project.group5.gamelend.dto.LoanResponseDTO;
 import org.project.group5.gamelend.dto.LoanReturnDTO;
 import org.project.group5.gamelend.dto.UserSummaryDTO;
@@ -18,11 +19,11 @@ import org.project.group5.gamelend.entity.User;
 /**
  * Mapper para conversiones entre Loan y sus DTOs usando MapStruct.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {GameMapper.class, UserMapper.class})
 public interface LoanMapper {
 
     /**
-     * Convierte un préstamo (Loan) a su DTO de respuesta.
+     * Convierte un Loan a LoanResponseDTO
      */
     @Mapping(target = "game", source = "game", qualifiedByName = "gameToGameSummaryDTO")
     @Mapping(target = "lender", source = "lender", qualifiedByName = "userToUserSummaryDTO")
@@ -30,23 +31,30 @@ public interface LoanMapper {
     LoanResponseDTO toResponseDTO(Loan loan);
 
     /**
-     * Convierte una lista de préstamos a una lista de DTOs de respuesta.
+     * Convierte una lista de Loan a lista de LoanResponseDTO
      */
     List<LoanResponseDTO> toResponseDTOList(List<Loan> loans);
 
     /**
-     * Convierte un LoanDTO a la entidad Loan para creación.
-     * Las relaciones (game, lender, borrower) deben establecerse en el servicio.
+     * Convierte LoanDTO a Loan
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "game", ignore = true)
     @Mapping(target = "lender", ignore = true)
     @Mapping(target = "borrower", ignore = true)
-    @Mapping(target = "returnDate", ignore = true)
-    @Mapping(target = "loanDate", source = "loanDate")
-    @Mapping(target = "expectedReturnDate", source = "expectedReturnDate")
-    @Mapping(target = "notes", source = "notes")
     Loan toEntity(LoanDTO dto);
+
+    /**
+     * Convierte LoanRequestDTO a Loan
+     */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "game.id", source = "gameId")
+    @Mapping(target = "lender", ignore = true)
+    @Mapping(target = "borrower", ignore = true)
+    @Mapping(target = "loanDate", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "expectedReturnDate", expression = "java(java.time.LocalDateTime.now().plusWeeks(2))")
+    @Mapping(target = "returnDate", ignore = true)
+    Loan toEntity(LoanRequestDTO dto);
 
     /**
      * Actualiza una entidad Loan con la información de devolución.
