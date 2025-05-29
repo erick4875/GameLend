@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servicio para la gestión de roles de usuario.
+ * Maneja operaciones CRUD y asignación de roles a usuarios.
  */
 @Service
 @RequiredArgsConstructor
@@ -28,13 +29,11 @@ public class RoleService {
     private final UserRepository userRepository;
     private final RoleMapper roleMapper;
 
+    // === Operaciones CRUD ===
+
     /**
-     * Crea un nuevo rol de usuario.
-     * El ID en el RoleDTO de entrada es ignorado.
-     *
-     * @param roleDTO DTO con el nombre del rol a crear
-     * @return El RoleDTO del rol creado
-     * @throws BadRequestException si el nombre es nulo o vacío o si ya existe
+     * Crea un nuevo rol.
+     * @throws BadRequestException si el nombre es nulo/vacío o duplicado
      */
     public RoleDTO createRole(RoleDTO roleDTO) {
         // Valida que el DTO y el nombre no sean nulos o vacíos
@@ -60,9 +59,8 @@ public class RoleService {
     }
 
     /**
-     * Obtiene todos los roles de usuario como DTOs.
-     *
-     * @return Lista de RoleDTO (puede estar vacía)
+     * Lista todos los roles.
+     * @return Lista de roles (puede estar vacía)
      */
     public List<RoleDTO> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
@@ -71,12 +69,9 @@ public class RoleService {
     }
 
     /**
-     * Obtiene un rol por su ID como DTO.
-     *
-     * @param id ID del rol a buscar
-     * @return El RoleDTO encontrado
-     * @throws BadRequestException       si el ID es nulo
-     * @throws ResourceNotFoundException si no existe el rol
+     * Obtiene rol por ID.
+     * @throws BadRequestException si ID es nulo
+     * @throws ResourceNotFoundException si no existe
      */
     public RoleDTO getRoleById(Long id) {
         if (id == null) {
@@ -93,9 +88,9 @@ public class RoleService {
     }
 
     /**
-     * Elimina un rol por su ID.
-     *
-     * @param id ID del rol a eliminar.
+     * Elimina rol por ID.
+     * @throws BadRequestException si ID es nulo
+     * @throws ResourceNotFoundException si no existe
      */
     public void deleteRole(Long id) {
         // Valida que el ID no sea nulo.
@@ -116,11 +111,9 @@ public class RoleService {
     }
 
     /**
-     * Actualiza un rol existente.
-     *
-     * @param id      ID del rol a actualizar.
-     * @param roleDTO DTO con el nuevo nombre para el rol.
-     * @return El RoleDTO actualizado.
+     * Actualiza rol existente.
+     * @throws BadRequestException si datos son inválidos
+     * @throws ResourceNotFoundException si no existe
      */
     public RoleDTO updateRole(Long id, RoleDTO roleDTO) {
         // Valida que el ID y el DTO (y su nombre) no sean nulos o vacíos.
@@ -152,11 +145,12 @@ public class RoleService {
         return roleMapper.toDTO(updatedRole); // Devuelve el DTO del rol actualizado.
     }
 
+    // === Operaciones con Usuarios ===
+
     /**
-     * Asigna un rol a un usuario.
-     *
-     * @param userId ID del usuario.
-     * @param roleId ID del rol a asignar.
+     * Asigna rol a usuario.
+     * @throws BadRequestException si IDs son nulos
+     * @throws ResourceNotFoundException si usuario/rol no existe
      */
     @Transactional
     public void assignRoleToUser(Long userId, Long roleId) {
@@ -193,12 +187,9 @@ public class RoleService {
     }
 
     /**
-     * Quita un rol a un usuario.
-     *
-     * @param userId ID del usuario
-     * @param roleId ID del rol a quitar
-     * @throws BadRequestException       si algún ID es nulo
-     * @throws ResourceNotFoundException si no existe el usuario o rol
+     * Remueve rol de usuario.
+     * @throws BadRequestException si IDs son nulos
+     * @throws ResourceNotFoundException si usuario/rol no existe
      */
     @Transactional
     public void removeRoleFromUser(Long userId, Long roleId) {
@@ -232,12 +223,9 @@ public class RoleService {
     }
 
     /**
-     * Obtiene todos los roles de un usuario específico como DTOs.
-     *
-     * @param userId ID del usuario
-     * @return Lista de RoleDTO del usuario
-     * @throws BadRequestException       si el ID es nulo
-     * @throws ResourceNotFoundException si no existe el usuario
+     * Lista roles de un usuario.
+     * @throws BadRequestException si ID es nulo
+     * @throws ResourceNotFoundException si usuario no existe
      */
     public List<RoleDTO> getRolesByUser(Long userId) {
         // Valida que el ID no sea nulo.
@@ -260,13 +248,12 @@ public class RoleService {
         return roleMapper.toDTOList(roles);
     }
 
+    // === Operaciones de Búsqueda ===
+
     /**
-     * Busca un rol por su nombre y lo devuelve como DTO.
-     *
-     * @param roleName nombre del rol
-     * @return El RoleDTO encontrado
-     * @throws BadRequestException       si el nombre es nulo o vacío
-     * @throws ResourceNotFoundException si no existe el rol
+     * Busca rol por nombre.
+     * @throws BadRequestException si nombre es nulo/vacío
+     * @throws ResourceNotFoundException si no existe
      */
     public RoleDTO getRoleByName(String roleName) {
         // Valida que el nombre no sea nulo o vacío.

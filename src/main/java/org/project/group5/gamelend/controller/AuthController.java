@@ -1,6 +1,5 @@
 package org.project.group5.gamelend.controller;
 
-// DTOs para los datos de entrada de login y registro.
 import org.project.group5.gamelend.dto.LoginRequestDTO;
 import org.project.group5.gamelend.dto.RegisterRequestDTO;
 import org.project.group5.gamelend.dto.TokenResponseDTO;
@@ -16,54 +15,56 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * @RestController: Controlador REST para peticiones HTTP.
- * @RequestMapping("/api/auth"): Ruta base para todos los endpoints de este controlador.
- * @RequiredArgsConstructor: Lombok crea constructor para 'authService'.
- *
- * Maneja el registro, login y refresco de tokens.
+ * Controlador para la autenticación de usuarios.
+ * Gestiona registro, login y renovación de tokens.
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    // Servicio con la lógica de autenticación.
     private final AuthService authService;
 
     /**
-     * Registra un nuevo usuario.
-     * POST /api/auth/register
-     * @param request Datos del nuevo usuario.
-     * @return Tokens y estado 201 (CREATED).
+     * Registra un nuevo usuario en el sistema.
+     * 
+     * @param request datos del registro (nombre, email, contraseña, etc)
+     * @return tokens de autenticación
      */
     @PostMapping("/register")
     public ResponseEntity<TokenResponseDTO> register(@RequestBody @Valid RegisterRequestDTO request) {
+        log.info("Nuevo registro de usuario: {}", request.email());
         TokenResponseDTO response = (TokenResponseDTO) authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
-     * Inicia sesión de un usuario.
-     * POST /api/auth/login
-     * @param request Credenciales (email, password).
-     * @return Tokens y estado 200 (OK).
+     * Autentica un usuario existente.
+     * 
+     * @param request credenciales de login (email y contraseña)
+     * @return tokens de autenticación
      */
     @PostMapping("/login")
     public ResponseEntity<TokenResponseDTO> login(@RequestBody @Valid LoginRequestDTO request) {
+        log.info("Intento de login: {}", request.email());
         TokenResponseDTO response = (TokenResponseDTO) authService.login(request);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Refresca el token de acceso.
-     * POST /api/auth/refresh
-     * @param authHeader Cabecera "Authorization" con el token de refresco.
-     * @return Nuevos tokens y estado 200 (OK).
+     * Renueva el token de acceso usando el token de refresco.
+     * 
+     * @param authHeader token de refresco en header Authorization
+     * @return nuevos tokens de autenticación
      */
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDTO> refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+    public ResponseEntity<TokenResponseDTO> refreshToken(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        log.debug("Solicitud de renovación de token");
         TokenResponseDTO response = (TokenResponseDTO) authService.refreshToken(authHeader);
         return ResponseEntity.ok(response);
     }

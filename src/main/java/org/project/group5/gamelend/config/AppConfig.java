@@ -17,32 +17,26 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 
 /**
- * @Configuration: Clase de configuración de Spring.
- * @RequiredArgsConstructor: Lombok crea un constructor para campos 'final' (inyección de dependencias).
- *
- * Configura cómo Spring Security carga usuarios, verifica contraseñas y gestiona la autenticación.
+ * Configuración de autenticación y seguridad.
+ * Gestiona la carga de usuarios y verificación de credenciales.
  */
 @Configuration
 @RequiredArgsConstructor
 public class AppConfig {
 
-    // Repositorio para acceder a los datos de los usuarios.
+    /** Repositorio para operaciones con usuarios */
     private final UserRepository userRepository;
 
     /**
-     * @Bean: Define un 'UserDetailsService'.
-     * UserDetailsService: Carga datos del usuario (por email en este caso) para Spring Security.
-     * 
-     * @return Implementación que busca usuarios en la BD por email.
+     * Servicio para cargar usuarios por email.
+     * Convierte nuestro User a UserDetails de Spring Security.
      */
     @Bean
     UserDetailsService userDetailsService() {
-        // Busca un usuario por email. Si no lo encuentra, lanza una excepción.
         return email -> {
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuario con email '%s' no encontrado".formatted(email)));
-            
-            // Crea un objeto UserDetails de Spring Security con el email, contraseña (hasheada) y roles del usuario.
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + email));
+
             return org.springframework.security.core.userdetails.User.builder()
                     .username(user.getEmail())
                     .password(user.getPassword())
@@ -54,29 +48,20 @@ public class AppConfig {
     }
 
     /**
-     * @Bean: Define un 'AuthenticationProvider'.
-     * AuthenticationProvider: Se encarga de la lógica de autenticación.
-     *                         DaoAuthenticationProvider usa UserDetailsService y PasswordEncoder.
-     * 
-     * @return Un DaoAuthenticationProvider configurado.
+     * Proveedor de autenticación que usa UserDetailsService y PasswordEncoder.
+     * Maneja la lógica de verificación de credenciales.
      */
     @Bean
     AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        // Le dice cómo cargar los usuarios.
         provider.setUserDetailsService(userDetailsService());
-        // Le dice cómo verificar las contraseñas.
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
     /**
-     * @Bean: Define el 'AuthenticationManager'.
-     * AuthenticationManager: Gestiona el proceso de autenticación, usando los AuthenticationProviders.
-     * 
-     * @param config Configuración de autenticación de Spring.
-     * @return El AuthenticationManager.
-     * @throws Exception Si hay error al obtener el AuthenticationManager.
+     * Gestor principal de autenticación.
+     * Coordina el proceso de autenticación usando los providers configurados.
      */
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -84,10 +69,8 @@ public class AppConfig {
     }
 
     /**
-     * @Bean: Define un 'PasswordEncoder'.
-     * PasswordEncoder: Se usa para codificar (hashear) contraseñas de forma segura.
-     * 
-     * @return Un BCryptPasswordEncoder, que es un algoritmo de hashing fuerte.
+     * Codificador de contraseñas usando BCrypt.
+     * Proporciona hashing seguro para almacenar contraseñas.
      */
     @Bean
     PasswordEncoder passwordEncoder() {

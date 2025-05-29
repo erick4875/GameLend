@@ -28,26 +28,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Servicio para la autenticación y registro de usuarios.
+ * Servicio para la autenticación y gestión de tokens.
+ * Maneja registro, login y renovación de tokens JWT.
  */
 @Service
-@RequiredArgsConstructor // Inyección de dependencias por constructor (Lombok).
-@Slf4j // Logger (Lombok).
+@RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
-    // Repositorios y servicios necesarios.
+    // === Dependencias inyectadas ===
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final JwtService jwtService; // Asumimos que JwtService tiene los cambios para tipos de token
+    private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
+
+    // === Operaciones de Autenticación ===
 
     /**
      * Registra un nuevo usuario en el sistema.
      * 
-     * @param request Datos de registro del usuario.
-     * @return DTO con los tokens y datos del usuario.
+     * @param request Datos de registro (nombre, email, contraseña, etc)
+     * @return TokenResponseDTO con tokens y datos del usuario
+     * @throws ResponseStatusException si el email o nombre público ya existen
      */
     @Transactional
     public TokenResponseDTO register(RegisterRequestDTO request) {
@@ -69,9 +73,7 @@ public class AuthService {
                 .email(request.email())
                 .province(request.province())
                 .city(request.city())
-                .registrationDate(LocalDateTime.now()) // Fecha de registro actual.
-                // Los campos de UserDetails (accountNonExpired, etc.) usarán los defaults de la
-                // entidad User
+                .registrationDate(LocalDateTime.now())
                 .build();
 
         // Asigna el rol por defecto "ROLE_USER".
@@ -90,13 +92,6 @@ public class AuthService {
         var jwtAccessToken = jwtService.generateToken(savedUser); // Genera access token
         var jwtRefreshToken = jwtService.generateRefreshToken(savedUser); // Genera refresh token
 
-        // Guarda el token de acceso (si tu lógica lo requiere, o si Token es solo para
-        // tokens activos)
-        // Considera si necesitas guardar el refresh token en la BD también.
-        // Tu método saveUserToken actualmente parece guardar el token que se le pasa
-        // (access o refresh).
-        // Si Token es para la sesión actual, guardar el access token aquí tiene
-        // sentido.
         saveUserToken(savedUser, jwtAccessToken);
 
         // Preparar la lista de nombres de roles para el DTO de respuesta
@@ -109,16 +104,15 @@ public class AuthService {
     }
 
     /**
-     * Autentica a un usuario en el sistema.
+     * Autentica un usuario existente.
      * 
-     * @param request Datos de inicio de sesión del usuario.
-     * @return DTO con los tokens y datos del usuario.
+     * @param request Credenciales de login (email y contraseña)
+     * @return TokenResponseDTO con nuevos tokens y datos del usuario
+     * @throws BadCredentialsException si las credenciales son inválidas
      */
     @Transactional
     public TokenResponseDTO login(LoginRequestDTO request) {
         try {
-            // Autenticar usando el email y password. Spring Security usará tu
-            // UserDetailsService.
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.email(), request.password()));
         } catch (AuthenticationException e) {
@@ -129,8 +123,6 @@ public class AuthService {
         // Si la autenticación es exitosa, cargar el usuario para obtener sus datos
         var user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
-                    // Esto no debería ocurrir si authenticationManager.authenticate no lanzó
-                    // excepción
                     log.error("Usuario autenticado {} no encontrado en la base de datos después del login.",
                             request.email());
                     return new UsernameNotFoundException("Usuario no encontrado después del login: " + request.email());
@@ -148,16 +140,16 @@ public class AuthService {
                 .map(Role::getName)
                 .collect(Collectors.toList());
 
-        return new TokenResponseDTO(jwtAccessToken, jwtRefreshToken, user.getId(), user.getPublicName(), user.getEmail(), roleNames);
+        return new TokenResponseDTO(jwtAccessToken, jwtRefreshToken, user.getId(), user.getPublicName(),
+                user.getEmail(), roleNames);
     }
 
     /**
-     * Refresca el token de acceso de un usuario usando un refresh token.
+     * Renueva el token de acceso usando un refresh token.
      * 
-     * @param authHeader Encabezado de autorización con el token de actualización
-     *                   (formato "Bearer <refreshToken>").
-     * @return DTO con los nuevos tokens de acceso, el mismo token de actualización
-     *         y datos del usuario.
+     * @param authHeader Header con formato "Bearer <refreshToken>"
+     * @return TokenResponseDTO con nuevo access token
+     * @throws ResponseStatusException si el token es inválido o expiró
      */
     @Transactional
     public TokenResponseDTO refreshToken(final String authHeader) {
@@ -171,7 +163,7 @@ public class AuthService {
 
         String tokenType = jwtService.extractTokenType(tokenString);
         // Usa la constante pública de JwtService si la tienes
-        if (!"refresh".equals(tokenType)) { // O JwtService.REFRESH_TOKEN_TYPE
+        if (!"refresh".equals(tokenType)) {
             log.warn("Intento de usar un token de tipo '{}' para refrescar, se esperaba 'refresh'.", tokenType);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "Token proporcionado no es un token de actualización.");
@@ -198,27 +190,23 @@ public class AuthService {
         log.info("Refrescando token para usuario: {}", userEmail);
         final String newAccessToken = jwtService.generateToken(user); // Genera nuevo access token
 
-        // Revocar tokens de acceso anteriores y guardar el nuevo.
-        // No se genera un nuevo refresh token aquí (el original sigue siendo válido
-        // hasta que expire).
         revokeAllUserTokens(user); // Revoca los ACCESS tokens
         saveUserToken(user, newAccessToken); // Guarda el nuevo ACCESS token
 
         List<String> roleNames = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toList());
-
-        // Devuelve el nuevo accessToken, el refreshToken original (tokenString), y los
-        // datos del usuario.
-        return new TokenResponseDTO(newAccessToken, tokenString, user.getId(), user.getPublicName(), user.getEmail(), roleNames);
+        return new TokenResponseDTO(newAccessToken, tokenString, user.getId(), user.getPublicName(), user.getEmail(),
+                roleNames);
     }
 
+    // === Gestión de Tokens ===
+
     /**
-     * Guarda un nuevo token para un usuario.
-     * Asume que jwtToken es un access token.
+     * Guarda un nuevo token de acceso.
      * 
-     * @param user           Usuario al que pertenece el token.
-     * @param jwtAccessToken Token JWT de ACCESO generado.
+     * @param user           Usuario propietario del token
+     * @param jwtAccessToken Token JWT a guardar
      */
     private void saveUserToken(User user, String jwtAccessToken) {
         var token = Token.builder()
@@ -234,14 +222,12 @@ public class AuthService {
     }
 
     /**
-     * Revoca todos los tokens (presumiblemente de acceso) válidos de un usuario.
+     * Revoca todos los tokens activos de un usuario.
+     * Útil al cambiar contraseña o cerrar sesión.
      * 
-     * @param user Usuario cuyos tokens serán revocados.
+     * @param user Usuario cuyos tokens serán revocados
      */
     private void revokeAllUserTokens(final User user) {
-        // Este método debería buscar específicamente tokens de ACCESO si quieres
-        // que los refresh tokens persistan de forma diferente.
-        // O si TokenRepository solo guarda access tokens, está bien.
         final List<Token> validUserTokens = tokenRepository.findAllValidIsFalseOrRevokedIsFalseByUser(user.getId());
         if (!validUserTokens.isEmpty()) {
             log.debug("Revocando {} token(s) para el usuario {}", validUserTokens.size(), user.getEmail());
@@ -250,6 +236,35 @@ public class AuthService {
                 token.setRevoked(true);
             });
             tokenRepository.saveAll(validUserTokens);
+        }
+    }
+
+    // === Utilidades Privadas ===
+
+    /**
+     * Valida credenciales con Spring Security.
+     * 
+     * @throws AuthenticationException si las credenciales son inválidas
+     */
+    private void validateCredentials(String email, String password) {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        } catch (AuthenticationException e) {
+            throw new BadCredentialsException("Credenciales inválidas");
+        }
+    }
+
+    /**
+     * Verifica duplicados de email y nombre público.
+     * 
+     * @throws ResponseStatusException si hay conflictos
+     */
+    private void checkDuplicates(String email, String publicName) {
+        if (userRepository.existsByEmail(email)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El email ya está en uso");
+        }
+        if (userRepository.existsByPublicName(publicName)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El nombre público ya está en uso");
         }
     }
 }

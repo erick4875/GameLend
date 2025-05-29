@@ -1,29 +1,28 @@
 package org.project.group5.gamelend.controller;
 
 import java.net.URI;
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; // No se usa directamente aquí, pero sí en DTOs
 import java.util.List;
 
-import org.project.group5.gamelend.dto.ErrorResponse;
-import org.project.group5.gamelend.dto.LoanDTO;
-import org.project.group5.gamelend.dto.LoanRequestDTO;
+import org.project.group5.gamelend.dto.ErrorResponse; // Para ExceptionHandler
+import org.project.group5.gamelend.dto.LoanDTO; // DTO genérico para actualización
+import org.project.group5.gamelend.dto.LoanRequestDTO; // Para NUEVAS solicitudes (gameId, notes)
 import org.project.group5.gamelend.dto.LoanResponseDTO;
-import org.project.group5.gamelend.dto.LoanReturnDTO;
+import org.project.group5.gamelend.dto.LoanReturnDTO;  // Para registrar devoluciones (returnDate)
 import org.project.group5.gamelend.exception.BadRequestException;
 import org.project.group5.gamelend.service.LoanService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize; // Para seguridad a nivel de método
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,56 +34,44 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @Slf4j: Lombok para logging.
- * @RestController: Define esta clase como un controlador REST.
- *                  @RequestMapping("api/loans"): Ruta base para los endpoints
- *                  de préstamos.
- * @RequiredArgsConstructor: Lombok para inyección de dependencias
- *                           (LoanService).
- *
- *                           Controlador para gestionar las operaciones CRUD de
- *                           préstamos.
+ * Controlador REST para gestión de préstamos de juegos.
+ * Maneja solicitudes, devoluciones y administración de préstamos.
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/loans")
 @RequiredArgsConstructor
-@Validated // Añadir esta anotación
-@SecurityRequirement(name = "bearerAuth") // Si usas Swagger/OpenAPI
+@Validated
+@SecurityRequirement(name = "bearerAuth")
 public class LoanController {
-    private final LoanService loanService; // Servicio para la lógica de préstamos.
+
+    private final LoanService loanService;
 
     /**
-     * Crea un nuevo préstamo.
-     * POST /api/loans
-     * 
-     * @param loanDTO Datos para crear el préstamo.
-     * @return Préstamo creado y estado 201 (CREATED).
+     * Solicita un nuevo préstamo de juego
      */
-    @Operation(summary = "Crear nuevo préstamo")
+    @PostMapping("/request")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Solicitar nuevo préstamo")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Préstamo creado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos de solicitud inválidos"),
-            @ApiResponse(responseCode = "409", description = "Juego no disponible")
+        @ApiResponse(responseCode = "201", description = "Préstamo creado"),
+        @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+        @ApiResponse(responseCode = "401", description = "No autenticado"),
+        @ApiResponse(responseCode = "403", description = "No autorizado"),
+        @ApiResponse(responseCode = "404", description = "Juego no encontrado"),
+        @ApiResponse(responseCode = "409", description = "Juego no disponible")
     })
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<LoanResponseDTO> createLoan(@Valid @RequestBody LoanRequestDTO loanDTO) {
-        log.info("POST /api/loans - Creando préstamo: {}", loanDTO);
-        if (loanDTO == null) {
-            throw new BadRequestException("Datos del préstamo no pueden ser nulos.");
-        }
-        LoanResponseDTO createdLoan = loanService.createLoan(loanDTO);
-        log.info("Préstamo creado con ID: {}", createdLoan.id());
-        return ResponseEntity.created(URI.create("/api/loans/" + createdLoan.id()))
-                .body(createdLoan);
+    public ResponseEntity<LoanResponseDTO> requestNewLoan(
+            @Valid @RequestBody LoanRequestDTO loanRequestDto) {
+        log.info("Solicitando préstamo: {}", loanRequestDto);
+        LoanResponseDTO createdLoan = loanService.createLoanRequest(loanRequestDto);
+        return ResponseEntity
+            .created(URI.create("/api/loans/" + createdLoan.id()))
+            .body(createdLoan);
     }
 
     /**
-     * Obtiene todos los préstamos.
-     * GET /api/loans
-     * 
-     * @return Lista de préstamos y estado 200 (OK) o 204 (NO CONTENT).
+     * Lista todos los préstamos
      */
     @GetMapping
     public ResponseEntity<List<LoanResponseDTO>> getAllLoans() {
@@ -98,85 +85,57 @@ public class LoanController {
     }
 
     /**
-     * Obtiene un préstamo por su ID.
-     * GET /api/loans/{id}
-     * 
-     * @param id ID del préstamo a buscar.
-     * @return Préstamo encontrado y estado 200 (OK).
+     * Obtiene un préstamo por ID
      */
     @GetMapping("/{id}")
     public ResponseEntity<LoanResponseDTO> getLoanById(@PathVariable Long id) {
         log.info("GET /api/loans/{} - Buscando préstamo.", id);
-        if (id == null) {
-            throw new BadRequestException("ID de préstamo no puede ser nulo.");
-        }
-        LoanResponseDTO loan = loanService.getLoanDTO(id);
+        LoanResponseDTO loan = loanService.getLoanByIdAsResponseDTO(id); 
         return ResponseEntity.ok(loan);
     }
 
     /**
-     * Actualiza un préstamo existente.
-     * PUT /api/loans/{id}
-     * 
-     * @param id      ID del préstamo a actualizar.
-     * @param loanDTO Nuevos datos para el préstamo.
-     * @return Préstamo actualizado y estado 200 (OK).
+     * Actualiza un préstamo existente
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @loanSecurityService.isOwnerOfLoan(#id, principal.username) or @loanSecurityService.isBorrowerOfLoan(#id, principal.username)")
     public ResponseEntity<LoanResponseDTO> updateLoan(
-            @PathVariable Long id, @Valid @RequestBody LoanDTO loanDTO) {
+            @PathVariable Long id, 
+            @Valid @RequestBody LoanDTO loanDTO) {
         log.info("PUT /api/loans/{} - Actualizando préstamo con datos: {}", id, loanDTO);
-        if (id == null || loanDTO == null) {
-            throw new BadRequestException("ID y datos del préstamo no pueden ser nulos.");
-        }
         LoanResponseDTO updatedLoan = loanService.updateLoanFromDTO(id, loanDTO);
         log.info("Préstamo ID {} actualizado.", updatedLoan.id());
         return ResponseEntity.ok(updatedLoan);
     }
 
     /**
-     * Elimina un préstamo por su ID.
-     * DELETE /api/loans/{id}
-     * 
-     * @param id ID del préstamo a eliminar.
-     * @return Estado 204 (NO CONTENT).
+     * Elimina un préstamo (solo admin)
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") 
     public ResponseEntity<Void> deleteLoan(@PathVariable Long id) {
         log.info("DELETE /api/loans/{} - Eliminando préstamo.", id);
-        if (id == null) {
-            throw new BadRequestException("ID de préstamo no puede ser nulo.");
-        }
         loanService.deleteLoan(id);
         log.info("Préstamo ID {} eliminado.", id);
         return ResponseEntity.noContent().build();
     }
 
     /**
-     * Registra la devolución de un préstamo.
-     * PATCH /api/loans/{id}/return
-     * 
-     * @param id        ID del préstamo a devolver.
-     * @param returnDTO Datos de la devolución.
-     * @return Préstamo actualizado (con fecha de devolución) y estado 200 (OK).
+     * Registra la devolución de un préstamo
      */
-    @PatchMapping("/{id}/return")
+    @PutMapping("/{id}/return")
+    @PreAuthorize("hasRole('ADMIN') or @loanSecurityService.isBorrowerOfLoan(#id, principal.username)")
     public ResponseEntity<LoanResponseDTO> returnLoan(
-            @PathVariable Long id, @Valid @RequestBody LoanReturnDTO returnDTO) {
-        log.info("PATCH /api/loans/{}/return - Registrando devolución: {}", id, returnDTO);
-        if (id == null || returnDTO == null) {
-            throw new BadRequestException("ID de préstamo y datos de devolución no pueden ser nulos.");
-        }
+            @PathVariable Long id,
+            @Valid @RequestBody LoanReturnDTO returnDTO) {
+        log.info("PUT /api/loans/{}/return - Registrando devolución: {}", id, returnDTO);
         LoanResponseDTO returnedLoan = loanService.recordLoanReturn(id, returnDTO);
         log.info("Préstamo ID {} devuelto.", returnedLoan.id());
         return ResponseEntity.ok(returnedLoan);
     }
 
     /**
-     * Maneja excepciones de tipo BadRequestException.
-     * 
-     * @param ex La excepción lanzada.
-     * @return Respuesta con detalles del error y estado 400 (BAD REQUEST).
+     * Manejo de excepciones de solicitud inválida
      */
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
@@ -187,4 +146,6 @@ public class LoanController {
                 LocalDateTime.now());
         return ResponseEntity.badRequest().body(error);
     }
+    
+
 }

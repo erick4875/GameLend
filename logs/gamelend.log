@@ -265,3 +265,170 @@ org.springframework.web.HttpRequestMethodNotSupportedException: Request method '
 2025-05-29 14:51:08 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.gamelend.service.GameService - Se encontraron 2 juegos para el usuario 1
 2025-05-29 14:51:10 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
 2025-05-29 14:51:13 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 4
+2025-05-29 15:10:33 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 8208 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-29 15:10:33 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-29 15:10:36 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-29 15:10:36 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-29 15:10:36 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-29 15:10:37 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-29 15:10:38 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@12d35bc9
+2025-05-29 15:10:38 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-29 15:10:42 [main] INFO  o.p.g.g.service.FileStorageService - Directorios de subida creados/verificados: Root -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas, User -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario, Game -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\game_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de juego
+2025-05-29 15:10:44 [main] INFO  o.p.group5.gamelend.GameLendApp - Started GameLendApp in 10.946 seconds (process running for 11.553)
+2025-05-29 15:10:44 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicializando roles y usuario administrador...
+2025-05-29 15:10:44 [main] INFO  o.p.g.g.config.DatabaseInitializer - Usuario administrador admin@linkiafp.com ya existe.
+2025-05-29 15:10:44 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicialización de base de datos completada.
+2025-05-29 15:10:45 [RMI TCP Connection(2)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-29 15:11:16 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-29 15:11:17 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-29 15:11:17 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-29 15:11:18 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:11:18 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:11:18 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:11:21 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-29 15:11:26 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:11:26 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:11:26 [http-nio-0.0.0.0-8081-exec-7] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:11:27 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 2
+2025-05-29 15:11:30 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.LoanController - POST /api/loans/request - Solicitando préstamo: LoanRequestDTO[gameId=2, notes=null]
+2025-05-29 15:11:30 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.LoanService - LoanService: Creando préstamo para gameId: 2
+2025-05-29 15:11:30 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.LoanService - Nueva solicitud de préstamo guardada con ID: 4
+2025-05-29 15:11:30 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.LoanController - Solicitud de préstamo creada con ID: 4
+2025-05-29 15:11:31 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 2
+2025-05-29 15:11:55 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:11:55 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:11:55 [http-nio-0.0.0.0-8081-exec-10] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:12:57 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 2
+2025-05-29 15:13:00 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:13:00 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:13:00 [http-nio-0.0.0.0-8081-exec-4] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:13:02 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-29 15:13:03 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:13:03 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:13:03 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:16:09 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 3
+2025-05-29 15:16:12 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:16:12 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:16:12 [http-nio-0.0.0.0-8081-exec-6] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:16:14 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 4
+2025-05-29 15:16:17 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:16:17 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:16:17 [http-nio-0.0.0.0-8081-exec-7] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:16:18 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-29 15:16:22 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:16:22 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:16:22 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:16:25 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:16:27 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:16:27 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:16:27 [http-nio-0.0.0.0-8081-exec-6] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:16:29 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:16:30 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.GameController - Solicitando lista de juegos para el usuario ID: 1
+2025-05-29 15:16:31 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.gamelend.service.GameService - Se encontraron 2 juegos para el usuario 1
+2025-05-29 15:16:33 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-29 15:16:36 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:16:36 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:16:36 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:17:01 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: fcover@linkiafp.com
+2025-05-29 15:17:02 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario fcover@linkiafp.com
+2025-05-29 15:17:02 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario fcover@linkiafp.com: eyJhbGciOi...
+2025-05-29 15:17:02 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:17:02 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: fcover@linkiafp.com
+2025-05-29 15:17:03 [http-nio-0.0.0.0-8081-exec-10] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 5 juegos.
+2025-05-29 15:18:28 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.GameController - Creando nuevo juego con título: Hollow Knight
+2025-05-29 15:18:28 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.gamelend.service.GameService - Servicio: Creando nuevo juego con título: Hollow Knight
+2025-05-29 15:18:29 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: fcover@linkiafp.com
+2025-05-29 15:18:29 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:18:29 [http-nio-0.0.0.0-8081-exec-7] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:18:48 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-29 15:18:48 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-29 15:18:48 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-29 15:18:49 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:18:49 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:18:49 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:18:54 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 6
+2025-05-29 15:19:08 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.LoanController - POST /api/loans/request - Solicitando préstamo: LoanRequestDTO[gameId=6, notes=null]
+2025-05-29 15:19:08 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.gamelend.service.LoanService - LoanService: Creando préstamo para gameId: 6
+2025-05-29 15:19:09 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.gamelend.service.LoanService - Nueva solicitud de préstamo guardada con ID: 5
+2025-05-29 15:19:09 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.LoanController - Solicitud de préstamo creada con ID: 5
+2025-05-29 15:19:09 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 6
+2025-05-29 15:25:53 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-29 15:25:53 [http-nio-0.0.0.0-8081-exec-4] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-29 15:25:53 [http-nio-0.0.0.0-8081-exec-4] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-29 15:25:55 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:25:55 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:25:55 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:25:57 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-29 15:26:00 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:26:00 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:26:00 [http-nio-0.0.0.0-8081-exec-10] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:26:02 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:26:05 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.GameController - Solicitando lista de juegos para el usuario ID: 1
+2025-05-29 15:26:05 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.gamelend.service.GameService - Se encontraron 2 juegos para el usuario 1
+2025-05-29 15:26:07 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-29 15:26:16 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 4
+2025-05-29 15:45:59 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:45:59 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:45:59 [http-nio-0.0.0.0-8081-exec-9] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:46:05 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:46:16 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.GameController - Solicitando lista de juegos para el usuario ID: 1
+2025-05-29 15:46:16 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.gamelend.service.GameService - Se encontraron 2 juegos para el usuario 1
+2025-05-29 15:46:35 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.GameController - Solicitando detalles para el juego con ID: 1
+2025-05-29 15:50:33 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.gamelend.service.AuthService - Usuario logueado: admin@linkiafp.com
+2025-05-29 15:50:33 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.AuthService - Revocando 1 token(s) para el usuario admin@linkiafp.com
+2025-05-29 15:50:33 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.AuthService - Token guardado para el usuario admin@linkiafp.com: eyJhbGciOi...
+2025-05-29 15:50:34 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:50:34 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:50:34 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:50:38 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:50:41 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:50:41 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:50:41 [http-nio-0.0.0.0-8081-exec-7] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:50:42 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting list of users
+2025-05-29 15:50:43 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.UserService - Solicitando todos los usuarios para convertir a DTO
+2025-05-29 15:50:44 [http-nio-0.0.0.0-8081-exec-1] INFO  o.p.g.g.controller.UserController - Requesting list of users
+2025-05-29 15:50:44 [http-nio-0.0.0.0-8081-exec-1] DEBUG o.p.g.gamelend.service.UserService - Solicitando todos los usuarios para convertir a DTO
+2025-05-29 15:50:46 [http-nio-0.0.0.0-8081-exec-2] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:50:46 [http-nio-0.0.0.0-8081-exec-6] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:50:46 [http-nio-0.0.0.0-8081-exec-2] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:50:46 [http-nio-0.0.0.0-8081-exec-5] INFO  o.p.g.g.controller.UserController - Requesting list of users
+2025-05-29 15:50:46 [http-nio-0.0.0.0-8081-exec-5] DEBUG o.p.g.gamelend.service.UserService - Solicitando todos los usuarios para convertir a DTO
+2025-05-29 15:50:47 [http-nio-0.0.0.0-8081-exec-8] INFO  o.p.g.g.controller.UserController - Requesting list of users
+2025-05-29 15:50:47 [http-nio-0.0.0.0-8081-exec-8] DEBUG o.p.g.gamelend.service.UserService - Solicitando todos los usuarios para convertir a DTO
+2025-05-29 15:50:49 [http-nio-0.0.0.0-8081-exec-4] INFO  o.p.g.g.controller.UserController - Requesting list of users
+2025-05-29 15:50:49 [http-nio-0.0.0.0-8081-exec-4] DEBUG o.p.g.gamelend.service.UserService - Solicitando todos los usuarios para convertir a DTO
+2025-05-29 15:50:49 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.g.controller.GameController - Solicitando lista de juegos para el usuario ID: 1
+2025-05-29 15:50:49 [http-nio-0.0.0.0-8081-exec-9] INFO  o.p.g.gamelend.service.GameService - Se encontraron 2 juegos para el usuario 1
+2025-05-29 15:50:52 [http-nio-0.0.0.0-8081-exec-10] INFO  o.p.g.g.controller.UserController - Requesting profile for user with email: admin@linkiafp.com
+2025-05-29 15:50:52 [http-nio-0.0.0.0-8081-exec-7] INFO  o.p.g.g.controller.GameController - Solicitando lista de todos los juegos
+2025-05-29 15:50:53 [http-nio-0.0.0.0-8081-exec-7] DEBUG o.p.g.gamelend.service.GameService - Se encontraron 6 juegos.
+2025-05-29 15:50:53 [http-nio-0.0.0.0-8081-exec-3] INFO  o.p.g.g.controller.UserController - Requesting list of users
+2025-05-29 15:50:54 [http-nio-0.0.0.0-8081-exec-3] DEBUG o.p.g.gamelend.service.UserService - Solicitando todos los usuarios para convertir a DTO
+2025-05-29 17:38:58 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 11088 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-29 17:38:58 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-29 17:39:00 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-29 17:39:00 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-29 17:39:01 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-29 17:39:02 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-29 17:39:02 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6bfbab1c
+2025-05-29 17:39:02 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-29 17:39:07 [main] INFO  o.p.g.g.service.FileStorageService - Directorios de subida creados/verificados: Root -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas, User -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario, Game -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\game_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de juego
+2025-05-29 17:39:08 [main] INFO  o.p.group5.gamelend.GameLendApp - Started GameLendApp in 10.935 seconds (process running for 11.496)
+2025-05-29 17:39:08 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicializando roles y usuario administrador...
+2025-05-29 17:39:08 [main] INFO  o.p.g.g.config.DatabaseInitializer - Usuario administrador ya existe: admin@linkiafp.com
+2025-05-29 17:39:08 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicialización completada.
+2025-05-29 17:39:10 [RMI TCP Connection(2)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-05-29 17:42:04 [main] INFO  o.p.group5.gamelend.GameLendApp - Starting GameLendApp using Java 21.0.7 with PID 22312 (C:\proyecto\grupo\backend_spring_boot_grupo5\target\classes started by fr4nc in c:\proyecto\grupo\backend_spring_boot_grupo5)
+2025-05-29 17:42:04 [main] INFO  o.p.group5.gamelend.GameLendApp - No active profile set, falling back to 1 default profile: "default"
+2025-05-29 17:42:06 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-05-29 17:42:06 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.41]
+2025-05-29 17:42:07 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-05-29 17:42:08 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-05-29 17:42:09 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6516181f
+2025-05-29 17:42:09 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-05-29 17:42:13 [main] INFO  o.p.g.g.service.FileStorageService - Directorios de subida creados/verificados: Root -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas, User -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\user_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de usuario, Game -> c:\proyecto\grupo\backend_spring_boot_grupo5\uploads_gamelend      # Directorio raÃ­z general para las subidas\game_images  # Nombre del SUBDIRECTORIO para imÃ¡genes de juego
+2025-05-29 17:42:14 [main] INFO  o.p.group5.gamelend.GameLendApp - Started GameLendApp in 10.657 seconds (process running for 11.246)
+2025-05-29 17:42:14 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicializando roles y usuario administrador...
+2025-05-29 17:42:14 [main] INFO  o.p.g.g.config.DatabaseInitializer - Usuario administrador ya existe: admin@linkiafp.com
+2025-05-29 17:42:14 [main] INFO  o.p.g.g.config.DatabaseInitializer - Inicialización completada.
+2025-05-29 17:42:16 [RMI TCP Connection(2)-127.0.0.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'

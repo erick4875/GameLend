@@ -16,7 +16,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entidad que representa un préstamo de un juego entre usuarios
+ * Entidad que representa un préstamo de juego entre usuarios.
+ * Gestiona el ciclo de vida completo de un préstamo desde su creación hasta su devolución.
  */
 @Entity
 @Table(name = "loans")
@@ -34,8 +35,8 @@ public class Loan {
     private Long id;
 
     /**
-     * Juego que ha sido prestado
-     * Relación muchos a uno: muchos préstamos pueden referirse al mismo juego (a lo largo del tiempo)
+     * Juego prestado
+     * Un juego puede tener múltiples préstamos a lo largo del tiempo
      */
     @ManyToOne
     @JoinColumn(name = "game_id", nullable = false)
@@ -43,52 +44,55 @@ public class Loan {
 
     /**
      * Usuario que presta el juego (propietario)
-     * Relación muchos a uno: un usuario puede realizar muchos préstamos
+     * Un prestador puede tener múltiples préstamos activos
      */
     @ManyToOne
     @JoinColumn(name = "lender_id", nullable = false)
     private User lender;
 
     /**
-     * Usuario que toma prestado el juego
-     * Relación muchos a uno: un usuario puede tomar prestados muchos juegos
+     * Usuario que recibe el préstamo
+     * Un prestatario puede tener múltiples préstamos activos
      */
     @ManyToOne
     @JoinColumn(name = "borrower_id", nullable = false)
     private User borrower;
 
     /**
-     * Fecha y hora en que se realizó el préstamo
+     * Fecha y hora de inicio del préstamo
      */
     @Column(name = "loan_date", nullable = false)
     private LocalDateTime loanDate;
 
     /**
-     * Fecha y hora esperada para la devolución del juego
+     * Fecha y hora prevista de devolución
+     * Ayuda a gestionar los plazos de préstamo
      */
     @Column(name = "expected_return_date", nullable = false)
     private LocalDateTime expectedReturnDate;
 
     /**
-     * Fecha y hora real en que se devolvió el juego
-     * Será nulo si el juego aún no ha sido devuelto
+     * Fecha y hora real de devolución
+     * null indica que el préstamo sigue activo
      */
     @Column(name = "return_date")
     private LocalDateTime returnDate;
     
     /**
-     * Notas adicionales sobre el préstamo 
+     * Notas o comentarios sobre el préstamo
+     * Máximo 500 caracteres
      */
     @Column(name = "notes", length = 500)
     private String notes;
 
     /**
-     * Constructor para crear un préstamo con todos los campos obligatorios
+     * Constructor con campos obligatorios
+     * 
      * @param lender Usuario que presta el juego
-     * @param borrower Usuario que toma prestado el juego
-     * @param game Juego prestado
-     * @param loanDate Fecha y hora del préstamo
-     * @param returnDate Fecha y hora de la devolución (puede ser nulo si aún no se ha devuelto)
+     * @param borrower Usuario que recibe el préstamo
+     * @param game Juego a prestar
+     * @param loanDate Fecha de inicio
+     * @param returnDate Fecha de devolución (null si activo)
      */
     public Loan(User lender, User borrower, Game game,
                 LocalDateTime loanDate, LocalDateTime returnDate) {
@@ -100,8 +104,9 @@ public class Loan {
     }
 
     /**
-     * Verifica si el préstamo está actualmente activo (es decir, el juego ha sido prestado pero aún no devuelto)
-     * @return true si el juego no ha sido devuelto, false en caso contrario
+     * Verifica si el préstamo está activo
+     * 
+     * @return true si no ha sido devuelto, false si ya finalizó
      */
     public boolean isActive() {
         return this.returnDate == null;

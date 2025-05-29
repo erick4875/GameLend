@@ -25,11 +25,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @Component: Bean de Spring.
- * @RequiredArgsConstructor: Constructor con campos 'final'.
- * @Slf4j: Logger.
- *
- * Filtro que intercepta peticiones para validar tokens JWT.
+ * Filtro de autenticación JWT.
+ * Valida tokens JWT en las peticiones HTTP.
  */
 @Component
 @RequiredArgsConstructor
@@ -37,13 +34,12 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final String AUTH_PATH = "/api/auth"; // Rutas de autenticación que no necesitan token.
+    private static final String AUTH_PATH = "/api/auth";
 
-    // Inyección de dependencias.
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
-    private final TokenRepository tokenRepository; // Para validar tokens en BD.
-    private final UserRepository userRepository;   // Para obtener el User completo.
+    private final TokenRepository tokenRepository;
+    private final UserRepository userRepository;
 
     /**
      * Lógica principal del filtro para cada petición.
@@ -54,7 +50,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
         
-        // Si es ruta de autenticación, no procesar token.
+        // Saltar validación para rutas de autenticación
         if (isAuthenticationPath(request)) {
             filterChain.doFilter(request, response);
             return;
@@ -97,25 +93,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Procesa el token: extrae email, valida y autentica.
+     * Procesa y valida el token JWT
      */
     private void processJwtToken(HttpServletRequest request, String jwtToken) {
         String userEmail = jwtService.extractUsername(jwtToken);
         
-        // Si hay email y el usuario no está autenticado.
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Si el token es válido en la BD (no expirado/revocado).
             if (isTokenValidInDatabase(jwtToken)) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
                 authenticateUserIfTokenValid(request, jwtToken, userDetails);
-            } else {
-                log.debug("Token no válido en BD: {}", jwtToken);
             }
         }
     }
 
     /**
-     * Verifica si el token existe en BD y no está expirado/revocado.
+     * Verifica validez del token en base de datos
      */
     private boolean isTokenValidInDatabase(String jwtToken) {
         return tokenRepository.findByToken(jwtToken)
@@ -124,29 +116,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Si el token JWT es válido para UserDetails, autentica al usuario.
+     * Autentica al usuario si el token es válido
      */
     private void authenticateUserIfTokenValid(HttpServletRequest request, String jwtToken, UserDetails userDetails) {
-        // Obtener User completo para validación con jwtService.
         Optional<User> userOptional = userRepository.findByEmail(userDetails.getUsername());
         
         if (userOptional.isEmpty()) {
-            log.debug("Usuario no encontrado en BD para UserDetails: {}", userDetails.getUsername());
+            log.debug("Usuario no encontrado: {}", userDetails.getUsername());
             return;
         }
-        User user = userOptional.get();
 
-        // Valida firma, expiración y si el token corresponde al usuario.
+        User user = userOptional.get();
         if (jwtService.isTokenValid(jwtToken, user)) {
-            // Crea token de autenticación para Spring Security.
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+            var authToken = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            // Establece la autenticación en el contexto de Spring.
             SecurityContextHolder.getContext().setAuthentication(authToken);
             log.debug("Usuario autenticado: {}", userDetails.getUsername());
-        } else {
-            log.debug("Token JWT inválido para usuario: {}", userDetails.getUsername());
         }
     }
 }

@@ -34,5 +34,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
      * @return lista de préstamos activos
      */
     List<Loan> findByGameIdAndReturnDateIsNull(Long gameId);
+    List<Loan> findByGameAndLenderAndReturnDateIsNull(Game game, User lender);
 }
 

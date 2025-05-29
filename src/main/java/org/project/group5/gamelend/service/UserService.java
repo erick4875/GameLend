@@ -29,30 +29,52 @@ import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Servicio para la gestión de usuarios.
+ * Maneja operaciones CRUD, autenticación y gestión de perfiles.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Transactional // Aplicar transaccionalidad a nivel de clase
+@Transactional
 public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository userRoleRepository;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final DocumentService documentService; // Inyectar DocumentService
-    // private final DocumentMapper documentMapper; // No es necesario aquí si
-    // UserMapper maneja la URL
+    private final DocumentService documentService;
 
+
+    /**
+     * === Operaciones con Roles ===
+     */
+
+    /**
+     * Obtiene el rol por defecto (ROLE_USER)
+     */
     public Role getDefaultRole() {
         return userRoleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new ResourceNotFoundException("Rol ROLE_USER no encontrado"));
     }
 
+    /**
+     * Busca un rol por su nombre
+     */
     public Role findRoleByName(String roleName) {
         return userRoleRepository.findByName(roleName)
                 .orElseThrow(() -> new ResourceNotFoundException("Rol " + roleName + " no encontrado"));
     }
 
+    /**
+     * === Operaciones CRUD Básicas ===
+     */
+
+    /**
+     * Busca un usuario por email
+     * @throws BadRequestException si el email es nulo o vacío
+     * @throws ResourceNotFoundException si no se encuentra el usuario
+     */
     @Transactional(readOnly = true)
     public User findUserByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -93,6 +115,10 @@ public class UserService {
         }
     }
 
+    /**
+     * Maneja errores de integridad de datos
+     * @throws ResponseStatusException con mensaje específico según el error
+     */
     private void handleDataIntegrityViolation(DataIntegrityViolationException e) {
         String mensaje = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
         if (mensaje.contains("public_name")) {
@@ -104,6 +130,10 @@ public class UserService {
                     "No se puede completar la operación debido a restricciones de datos.");
         }
     }
+
+    /**
+     * === Operaciones de Lectura para DTOs ===
+     */
 
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsersAsResponseDTO() {
@@ -151,6 +181,17 @@ public class UserService {
         return userMapper.toResponseDTO(user);
     }
 
+    /**
+     * === Operaciones de Actualización ===
+     */
+
+    /**
+     * Actualiza el perfil de un usuario
+     * @param userId ID del usuario a actualizar
+     * @param userUpdateDTO Datos nuevos
+     * @throws ResourceNotFoundException si no existe el usuario
+     * @throws ResponseStatusException si hay conflicto de nombres
+     */
     @Transactional
     public UserResponseDTO updateUserProfile(Long userId, UserDTO userUpdateDTO) {
         log.info("UserService: Actualizando perfil de texto para userId: {}", userId);
@@ -202,11 +243,7 @@ public class UserService {
             finalUserToMap = userRepository.save(userToUpdate);
             log.info("Datos de texto del perfil actualizados y guardados para userId: {}", userId);
         } else {
-            // Si no hubo cambios de texto, igual necesitamos el estado más reciente del
-            // usuario
-            // por si la imagen de perfil se actualizó en una transacción previa (la de
-            // subida de imagen).
-            // Es crucial recargar aquí para obtener la referencia a la nueva profileImage.
+        
             finalUserToMap = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + userId
                             + " después de intento de actualización sin cambios."));
@@ -280,11 +317,9 @@ public class UserService {
         return responseDTO;
     }
 
-    @Transactional(readOnly = true)
-    public UserResponseDTO getCompleteUserByIdAsResponseDTO(Long id) {
-        User user = getCompleteUserById(id); // Este método ya inicializa las colecciones
-        return userMapper.toResponseDTO(user);
-    }
+    /**
+     * === Operaciones de Eliminación ===
+     */
 
     @Transactional
     public void deleteUser(Long id) {
@@ -294,14 +329,13 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Usuario no encontrado con ID: " + id);
         }
-        // Antes de eliminar el usuario, considera si necesitas eliminar sus documentos
-        // asociados
-        // o si la configuración de la BD (ON DELETE CASCADE) o orphanRemoval se
-        // encarga.
-        // Si no, podrías necesitar eliminar manualmente los documentos aquí.
         userRepository.deleteById(id);
         log.info("Usuario con ID {} eliminado correctamente", id);
     }
+
+    /**
+     * === Consultas Completas de Usuario ===
+     */
 
     @Transactional(readOnly = true)
     public User getCompleteUserById(Long id) {
@@ -318,6 +352,23 @@ public class UserService {
         return user;
     }
 
+    /**
+     * Obtiene un usuario completo por ID y lo convierte a DTO
+     * Incluye todas las relaciones (imagen, juegos, préstamos, roles)
+     */
+    @Transactional(readOnly = true)
+    public UserResponseDTO getCompleteUserByIdAsResponseDTO(Long id) {
+        User user = getCompleteUserById(id);
+        return userMapper.toResponseDTO(user);
+    }
+
+    /**
+     * === Utilidades y Validaciones ===
+     */
+
+    /**
+     * Verifica existencia de nombre público
+     */
     public boolean existsByPublicName(String publicName) {
         if (publicName == null || publicName.trim().isEmpty())
             return false;

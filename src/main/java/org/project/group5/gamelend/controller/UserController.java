@@ -35,14 +35,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Controlador REST para usuarios.
+ * Controlador REST para gestión de usuarios.
+ * Maneja operaciones CRUD, búsquedas y gestión de perfiles.
  */
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
-    // Mensajes de error.
+    // Mensajes de error comunes
     private static final String ERR_ID_NULL = "User ID cannot be null";
     private static final String ERR_EMAIL_NULL = "Email cannot be null or empty";
     private static final String ERR_USER_DATA_NULL = "User data cannot be null";
@@ -51,10 +52,11 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
-    // ===== OPERACIONES CRUD =====
+    // === Operaciones CRUD Básicas ===
 
     /**
-     * Obtiene todos los usuarios.
+     * Lista todos los usuarios.
+     * Requiere rol USER o ADMIN.
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
@@ -69,7 +71,8 @@ public class UserController {
     }
 
     /**
-     * Obtiene un usuario por ID.
+     * Obtiene un usuario específico por ID.
+     * Accesible para todos los usuarios autenticados.
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
@@ -80,7 +83,8 @@ public class UserController {
     }
 
     /**
-     * Crea un nuevo usuario (solo admin).
+     * Crea un nuevo usuario en el sistema.
+     * Solo accesible para administradores.
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -97,7 +101,8 @@ public class UserController {
     }
 
     /**
-     * Actualiza un usuario.
+     * Actualiza el perfil de un usuario existente.
+     * El usuario solo puede actualizar su propio perfil, excepto admin.
      */
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUserProfile(@PathVariable Long id, @RequestBody UserDTO userDTO) {
@@ -137,7 +142,11 @@ public class UserController {
         return ResponseEntity.ok(updatedUserResponse);
     }
 
-@PostMapping("/{userId}/photo") // La ruta que usa tu app Android
+    /**
+     * Gestiona la subida/actualización de foto de perfil.
+     * Usuario solo puede modificar su propia foto, excepto admin.
+     */
+    @PostMapping("/{userId}/photo") // La ruta que usa tu app Android
     @PreAuthorize("hasRole('ADMIN') or (isAuthenticated() and #userId == principal.id)")
     public ResponseEntity<UserResponseDTO> uploadOrUpdateProfileImage(
             @PathVariable Long userId,
@@ -155,7 +164,8 @@ public class UserController {
     }
 
     /**
-     * Elimina un usuario por ID.
+     * Elimina un usuario del sistema.
+     * Solo accesible para administradores.
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -166,10 +176,11 @@ public class UserController {
         return ResponseEntity.ok("User deleted successfully");
     }
 
-    // ===== BÚSQUEDAS ESPECIALizadas =====
+    // === Búsquedas Especializadas ===
 
     /**
-     * Obtiene un usuario por email.
+     * Busca usuario por email.
+     * Útil para verificaciones y búsquedas específicas.
      */
     @GetMapping("/email/{email}")
     public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
@@ -180,7 +191,8 @@ public class UserController {
     }
 
     /**
-     * Obtiene perfil básico de usuario por email.
+     * Obtiene perfil básico por email.
+     * Versión simplificada para consultas rápidas.
      */
     @GetMapping("/profile")
     public ResponseEntity<UserResponseDTO> getUserProfile(@RequestParam String email) {
@@ -191,7 +203,8 @@ public class UserController {
     }
 
     /**
-     * Obtiene usuario completo (con relaciones) por ID.
+     * Obtiene usuario con todas sus relaciones.
+     * Incluye roles, juegos y préstamos asociados.
      */
     @GetMapping("/{id}/complete")
     public ResponseEntity<UserResponseDTO> getCompleteUser(@PathVariable Long id) {
@@ -201,10 +214,11 @@ public class UserController {
         return ResponseEntity.ok(userResponseDTO);
     }
 
-    // ===== MÉTODOS AUXILIARES PRIVADOS =====
+    // === Métodos Auxiliares de Validación ===
 
     /**
-     * Valida que el ID no sea nulo.
+     * Valida el ID de usuario.
+     * Verifica que no sea nulo.
      */
     private void validateId(Long id) {
         if (id == null) {
@@ -213,7 +227,8 @@ public class UserController {
     }
 
     /**
-     * Valida que el email no sea nulo o vacío.
+     * Valida formato y existencia de email.
+     * Verifica que no sea nulo o vacío.
      */
     private void validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
@@ -222,7 +237,8 @@ public class UserController {
     }
 
     /**
-     * Valida datos para un nuevo usuario.
+     * Valida datos para creación de usuario.
+     * Verifica duplicados de email y nombre público.
      */
     private void validateNewUserData(UserDTO userDTO) {
         if (userDTO == null) {
@@ -238,7 +254,8 @@ public class UserController {
     }
 
     /**
-     * Prepara un objeto User para su creación.
+     * Prepara entidad User para persistencia.
+     * Configura roles, contraseña y fecha de registro.
      */
     private User prepareUserForCreation(UserDTO userDTO) {
         User user = userMapper.toEntity(userDTO);

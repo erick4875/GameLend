@@ -26,28 +26,32 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servicio para gestionar el almacenamiento de imágenes para juegos y usuarios.
+ * Maneja operaciones de carga, almacenamiento y recuperación de archivos.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FileStorageService {
 
+    // === Constantes y Configuración ===
     private final FileStorageProperties storageProperties;
     private static final String DEFAULT_EXTENSION = "jpg";
     private static final String DEFAULT_FILENAME_PREFIX = "imagen_sin_nombre";
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS");
 
     /**
-     * Tipos de imagen soportados (determinan la ubicación de almacenamiento).
+     * Tipos de imagen soportados.
+     * Determinan la ubicación de almacenamiento.
      */
     public enum ImageType {
-        GAME,
-        USER,
-        DEFAULT // Un tipo por defecto si no se puede determinar
+        GAME,    // Imágenes de juegos
+        USER,    // Imágenes de usuarios
+        DEFAULT  // Tipo por defecto
     }
 
     /**
-     * Se ejecuta después de la construcción del bean para inicializar los directorios.
+     * Inicializa los directorios necesarios.
+     * Se ejecuta automáticamente después de la construcción del bean.
      */
     @PostConstruct
     public void init() {
@@ -71,8 +75,11 @@ public class FileStorageService {
 
 
     /**
-     * Almacena una imagen recibida como MultipartFile.
-     * Valida tamaño y extensión antes de guardar.
+     * Almacena una imagen desde un MultipartFile.
+     * @param file Archivo a almacenar
+     * @param type Tipo de imagen (GAME, USER)
+     * @return Nombre único generado para el archivo
+     * @throws FileStorageException si hay problemas al almacenar
      */
     public String storeImage(MultipartFile file, ImageType type) {
         if (file == null || file.isEmpty()) {
@@ -104,8 +111,12 @@ public class FileStorageService {
     }
 
     /**
-     * Almacena una imagen recibida como array de bytes.
-     * Valida tamaño y extensión antes de guardar.
+     * Almacena una imagen desde un array de bytes.
+     * @param imageBytes Datos de la imagen
+     * @param type Tipo de imagen
+     * @param providedExtension Extensión del archivo
+     * @return Nombre único generado para el archivo
+     * @throws FileStorageException si hay problemas al almacenar
      */
     public String storeImage(byte[] imageBytes, ImageType type, String providedExtension) {
         if (imageBytes == null || imageBytes.length == 0) {
@@ -134,6 +145,12 @@ public class FileStorageService {
         }
     }
 
+    // === Métodos Privados de Almacenamiento ===
+
+    /**
+     * Núcleo del proceso de almacenamiento.
+     * Maneja la escritura efectiva del archivo.
+     */
     private String storeImageCore(InputStream inputStream, ImageType type, String extension,
             String originalFilenameForLog) throws IOException {
         String newFilename = generateUniqueFilename(extension);
@@ -146,6 +163,11 @@ public class FileStorageService {
         return newFilename;
     }
 
+    // === Validaciones ===
+
+    /**
+     * Valida el tamaño del archivo contra límites configurados
+     */
     private void validateFileSize(long fileSize) {
         long maxSizeInBytes = storageProperties.getMaxSize();
         if (fileSize > maxSizeInBytes) {
@@ -156,6 +178,9 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Valida que la extensión esté permitida
+     */
     private void validateFileExtension(String extension) {
         if (!storageProperties.isExtensionAllowed(extension)) {
             String allowedExtensionsString = "desconocidas (revisar configuración)";
@@ -168,6 +193,11 @@ public class FileStorageService {
         }
     }
 
+    // === Utilidades ===
+
+    /**
+     * Limpia y normaliza la extensión del archivo
+     */
     private String sanitizeExtension(String extension) {
         if (!StringUtils.hasText(extension)) {
             return DEFAULT_EXTENSION;
@@ -176,6 +206,13 @@ public class FileStorageService {
         return sanitized.toLowerCase();
     }
 
+    /**
+     * Carga una imagen como recurso
+     * @param filename Nombre del archivo
+     * @param type Tipo de imagen
+     * @return Resource que representa la imagen
+     * @throws MyFileNotFoundException si no se encuentra
+     */
     public Resource loadImageAsResource(String filename, ImageType type) {
         if (!StringUtils.hasText(filename)) {
             log.warn("Intento de cargar imagen con nombre nulo o vacío (Tipo: {})", type);
@@ -200,6 +237,10 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Elimina una imagen del sistema
+     * @return true si se eliminó, false si no existía
+     */
     public boolean deleteImage(String filename, ImageType type) {
         if (!StringUtils.hasText(filename)) {
             log.warn("Intento de eliminar imagen con nombre nulo o vacío (Tipo: {})", type);
@@ -221,12 +262,19 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Genera un nombre único para el archivo
+     * Usa timestamp y UUID
+     */
     private String generateUniqueFilename(String extension) {
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
         String uuid = UUID.randomUUID().toString().substring(0, 8);
         return timestamp + "_" + uuid + "." + extension;
     }
 
+    /**
+     * Extrae la extensión de un nombre de archivo
+     */
     private String getFileExtension(String filename) {
         if (!StringUtils.hasText(filename)) {
             return "";
@@ -239,10 +287,7 @@ public class FileStorageService {
     }
 
     /**
-     * Determina la ubicación de almacenamiento completa (absoluta) para un archivo según su tipo.
-     * @param type El tipo de imagen (USER, GAME).
-     * @param filename El nombre del archivo (ya debe ser único y con extensión).
-     * @return La ruta completa (Path) donde se almacenará o se encuentra el archivo.
+     * Determina la ubicación absoluta de almacenamiento
      */
     private Path getTargetLocation(ImageType type, String filename) {
         String specificDirectoryPathString = switch (type) {
@@ -269,16 +314,9 @@ public class FileStorageService {
     }
 
     /**
-     * Obtiene la ruta relativa local donde se almacena el archivo según el tipo.
-     * Esta ruta es la que se podría guardar en la base de datos en el campo 'localPath' de Document.
-     * @param type El tipo de imagen (USER, GAME).
-     * @param fileName El nombre del archivo almacenado (con extensión).
-     * @return La ruta relativa, ej. "users/nombre_archivo.jpg" o "games/nombre_archivo.png".
+     * Obtiene la ruta relativa para almacenamiento en BD
      */
     public String getLocalPath(ImageType type, String fileName) {
-        // Esta lógica asume que getUserImagesPath() y getGameImagesPath() son subdirectorios
-        // directos de getUploadDir(). Si son rutas completamente independientes, esta lógica de relativizar
-        // podría no ser lo que quieres, y simplemente podrías guardar el nombre de la subcarpeta + fileName.
 
         Path rootUploadPath = Paths.get(storageProperties.getUploadDir()).toAbsolutePath().normalize();
         Path subDirectoryFullPath;
@@ -291,21 +329,17 @@ public class FileStorageService {
                 subDirectoryFullPath = Paths.get(storageProperties.getGameImagesPath()).toAbsolutePath().normalize();
                 break;
             default:
-                // Para el tipo DEFAULT, la ruta relativa sería simplemente "default/" + fileName
                 return Paths.get("default", StringUtils.cleanPath(fileName)).toString().replace("\\", "/");
         }
 
-        // Calcular la ruta del subdirectorio relativa al directorio raíz de subida
-        // Esto solo funciona correctamente si subDirectoryFullPath es realmente un subdirectorio de rootUploadPath
+
         Path relativePathToSubDir;
         try {
             relativePathToSubDir = rootUploadPath.relativize(subDirectoryFullPath);
         } catch (IllegalArgumentException e) {
-            // Esto puede ocurrir si las rutas no tienen una base común o son diferentes unidades (en Windows)
             log.warn("No se pudo relativizar la ruta del subdirectorio '{}' contra la raíz '{}'. Usando el nombre del último directorio.", subDirectoryFullPath, rootUploadPath);
-            // Como fallback, solo tomamos el nombre del último directorio (ej. "users" o "games")
             relativePathToSubDir = subDirectoryFullPath.getFileName();
-            if (relativePathToSubDir == null) { // En caso de que la ruta sea solo la raíz
+            if (relativePathToSubDir == null) {
                 relativePathToSubDir = Paths.get("");
             }
         }

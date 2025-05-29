@@ -32,6 +32,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Controlador REST para la gestión de documentos.
+ * Maneja operaciones CRUD y descarga/subida de archivos.
+ */
 @Slf4j
 @RestController
 @RequestMapping("api/documents")
@@ -43,42 +47,49 @@ public class DocumentController {
     private final FileStorageService fileStorageService;
     private final DocumentRepository documentRepository;
 
+    /**
+     * Lista todos los documentos (solo admin)
+     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<DocumentSummaryDTO>> list() {
         log.info("Solicitando lista de documentos");
         List<Document> documents = documentService.list();
-        if (documents.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(documentMapper.toSummaryDTOList(documents));
+        return documents.isEmpty() ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(documentMapper.toSummaryDTOList(documents));
     }
 
+    /**
+     * Obtiene un documento por ID
+     */
     @GetMapping("/{id}")
-    // @PreAuthorize("permitAll()") // Descomenta y ajusta según tu política de
-    // seguridad
-    public ResponseEntity<Resource> getDocumentFileById(@PathVariable Long id, HttpServletRequest request) {
-        log.info("Solicitando contenido del documento con ID: {}", id);
+    public ResponseEntity<Resource> getDocumentFileById(@PathVariable Long id,
+            HttpServletRequest request) {
+        log.info("Solicitando contenido del documento ID: {}", id);
         Document document = documentService.find(id);
 
+        // Determinar tipo y cargar recurso
         FileStorageService.ImageType imageType = documentService.determineImageType(document);
         Resource resource = fileStorageService.loadImageAsResource(document.getFileName(), imageType);
 
+        // Validar y obtener tipo de contenido
         String contentType = document.getContentType();
         if (contentType == null || contentType.isBlank()) {
             contentType = documentService.determineContentType(request, document.getFileName(), document);
         }
 
+        // Validar recurso
         if (resource == null || !resource.exists() || !resource.isReadable()) {
-            log.warn("Recurso no encontrado o no legible para el documento ID: {}", id);
+            log.warn("Recurso no encontrado o no legible, ID: {}", id);
             return ResponseEntity.notFound().build();
         }
 
+        // Obtener tamaño del contenido
         long contentLength = 0;
         try {
             contentLength = resource.contentLength();
         } catch (IOException e) {
-            log.warn("No se pudo obtener el tamaño del contenido para el documento ID: {}", id, e);
+            log.warn("Error al obtener tamaño del contenido, ID: {}", id, e);
         }
 
         return ResponseEntity.ok()
@@ -87,24 +98,32 @@ public class DocumentController {
                 .body(resource);
     }
 
+    /**
+     * Sube un nuevo documento
+     */
     @PostMapping("/upload")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<DocumentResponseDTO> uploadDocument(
             @RequestParam("file") MultipartFile file,
             @ModelAttribute @Valid DocumentUploadDTO uploadDTO) {
         log.info("Subiendo archivo: {} con metadatos: {}", file.getOriginalFilename(), uploadDTO);
+
         if (file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo no puede estar vacío.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Archivo vacío");
         }
+
         Document savedDocument = documentService.save(file, uploadDTO);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(documentMapper.toResponseDTO(savedDocument));
     }
 
+    /**
+     * Descarga un documento por nombre de archivo
+     */
     @GetMapping("/download/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFileByName(@PathVariable String fileName, HttpServletRequest request) {
-        log.info("Solicitando descarga de archivo (nombre físico): {}", fileName);
-        // Este método ya está en tu DocumentService
+    public ResponseEntity<Resource> downloadFileByName(@PathVariable String fileName,
+            HttpServletRequest request) {
+        log.info("Solicitando descarga de archivo: {}", fileName);
         return documentService.download(fileName, request);
     }
 }
