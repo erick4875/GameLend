@@ -1,8 +1,11 @@
 package com.example.gamelend.remote.api;
 
+import com.example.gamelend.dto.DocumentResponseDTO;
 import com.example.gamelend.dto.GameDTO;
 import com.example.gamelend.dto.GameResponseDTO;
 import com.example.gamelend.dto.GameSummaryDTO;
+import com.example.gamelend.dto.LoanRequestDTO;
+import com.example.gamelend.dto.LoanResponseDTO;
 import com.example.gamelend.dto.LoginRequestDTO;
 import com.example.gamelend.dto.RegisterRequestDTO;
 import com.example.gamelend.dto.TokenResponseDTO;
@@ -11,19 +14,23 @@ import com.example.gamelend.dto.UserResponseDTO;
 
 import java.util.List;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface ApiService {
 
-    // ===== Auth Endpoints (NO necesitan token de acceso vía AuthInterceptor) =====
+    // ===== Auth Endpoints =====
     @POST("api/auth/register")
     Call<TokenResponseDTO> register(@Body RegisterRequestDTO request);
 
@@ -33,7 +40,14 @@ public interface ApiService {
     @POST("api/auth/refresh")
     Call<TokenResponseDTO> refreshToken(@Header("Authorization") String refreshToken);
 
-    // ===== User Endpoints (Protegidos - AuthInterceptor añade el token de acceso) =====
+    // ===== User Endpoints =====
+    @Multipart
+    @POST("api/users/{userId}/photo")
+    Call<UserResponseDTO> uploadProfileImage(
+            @Path("userId") Long userId,
+            @Part MultipartBody.Part file
+    );
+
     @GET("api/users")
     Call<List<UserResponseDTO>> getAllUsers();
 
@@ -49,32 +63,28 @@ public interface ApiService {
             @Body UserDTO userDTO
     );
 
-    @GET("api/games/user/{userId}")
-    Call<List<GameResponseDTO>> getGamesByUserId(@Path("userId") Long userId);
-
     @DELETE("api/users/{id}")
     Call<Void> deleteUser(@Path("id") Long id);
 
-    // ===== Búsquedas Especializadas (Protegidas - AuthInterceptor añade el token de acceso) =====
     @GET("api/users/email/{email}")
     Call<UserResponseDTO> getUserByEmail(@Path("email") String email);
 
-    /**
-     * Obtiene el perfil del usuario actualmente autenticado.
-     * El backend identifica al usuario a través del token JWT.
-     */
     @GET("api/users/profile")
     Call<UserResponseDTO> getUserProfile(@Query("email") String email);
 
     @GET("api/users/{id}/complete")
     Call<UserResponseDTO> getCompleteUser(@Path("id") Long id);
 
-    // ===== Game Endpoints (Protegidos - AuthInterceptor añade el token de acceso) =====
+
+    // ===== Game Endpoints =====
     @POST("api/games")
     Call<GameResponseDTO> createGame(@Body GameDTO gameDTO);
 
     @GET("api/games")
     Call<List<GameSummaryDTO>> getAllGames();
+
+    @GET("api/games/user/{userId}")
+    Call<List<GameResponseDTO>> getGamesByUserId(@Path("userId") Long userId);
 
     @GET("api/games/{id}")
     Call<GameResponseDTO> getGameDetailsById(@Path("id") Long gameId);
@@ -82,7 +92,9 @@ public interface ApiService {
     @PUT("api/games/{id}")
     Call<GameResponseDTO> updateGame(@Path("id") Long id, @Body GameDTO gameDTO);
 
+    @POST("api/loans/request")
+    Call<LoanResponseDTO> requestLoan(@Body LoanRequestDTO loanRequest);
+
     @DELETE("api/games/{id}")
     Call<Void> deleteGame(@Path("id") Long id);
-
 }

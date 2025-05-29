@@ -9,23 +9,11 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer; // Importar Observer
 
 import com.example.gamelend.auth.TokenManager;
-// ErrorResponseDTO no es necesario aquí si el repo maneja el parseo y postea a su error LiveData
-// import com.example.gamelend.dto.ErrorResponseDTO;
 import com.example.gamelend.dto.GameDTO;
 import com.example.gamelend.dto.GameResponseDTO;
-import com.example.gamelend.models.GameStatus; // El enum de Android
+import com.example.gamelend.models.GameStatus;
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.repository.GameRepository;
-// Gson no es necesario aquí
-// import com.google.gson.Gson;
-
-// IOException no es necesaria aquí
-// import java.io.IOException;
-
-// Retrofit Call, Callback, Response no son necesarios aquí
-// import retrofit2.Call;
-// import retrofit2.Callback;
-// import retrofit2.Response;
 
 public class AddGameViewModel extends AndroidViewModel {
 
@@ -71,6 +59,7 @@ public class AddGameViewModel extends AndroidViewModel {
         // Observar el LiveData de error del GameRepository
         this.gameRepository.getCreateGameErrorLiveData().observeForever(gameCreationErrorObserver);
     }
+
 
     /**
      * Intenta guardar un nuevo juego.

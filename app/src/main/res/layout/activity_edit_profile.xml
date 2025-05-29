@@ -37,7 +37,8 @@
             android:layout_centerVertical="false"
             android:layout_alignParentTop="true"
             android:contentDescription="@string/user_profile_image_description"
-            android:src="@drawable/perfil_usuario" />
+            android:src="@drawable/perfil_usuario"
+            android:scaleType="centerCrop" />
 
         <TextView
             android:id="@+id/userNameTextViewEdit"

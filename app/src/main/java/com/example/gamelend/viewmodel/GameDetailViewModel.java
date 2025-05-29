@@ -2,24 +2,32 @@ package com.example.gamelend.viewmodel;
 
 import android.app.Application;
 import android.util.Log;
-
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
+import com.example.gamelend.auth.TokenManager;
 import com.example.gamelend.dto.GameResponseDTO;
+import com.example.gamelend.dto.LoanRequestDTO; // DTO para la petición de préstamo (solo gameId desde Android)
+import com.example.gamelend.dto.LoanResponseDTO;
+import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.repository.GameRepository;
-// Importa LoanDTO y LoanRepository si manejas la solicitud de préstamo aquí
-// import com.example.gamelend.dto.LoanDTO;
-// import com.example.gamelend.repository.LoanRepository;
+import com.example.gamelend.repository.LoanRepository;
+
+import java.io.IOException; // Para el errorBody
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class GameDetailViewModel extends AndroidViewModel {
 
     private static final String TAG = "GameDetailViewModel";
 
     private GameRepository gameRepository;
-    // private LoanRepository loanRepository; // Para solicitar préstamos
+    private LoanRepository loanRepository;
+    private TokenManager tokenManager;
 
     private final MutableLiveData<GameResponseDTO> _gameDetails = new MutableLiveData<>();
     public final LiveData<GameResponseDTO> gameDetails = _gameDetails;
@@ -30,134 +38,147 @@ public class GameDetailViewModel extends AndroidViewModel {
     private final MutableLiveData<String> _errorMessage = new MutableLiveData<>();
     public final LiveData<String> errorMessage = _errorMessage;
 
-    // Para el resultado de la solicitud de préstamo
     private final MutableLiveData<Boolean> _loanRequestSuccess = new MutableLiveData<>();
     public final LiveData<Boolean> loanRequestSuccess = _loanRequestSuccess;
 
+    private final MutableLiveData<String> _loanRequestError = new MutableLiveData<>();
+    public final LiveData<String> loanRequestError = _loanRequestError;
 
     private Observer<GameResponseDTO> gameDetailsObserver;
-    private LiveData<GameResponseDTO> currentGameDetailsLiveData;
+    private LiveData<GameResponseDTO> currentGameDetailsApiLiveData;
+    private Observer<String> loanRequestErrorObserverFromRepo;
 
-    public GameDetailViewModel(Application application) {
+
+    public GameDetailViewModel(@NonNull Application application) {
         super(application);
-        this.gameRepository = new GameRepository(application.getApplicationContext());
-        // this.loanRepository = new LoanRepository(application.getApplicationContext());
+        gameRepository = new GameRepository(application.getApplicationContext());
+        loanRepository = new LoanRepository(application.getApplicationContext());
+        tokenManager = ApiClient.getTokenManager(application.getApplicationContext());
 
-        // Observar errores de carga de detalles del GameRepository
-        this.gameRepository.getGameDetailErrorLiveData().observeForever(errorMsg -> {
+        loanRequestErrorObserverFromRepo = errorMsg -> {
             if (errorMsg != null && Boolean.TRUE.equals(_isLoading.getValue())) {
-                _isLoading.setValue(false);
-                _errorMessage.postValue(errorMsg);
-                _gameDetails.postValue(null);
-            }
-        });
-
-        // Observar errores de solicitud de préstamo del LoanRepository (si lo tienes)
-        /*
-        this.loanRepository.getLoanRequestErrorLiveData().observeForever(errorMsg -> {
-             if (errorMsg != null && Boolean.TRUE.equals(_isLoading.getValue())) { // Podrías necesitar un isLoading separado para préstamos
-                _isLoading.setValue(false);
-                _errorMessage.postValue(errorMsg);
+                _isLoading.postValue(false);
+                _loanRequestError.postValue(errorMsg);
                 _loanRequestSuccess.postValue(false);
             }
-        });
-        */
+        };
+        // Si LoanRepository tiene un LiveData específico para errores de solicitud de préstamo, obsérvalo.
+        // loanRepository.getLoanRequestErrorLiveData().observeForever(loanRequestErrorObserverFromRepo);
     }
 
     public void fetchGameDetails(Long gameId) {
         if (gameId == null || gameId <= 0) {
-            _errorMessage.postValue("ID de juego inválido.");
+            _errorMessage.postValue("ID de juego no válido.");
+            _isLoading.postValue(false);
             _gameDetails.postValue(null);
+            return;
+        }
+        _isLoading.setValue(true);
+        _errorMessage.setValue(null);
+        _gameDetails.setValue(null);
+
+        if (currentGameDetailsApiLiveData != null && gameDetailsObserver != null && currentGameDetailsApiLiveData.hasObservers()) {
+            currentGameDetailsApiLiveData.removeObserver(gameDetailsObserver);
+        }
+        Log.d(TAG, "Fetching game details for ID: " + gameId);
+        currentGameDetailsApiLiveData = gameRepository.getGameDetailsById(gameId);
+
+        gameDetailsObserver = gameResponse -> {
+            if (currentGameDetailsApiLiveData != null) {
+                currentGameDetailsApiLiveData.removeObserver(gameDetailsObserver);
+            }
+            _isLoading.setValue(false);
+            if (gameResponse != null) {
+                _gameDetails.postValue(gameResponse);
+                Log.d(TAG, "Game details loaded: " + gameResponse.getTitle());
+            } else {
+                if (_errorMessage.getValue() == null) {
+                    _errorMessage.postValue("No se pudieron cargar los detalles del juego.");
+                }
+                _gameDetails.postValue(null);
+                Log.d(TAG, "Game details were null after fetch.");
+            }
+        };
+        currentGameDetailsApiLiveData.observeForever(gameDetailsObserver);
+    }
+
+    /**
+     * Inicia una solicitud para tomar prestado un juego.
+     * @param gameId El ID del juego a solicitar.
+     * @param lenderId El ID del usuario que posee el juego.
+     */
+    public void requestLoan(Long gameId, Long lenderId) { // <-- CORREGIDO: Eliminado borrowerId como parámetro
+        Long borrowerId = tokenManager.getUserId(); // Obtener borrowerId aquí
+
+        if (gameId == null || lenderId == null || borrowerId == null || borrowerId == 0L) {
+            String errorMsg = "IDs inválidos para la solicitud de préstamo. GameID: " + gameId + ", LenderID: " + lenderId + ", BorrowerID: " + borrowerId;
+            Log.e(TAG, errorMsg);
+            _loanRequestError.postValue(errorMsg);
+            _isLoading.postValue(false);
+            return;
+        }
+        if (lenderId.equals(borrowerId)) {
+            _loanRequestError.postValue("No puedes solicitar un préstamo de tu propio juego.");
+            _isLoading.postValue(false);
             return;
         }
 
         _isLoading.setValue(true);
-        _errorMessage.setValue(null);
-        _gameDetails.setValue(null); // Limpiar datos anteriores
-
-        if (currentGameDetailsLiveData != null && gameDetailsObserver != null && currentGameDetailsLiveData.hasObservers()) {
-            currentGameDetailsLiveData.removeObserver(gameDetailsObserver);
-        }
-
-        currentGameDetailsLiveData = gameRepository.getGameDetails(gameId);
-
-        gameDetailsObserver = new Observer<GameResponseDTO>() {
-            @Override
-            public void onChanged(GameResponseDTO gameResponse) {
-                if (currentGameDetailsLiveData != null) {
-                    currentGameDetailsLiveData.removeObserver(this);
-                }
-                // _isLoading.setValue(false); // Se maneja en el observador de error del repo también
-
-                if (gameResponse != null) {
-                    _isLoading.setValue(false); // Detener carga en caso de éxito
-                    Log.d(TAG, "Detalles del juego obtenidos: " + gameResponse.getTitle());
-                    _gameDetails.postValue(gameResponse);
-                } else {
-                    // El error ya debería haber sido posteado por la observación
-                    // de gameRepository.getGameDetailErrorLiveData().
-                    if (_errorMessage.getValue() == null) {
-                        _isLoading.setValue(false); // Asegurar que el loading se detenga
-                        _errorMessage.postValue("Error desconocido al cargar detalles del juego.");
-                    }
-                }
-            }
-        };
-        currentGameDetailsLiveData.observeForever(gameDetailsObserver);
-    }
-
-    public void requestLoan(Long gameId /*, otros datos necesarios para LoanDTO */) {
-        _isLoading.setValue(true); // Podrías tener un _isRequestingLoanLiveData
-        _errorMessage.setValue(null);
+        _loanRequestError.setValue(null);
         _loanRequestSuccess.setValue(null);
 
-        // TODO: Obtener el ID del usuario actual (borrowerId) desde TokenManager
-        // Long borrowerId = tokenManager.getUserId();
-        // if (borrowerId == null) { ... manejar error ... }
+        LoanRequestDTO androidLoanRequest = new LoanRequestDTO(gameId);
 
-        // Crear el LoanDTO
-        // LoanDTO loanRequest = new LoanDTO(null, gameId, null /*lenderId se establece en backend?*/,
-        //                                 borrowerId, /*fechas, notas*/);
+        Log.d(TAG, "Solicitando préstamo para juego ID: " + gameId + " (Lender: " + lenderId + ", Borrower: " + borrowerId + ")");
 
-        // Llamar a loanRepository.requestLoan(loanRequest)
-        /*
-        LiveData<Boolean> loanApiResponse = loanRepository.requestLoan(loanRequest); // Asume que devuelve LiveData<Boolean>
-        loanApiResponse.observeForever(new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean success) {
-                loanApiResponse.removeObserver(this);
-                _isLoading.setValue(false);
-                _loanRequestSuccess.postValue(success);
-                if (Boolean.FALSE.equals(success) && _errorMessage.getValue() == null) {
-                    _errorMessage.postValue("No se pudo solicitar el préstamo.");
+        Call<LoanResponseDTO> call = loanRepository.requestLoanApiCall(androidLoanRequest);
+
+        if (call != null) {
+            call.enqueue(new Callback<LoanResponseDTO>() {
+                @Override
+                public void onResponse(@NonNull Call<LoanResponseDTO> call, @NonNull Response<LoanResponseDTO> response) {
+                    _isLoading.postValue(false);
+                    if (response.isSuccessful() && response.body() != null) {
+                        _loanRequestSuccess.postValue(true);
+                        Log.d(TAG, "Solicitud de préstamo exitosa, respuesta: " + response.body().getId());
+                        fetchGameDetails(gameId); // Refrescar detalles para actualizar estado del juego
+                    } else {
+                        String errorMsg = "Error al solicitar el préstamo (Cód: " + response.code() + ")";
+                        if(response.errorBody() != null) {
+                            try { errorMsg += ": " + response.errorBody().string(); }
+                            catch (IOException e) { Log.e(TAG, "Error al leer errorBody", e); }
+                        }
+                        Log.e(TAG, errorMsg);
+                        _loanRequestError.postValue(errorMsg);
+                        _loanRequestSuccess.postValue(false);
+                    }
                 }
-            }
-        });
-        */
-        // Placeholder
-        Log.d(TAG, "Lógica para solicitar préstamo para el juego ID: " + gameId + " pendiente.");
-        // Simular éxito/fallo para probar la UI
-        new android.os.Handler().postDelayed(() -> {
-            _isLoading.setValue(false);
-            _loanRequestSuccess.postValue(true); // Simular éxito
-            // _errorMessage.postValue("Error simulado al solicitar préstamo."); // Simular error
-        }, 1500);
 
+                @Override
+                public void onFailure(@NonNull Call<LoanResponseDTO> call, @NonNull Throwable t) {
+                    _isLoading.postValue(false);
+                    Log.e(TAG, "Fallo de red en solicitud de préstamo: " + t.getMessage(), t);
+                    _loanRequestError.postValue("Error de red: " + t.getMessage());
+                    _loanRequestSuccess.postValue(false);
+                }
+            });
+        } else {
+            _isLoading.postValue(false);
+            _loanRequestError.postValue("No se pudo iniciar la solicitud de préstamo (llamada nula desde el repositorio).");
+        }
     }
 
-
-    public void clearErrorMessage() {
-        _errorMessage.setValue(null);
-    }
+    public void clearErrorMessage() { _errorMessage.setValue(null); }
+    public void clearLoanRequestError() { _loanRequestError.setValue(null); }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        if (currentGameDetailsLiveData != null && gameDetailsObserver != null && currentGameDetailsLiveData.hasObservers()) {
-            currentGameDetailsLiveData.removeObserver(gameDetailsObserver);
+        if (currentGameDetailsApiLiveData != null && gameDetailsObserver != null && currentGameDetailsApiLiveData.hasObservers()) {
+            currentGameDetailsApiLiveData.removeObserver(gameDetailsObserver);
         }
-        // Des-observar otros LiveData del repositorio si es necesario
+        // if (loanRequestErrorObserverFromRepo != null && loanRepository.getLoanRequestErrorLiveData().hasObservers()) {
+        //    loanRepository.getLoanRequestErrorLiveData().removeObserver(loanRequestErrorObserverFromRepo);
+        // }
     }
 }
-
-

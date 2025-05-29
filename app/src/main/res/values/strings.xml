@@ -62,7 +62,7 @@
     <string name="profile_updated_successfully">Perfil actualizado con éxito</string>
 
     <string name="loading_registration_date">Registrado el Cargando...</string>
-    <string name="registration_date_prefix">Registrado el  </string>
+    <string name="registration_date_prefix">Registrado: </string>
 
     <string name="cd_user_games_list">Lista de juegos del usuario</string>
 
@@ -79,5 +79,7 @@
     <string name="button_request_loan">SOLICITAR PRÉSTAMO</string>
 
     <string name="button_view_users">Ver Lista de Usuarios</string>
+    <string name="button_loan_requested"></string>
+    <string name="error_complete_required_fields">Por favor, completa todos los campos obligatorios.</string>
 
 </resources>

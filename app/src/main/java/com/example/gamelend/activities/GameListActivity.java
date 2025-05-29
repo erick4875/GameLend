@@ -1,6 +1,6 @@
 package com.example.gamelend.activities;
 
-import android.content.Intent; // Para iniciar GameDetailActivity
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -16,15 +16,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gamelend.R;
-import com.example.gamelend.dto.GameSummaryDTO; // DTO de la API
-import com.example.gamelend.models.Game;         // Modelo local para la UI (com.example.gamelend.models.Game)
+import com.example.gamelend.dto.GameResponseDTO; // Cambiado de GameSummaryDTO
+import com.example.gamelend.models.Game;
 import com.example.gamelend.models.GameAdapter;
-// import com.example.gamelend.models.GameStatus; // Si lo usas en el mapeo
 import com.example.gamelend.viewmodel.GameListViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
-// import java.util.stream.Collectors; // Si usas streams para mapear
 
 public class GameListActivity extends AppCompatActivity implements GameAdapter.OnGameItemClickListener {
 
@@ -35,17 +33,17 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
     private ProgressBar loadingProgressBar;
     private GameListViewModel gameListViewModel;
 
-    public static final String EXTRA_GAME_ID = "com.example.gamelend.GAME_ID"; // Constante para el extra del Intent
+    public static final String EXTRA_GAME_ID = "com.example.gamelend.GAME_ID";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game_list); // Tu XML actualizado
+        setContentView(R.layout.activity_game_list);
 
         Toolbar toolbar = findViewById(R.id.gameListToolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Muestra la flecha "atrás"
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
@@ -55,7 +53,7 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
         gamesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         gamesRecyclerView.setHasFixedSize(true);
 
-        gameAdapter = new GameAdapter(this, new ArrayList<Game>(), this);
+        gameAdapter = new GameAdapter(this, new ArrayList<>(), this);
         gamesRecyclerView.setAdapter(gameAdapter);
 
         gameListViewModel = new ViewModelProvider(this,
@@ -64,8 +62,13 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
 
         setupViewModelObservers();
 
-        Log.d(TAG, "Solicitando la lista de juegos...");
-        gameListViewModel.fetchAllGames();
+        // En lugar de fetchAllGames, podrías tener una lógica para decidir
+        // si cargar todos los juegos o solo los de un usuario.
+        // Por ahora, la modificaremos para cargar los del usuario actual si se llama
+        // desde UserProfileActivity sin un EXTRA_USER_ID, o todos si se llama de otra forma.
+        // O, si esta activity SIEMPRE muestra los juegos del usuario actual:
+        Log.d(TAG, "Solicitando la lista de juegos del usuario actual...");
+        gameListViewModel.fetchCurrentUserGames();
     }
 
     @Override
@@ -86,15 +89,20 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
             }
         });
 
-        gameListViewModel.gamesListLiveData.observe(this, gameSummaryDTOs -> {
-            if (gameSummaryDTOs != null) {
-                Log.d(TAG, "GamesList LiveData (DTOs) changed, count: " + gameSummaryDTOs.size());
-                List<Game> uiGameList = mapGameSummaryDTOsToGames(gameSummaryDTOs);
+        // Observar gamesListResponseLiveData que ahora es List<GameResponseDTO>
+        gameListViewModel.gamesListResponseLiveData.observe(this, gameResponseDTOs -> {
+            if (gameResponseDTOs != null) {
+                Log.d(TAG, "GamesList LiveData (GameResponseDTOs) changed, count: " + gameResponseDTOs.size());
+                List<Game> uiGameList = mapGameResponseDTOsToGames(gameResponseDTOs);
                 gameAdapter.submitList(uiGameList);
             } else {
                 gameAdapter.submitList(new ArrayList<>());
             }
         });
+
+        // Si también necesitas observar allGamesSummaryLiveData para una vista de "todos los juegos"
+        // gameListViewModel.allGamesSummaryLiveData.observe(this, gameSummaryDTOs -> { ... });
+
 
         gameListViewModel.errorLiveData.observe(this, error -> {
             if (error != null && !error.isEmpty()) {
@@ -106,43 +114,34 @@ public class GameListActivity extends AppCompatActivity implements GameAdapter.O
     }
 
     /**
-     * Mapea una lista de GameSummaryDTO (de la API) a una lista de Game (modelo de UI).
-     * @param dtos Lista de GameSummaryDTO.
+     * Mapea una lista de GameResponseDTO (de la API) a una lista de Game (modelo de UI).
+     * @param dtos Lista de GameResponseDTO.
      * @return Lista de objetos Game para la UI.
      */
-    private List<Game> mapGameSummaryDTOsToGames(List<GameSummaryDTO> dtos) {
+    private List<Game> mapGameResponseDTOsToGames(List<GameResponseDTO> dtos) {
         List<Game> uiGames = new ArrayList<>();
         if (dtos == null) return uiGames;
 
-        for (GameSummaryDTO dto : dtos) {
+        for (GameResponseDTO dto : dtos) {
             if (dto != null) {
                 String title = dto.getTitle() != null ? dto.getTitle() : "Título no disponible";
-                Long gameId = dto.getId(); // Asumimos que GameSummaryDTO tiene getId()
-
-                // Usando el constructor de models.Game que ahora incluye id
-                // public Game(Long id, String name, int imageResourceId)
-                uiGames.add(new Game(gameId, title, R.drawable.mando)); // R.drawable.mando es un placeholder
+                Long gameId = dto.getId();
+                // Asumiendo que tu modelo Game de UI necesita id, título e imagen de placeholder
+                uiGames.add(new Game(gameId, title, R.drawable.mando));
             }
         }
         return uiGames;
     }
 
-    /**
-     * Se llama cuando un ítem de la lista de juegos es clickeado.
-     * @param clickedGame El objeto 'Game' (de tu paquete models) que fue clickeado.
-     */
     @Override
     public void onGameItemClick(Game clickedGame) {
         Log.d(TAG, "Juego clickeado: " + clickedGame.getName() + " (ID: " + clickedGame.getId() + ")");
-        Toast.makeText(this, "Juego: " + clickedGame.getName(), Toast.LENGTH_SHORT).show();
-
         if (clickedGame.getId() != null) {
             Intent intent = new Intent(GameListActivity.this, GameDetailActivity.class);
-            intent.putExtra(EXTRA_GAME_ID, clickedGame.getId()); // Pasar el ID del juego
+            intent.putExtra(EXTRA_GAME_ID, clickedGame.getId());
             startActivity(intent);
         } else {
-            Log.e(TAG, "ID del juego es null, no se puede navegar a detalles.");
-            Toast.makeText(this, "No se pudo obtener el ID del juego para ver detalles.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No se pudo obtener el ID del juego.", Toast.LENGTH_SHORT).show();
         }
     }
 }

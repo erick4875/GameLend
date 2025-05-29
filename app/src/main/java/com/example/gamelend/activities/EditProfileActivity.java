@@ -1,39 +1,47 @@
 package com.example.gamelend.activities;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem; // Para la Toolbar
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView; // Para las imágenes de perfil y logo
-import android.widget.ProgressBar; // Para el feedback de carga/guardado
-import android.widget.TextView; // Para el nombre de usuario
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull; // Para onOptionsItemSelected
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar; // Para la Toolbar
-import androidx.lifecycle.ViewModelProvider; // Importar ViewModelProvider
+import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.ViewModelProvider;
 
-// import com.bumptech.glide.Glide; // Descomentar si usas Glide
+import com.bumptech.glide.Glide;
 import com.example.gamelend.R;
 import com.example.gamelend.auth.TokenManager;
 import com.example.gamelend.dto.UserDTO;
 import com.example.gamelend.dto.UserResponseDTO;
 import com.example.gamelend.remote.api.ApiClient;
-import com.example.gamelend.viewmodel.EditProfileViewModel; // Importar tu ViewModel
+import com.example.gamelend.viewmodel.EditProfileViewModel;
+
+import java.util.List;
 
 public class EditProfileActivity extends AppCompatActivity {
 
     private static final String TAG = "EditProfileActivity";
 
     private ImageView userProfileImageViewEdit, logoImageViewEditProfile;
-    private TextView userNameTextViewEdit; // Para mostrar el publicName actual (no editable)
-    private EditText nameEditTextProfile; // Para editar el nombre real
-    private EditText publicNameEditTextProfile, passwordEditTextProfile; // Para editar el nombre público
-    private EditText provinceEditTextProfile, cityEditTextProfile;
+    private TextView userNameTextViewEdit;
+    private EditText nameEditTextProfile, publicNameEditTextProfile,
+            passwordEditTextProfile,
+            provinceEditTextProfile, cityEditTextProfile;
 
     private Button viewGamesButton, saveChangesButton;
     private ProgressBar editProfileLoadingProgressBar;
@@ -41,6 +49,11 @@ public class EditProfileActivity extends AppCompatActivity {
     private EditProfileViewModel editProfileViewModel;
     private TokenManager tokenManager;
     private Long currentEditingUserId;
+    private Uri selectedImageUri;
+
+    private ActivityResultLauncher<PickVisualMediaRequest> pickMediaLauncher;
+    private ActivityResultLauncher<Intent> legacyImagePickerLauncher;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,13 +70,11 @@ public class EditProfileActivity extends AppCompatActivity {
         userProfileImageViewEdit = findViewById(R.id.userProfileImageViewEdit);
         logoImageViewEditProfile = findViewById(R.id.logoImageViewEditProfile);
         userNameTextViewEdit = findViewById(R.id.userNameTextViewEdit);
-
-        nameEditTextProfile = findViewById(R.id.nameEditTextProfile); // EditText para el nombre real
-        publicNameEditTextProfile = findViewById(R.id.publicNameEditTextProfile); // EditText para el nombre público
+        nameEditTextProfile = findViewById(R.id.nameEditTextProfile);
+        publicNameEditTextProfile = findViewById(R.id.publicNameEditTextProfile);
+        passwordEditTextProfile = findViewById(R.id.passwordEditTextProfile);
         provinceEditTextProfile = findViewById(R.id.provinceEditTextProfile);
         cityEditTextProfile = findViewById(R.id.cityEditTextProfile);
-        passwordEditTextProfile = findViewById(R.id.passwordEditTextProfile);
-
         viewGamesButton = findViewById(R.id.viewGamesButton);
         saveChangesButton = findViewById(R.id.saveChangesButton);
         editProfileLoadingProgressBar = findViewById(R.id.editProfileLoadingProgressBar);
@@ -74,18 +85,67 @@ public class EditProfileActivity extends AppCompatActivity {
                 ViewModelProvider.AndroidViewModelFactory.getInstance(getApplication()))
                 .get(EditProfileViewModel.class);
 
+        setupImagePickerLaunchers();
         setupViewModelObservers();
 
         Log.d(TAG, "Solicitando datos del perfil para editar...");
         editProfileViewModel.fetchCurrentUserData();
 
-
+        userProfileImageViewEdit.setOnClickListener(v -> openImageChooser());
         viewGamesButton.setOnClickListener(v -> {
             Intent intent = new Intent(EditProfileActivity.this, GameListActivity.class);
             startActivity(intent);
         });
-
         saveChangesButton.setOnClickListener(v -> attemptSaveChanges());
+    }
+
+    private void setupImagePickerLaunchers() {
+        pickMediaLauncher = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            if (uri != null) {
+                selectedImageUri = uri;
+                displaySelectedImage(selectedImageUri);
+            }
+        });
+
+        legacyImagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri uri = result.getData().getData();
+                        if (uri != null) {
+                            selectedImageUri = uri;
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                                int intentFlags = result.getData().getFlags();
+                                int takeFlags = 0;
+                                if ((intentFlags & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) takeFlags |= Intent.FLAG_GRANT_READ_URI_PERMISSION;
+                                if ((intentFlags & Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0) takeFlags |= Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+                                if (takeFlags != 0) {
+                                    try { getContentResolver().takePersistableUriPermission(uri, takeFlags); }
+                                    catch (SecurityException e) { Log.e(TAG, "Error al tomar permisos persistentes", e); }
+                                }
+                            }
+                            displaySelectedImage(selectedImageUri);
+                        }
+                    }
+                });
+    }
+
+    private void openImageChooser() {
+        if (ActivityResultContracts.PickVisualMedia.isPhotoPickerAvailable(this)) {
+            pickMediaLauncher.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
+        } else {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            legacyImagePickerLauncher.launch(intent);
+        }
+    }
+
+    private void displaySelectedImage(Uri imageUri) {
+        Glide.with(this).load(imageUri).placeholder(R.drawable.perfil_usuario)
+                .error(R.drawable.perfil_usuario_error)
+                .circleCrop().into(userProfileImageViewEdit);
     }
 
     @Override
@@ -99,105 +159,128 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private void populateUI(UserResponseDTO user) {
         if (user == null) {
-            Log.w(TAG, "populateUI llamado con usuario null.");
             userNameTextViewEdit.setText(R.string.user_profile_load_error);
             nameEditTextProfile.setText("");
             publicNameEditTextProfile.setText("");
             provinceEditTextProfile.setText("");
             cityEditTextProfile.setText("");
+            passwordEditTextProfile.setText("");
+            if (userProfileImageViewEdit != null)
+                userProfileImageViewEdit.setImageResource(R.drawable.perfil_usuario);
             return;
         }
-        Log.d(TAG, "Poblando UI con datos de: " + user.getPublicName());
         currentEditingUserId = user.getId();
         userNameTextViewEdit.setText(user.getPublicName());
-
-        // Poblar los EditText con los datos del usuario
-        nameEditTextProfile.setText(user.getName() != null ? user.getName() : ""); // Nombre real
-        publicNameEditTextProfile.setText(user.getPublicName() != null ? user.getPublicName() : ""); // Nombre público
+        nameEditTextProfile.setText(user.getName() != null ? user.getName() : "");
+        publicNameEditTextProfile.setText(user.getPublicName() != null ? user.getPublicName() : "");
         provinceEditTextProfile.setText(user.getProvince() != null ? user.getProvince() : "");
         cityEditTextProfile.setText(user.getCity() != null ? user.getCity() : "");
+        passwordEditTextProfile.setText("");
 
-        // Cargar imagen de perfil
-        // if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
-        //    Glide.with(this).load(user.getProfileImageUrl()).placeholder(R.drawable.perfil_usuario).into(userProfileImageViewEdit);
-        // } else {
-        //    userProfileImageViewEdit.setImageResource(R.drawable.perfil_usuario);
-        // }
+        // En populateUI
+        if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
+            String relativeUrl = user.getProfileImageUrl();
+            String fullImageUrl = ApiClient.BASE_URL + relativeUrl;
+
+            Log.d(TAG, "Cargando imagen de perfil con Glide desde: " + fullImageUrl);
+            Glide.with(this)
+                    .load(fullImageUrl)
+                    .placeholder(R.drawable.perfil_usuario)
+                    .error(R.drawable.perfil_usuario_error) // Asegúrate que este drawable exista
+                    .circleCrop()
+                    .into(userProfileImageViewEdit);
+        } else if (userProfileImageViewEdit != null) {
+            userProfileImageViewEdit.setImageResource(R.drawable.perfil_usuario);
+        }
     }
 
     private void attemptSaveChanges() {
-        // Recoger datos de los EditText correctos
-        String name = nameEditTextProfile.getText().toString().trim(); // Nombre real del EditText
-        String publicName = publicNameEditTextProfile.getText().toString().trim(); // Nombre público del EditText
+        String name = nameEditTextProfile.getText().toString().trim();
+        String publicName = publicNameEditTextProfile.getText().toString().trim();
+        String newPassword = passwordEditTextProfile.getText().toString();
         String province = provinceEditTextProfile.getText().toString().trim();
         String city = cityEditTextProfile.getText().toString().trim();
-        String newPassword = passwordEditTextProfile.getText().toString().trim();
 
-        // Dentro de attemptSaveChanges, después de recoger los campos
-        if (name.isEmpty() || publicName.isEmpty() || province.isEmpty() || city.isEmpty()) {
-            Toast.makeText(this, R.string.error_complete_all_editable_fields, Toast.LENGTH_SHORT).show();
+        if (publicName.isEmpty() || name.isEmpty() || province.isEmpty() || city.isEmpty()) {
+            Toast.makeText(this, R.string.error_complete_required_fields, Toast.LENGTH_SHORT).show();
             return;
         }
-
-// Validación adicional para la nueva contraseña SI se introduce una
-        if (!newPassword.isEmpty() && newPassword.length() < 8) { // Ejemplo: longitud mínima de 8
-            Toast.makeText(this, R.string.error_password_length, Toast.LENGTH_SHORT).show(); // Necesitarás esta string
+        if (!newPassword.isEmpty() && newPassword.length() < 8) {
+            Toast.makeText(this, R.string.error_password_length, Toast.LENGTH_SHORT).show();
             return;
         }
-
         if (currentEditingUserId == null) {
-            Toast.makeText(this, "Error: No se pudo identificar al usuario para actualizar.", Toast.LENGTH_LONG).show();
-            Log.e(TAG, "currentEditingUserId es null en attemptSaveChanges");
+            Toast.makeText(this, "Error: No se pudo identificar al usuario.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        UserDTO updatedUserDTO = new UserDTO(
-                name,
-                publicName,
-                null,       // email (no se actualiza aquí)
-                province,
-                city,
-                newPassword.isEmpty() ? null : newPassword, // Pasar null si está vacía, sino la nueva contraseña
-                null,       // registrationDate
-                null,       // games
-                null        // roles
-        );
-
-        Log.d(TAG, "Intentando guardar cambios para userId: " + currentEditingUserId + " con Name: " + name + ", PublicName: " + publicName);
-        editProfileViewModel.updateUserProfile(currentEditingUserId, updatedUserDTO);
+        if (selectedImageUri != null) {
+            Log.d(TAG, "Intentando subir imagen de perfil...");
+            editProfileViewModel.uploadProfileImage(currentEditingUserId, selectedImageUri);
+        } else {
+            Log.d(TAG, "No se seleccionó nueva imagen, actualizando solo datos de texto.");
+            UserDTO textDataUserDTO = new UserDTO(
+                    name.isEmpty() ? null : name, publicName, null, province, city,
+                    newPassword.isEmpty() ? null : newPassword,
+                    null, null, null
+            );
+            editProfileViewModel.updateUserProfile(currentEditingUserId, textDataUserDTO);
+        }
     }
 
     private void setupViewModelObservers() {
         editProfileViewModel.isLoading.observe(this, isLoading -> {
-            Log.d(TAG, "isLoading LiveData changed: " + isLoading);
             if (isLoading != null) {
                 editProfileLoadingProgressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
                 saveChangesButton.setEnabled(!isLoading);
                 viewGamesButton.setEnabled(!isLoading);
+                userProfileImageViewEdit.setEnabled(!isLoading);
             }
         });
 
         editProfileViewModel.userData.observe(this, user -> {
-            if (user != null) {
-                Log.d(TAG, "userData LiveData changed, poblando UI para: " + user.getPublicName());
-                populateUI(user);
-            } else {
-                Log.d(TAG, "userData LiveData es null (posiblemente después de un error de carga inicial).");
-                populateUI(null);
+            if (user != null) populateUI(user); else populateUI(null);
+        });
+
+        editProfileViewModel.profileImageUploadResult.observe(this, userResponseAfterUpload -> {
+            if (userResponseAfterUpload != null) {
+                Toast.makeText(this, "Imagen de perfil subida con éxito.", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Imagen subida, nueva URL de perfil: " +
+                        (userResponseAfterUpload.getProfileImageUrl() != null ? userResponseAfterUpload.getProfileImageUrl() : "N/A"));
+
+                String name = nameEditTextProfile.getText().toString().trim();
+                String publicName = publicNameEditTextProfile.getText().toString().trim();
+                String newPassword = passwordEditTextProfile.getText().toString();
+                String province = provinceEditTextProfile.getText().toString().trim();
+                String city = cityEditTextProfile.getText().toString().trim();
+
+                UserDTO textDataUserDTO = new UserDTO(
+                        name.isEmpty() ? null : name, publicName, null, province, city,
+                        newPassword.isEmpty() ? null : newPassword,
+                        null, null, null
+                );
+                editProfileViewModel.updateUserProfile(currentEditingUserId, textDataUserDTO);
+            }
+        });
+
+        editProfileViewModel.imageUploadError.observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(this, "Error al subir imagen: " + error, Toast.LENGTH_LONG).show();
+                editProfileViewModel.clearImageUploadError();
             }
         });
 
         editProfileViewModel.updateSuccess.observe(this, isSuccess -> {
             if (isSuccess != null && isSuccess) {
                 Toast.makeText(EditProfileActivity.this, R.string.profile_updated_successfully, Toast.LENGTH_SHORT).show();
+                setResult(Activity.RESULT_OK);
                 finish();
             }
         });
 
         editProfileViewModel.errorMessage.observe(this, error -> {
             if (error != null && !error.isEmpty()) {
-                Log.e(TAG, "errorMessage LiveData changed: " + error);
-                Toast.makeText(EditProfileActivity.this, error, Toast.LENGTH_LONG).show();
+                Toast.makeText(EditProfileActivity.this, "Error al actualizar perfil: " + error, Toast.LENGTH_LONG).show();
                 editProfileViewModel.clearErrorMessage();
             }
         });

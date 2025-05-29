@@ -2,110 +2,132 @@ package com.example.gamelend.viewmodel;
 
 import android.app.Application;
 import android.util.Log;
-
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer; // Importar Observer
+import androidx.lifecycle.Observer;
 
+import com.example.gamelend.auth.TokenManager; // Para obtener userId
+import com.example.gamelend.dto.GameResponseDTO; // Cambiado de GameSummaryDTO
 import com.example.gamelend.dto.GameSummaryDTO;
-// ErrorResponseDTO y Gson no son necesarios aquí si el GameRepository los maneja internamente
-// import com.example.gamelend.dto.ErrorResponseDTO;
-// import com.google.gson.Gson;
+import com.example.gamelend.remote.api.ApiClient; // Para TokenManager
 import com.example.gamelend.repository.GameRepository;
-
-// import java.io.IOException; // No es necesario aquí
-import java.util.ArrayList;
 import java.util.List;
-
-// Retrofit Call, Callback, Response no son necesarios aquí
-// import retrofit2.Call;
-// import retrofit2.Callback;
-// import retrofit2.Response;
+import java.util.ArrayList;
 
 public class GameListViewModel extends AndroidViewModel {
-
     private static final String TAG = "GameListViewModel";
-
     private GameRepository gameRepository;
+    private TokenManager tokenManager; // Para obtener el ID del usuario actual
 
-    private final MutableLiveData<List<GameSummaryDTO>> _gamesListLiveData = new MutableLiveData<>();
-    public final LiveData<List<GameSummaryDTO>> gamesListLiveData = _gamesListLiveData;
+    // Cambiado para manejar GameResponseDTO si getGamesByUserId devuelve eso
+    private final MutableLiveData<List<GameResponseDTO>> _gamesListLiveData = new MutableLiveData<>();
+    public final LiveData<List<GameResponseDTO>> gamesListResponseLiveData = _gamesListLiveData;
 
-    private final MutableLiveData<String> _errorLiveData = new MutableLiveData<>();
-    public final LiveData<String> errorLiveData = _errorLiveData;
+    // Si fetchAllGames devuelve GameSummaryDTO, necesitarás un LiveData separado o unificar
+    private final MutableLiveData<List<GameSummaryDTO>> _allGamesSummaryLiveData = new MutableLiveData<>();
+    public final LiveData<List<GameSummaryDTO>> allGamesSummaryLiveData = _allGamesSummaryLiveData;
+
 
     private final MutableLiveData<Boolean> _isLoadingLiveData = new MutableLiveData<>();
     public final LiveData<Boolean> isLoadingLiveData = _isLoadingLiveData;
 
-    // Observador para el LiveData de resultado del repositorio
-    private Observer<List<GameSummaryDTO>> gamesListApiObserver;
-    private LiveData<List<GameSummaryDTO>> currentGamesListApiLiveData;
+    private final MutableLiveData<String> _errorLiveData = new MutableLiveData<>();
+    public final LiveData<String> errorLiveData = _errorLiveData;
 
-    // Observador para el LiveData de error del repositorio
-    private Observer<String> gamesListErrorObserver;
+    private Observer<List<GameResponseDTO>> gamesByUserIdObserver;
+    private LiveData<List<GameResponseDTO>> currentGamesByUserIdApiLiveData;
+    private Observer<String> gamesByUserIdErrorObserver;
 
-    public GameListViewModel(Application application) {
+    private Observer<List<GameSummaryDTO>> allGamesObserver;
+    private LiveData<List<GameSummaryDTO>> currentAllGamesApiLiveData;
+    private Observer<String> allGamesErrorObserver;
+
+
+    public GameListViewModel(@NonNull Application application) {
         super(application);
-        this.gameRepository = new GameRepository(application.getApplicationContext());
+        gameRepository = new GameRepository(application.getApplicationContext());
+        tokenManager = ApiClient.getTokenManager(application.getApplicationContext()); // Inicializar TokenManager
 
-        // Crear el observador para los errores de carga de la lista de juegos del repositorio
-        gamesListErrorObserver = errorMsg -> {
+        // Observador para errores de fetchGamesByUserId
+        gamesByUserIdErrorObserver = errorMsg -> {
             if (errorMsg != null) {
-                Log.d(TAG, "Error de carga de lista de juegos recibido del GameRepository: " + errorMsg);
-                _isLoadingLiveData.postValue(false); // Detener carga si hay error del repo
+                _isLoadingLiveData.postValue(false);
                 _errorLiveData.postValue(errorMsg);
-                _gamesListLiveData.postValue(new ArrayList<>()); // Postear lista vacía en caso de error
+                // _gamesListLiveData.postValue(new ArrayList<>()); // Opcional, el repositorio ya podría hacerlo
             }
         };
-        // Observar el LiveData de error del GameRepository
-        this.gameRepository.getGameListErrorLiveData().observeForever(gamesListErrorObserver);
+        gameRepository.getFetchGamesByUserIdErrorLiveData().observeForever(gamesByUserIdErrorObserver);
+
+        // Observador para errores de fetchAllGames
+        allGamesErrorObserver = errorMsg -> {
+            if (errorMsg != null) {
+                _isLoadingLiveData.postValue(false);
+                _errorLiveData.postValue(errorMsg);
+                // _allGamesSummaryLiveData.postValue(new ArrayList<>());
+            }
+        };
+        gameRepository.getFetchAllGamesErrorLiveData().observeForever(allGamesErrorObserver);
     }
 
-    /**
-     * Obtiene la lista de todos los juegos (resúmenes) desde el repositorio.
-     */
     public void fetchAllGames() {
         _isLoadingLiveData.setValue(true);
         _errorLiveData.setValue(null);
-        // _gamesListLiveData.setValue(null); // Opcional: limpiar lista anterior
 
-        // Remover observador anterior si existe para la respuesta de la API
-        if (currentGamesListApiLiveData != null && gamesListApiObserver != null && currentGamesListApiLiveData.hasObservers()) {
-            currentGamesListApiLiveData.removeObserver(gamesListApiObserver);
+        if (currentAllGamesApiLiveData != null && allGamesObserver != null && currentAllGamesApiLiveData.hasObservers()) {
+            currentAllGamesApiLiveData.removeObserver(allGamesObserver);
         }
-
-        // GameRepository.getAllGames() ahora devuelve LiveData<List<GameSummaryDTO>>
-        currentGamesListApiLiveData = gameRepository.getAllGames();
-
-        gamesListApiObserver = new Observer<List<GameSummaryDTO>>() {
-            @Override
-            public void onChanged(List<GameSummaryDTO> gameSummaries) {
-                // Remover el observador después de la primera emisión
-                if (currentGamesListApiLiveData != null) {
-                    currentGamesListApiLiveData.removeObserver(this);
-                }
-                // El estado de carga se actualiza a false tanto en éxito como cuando el observador de error del repo se activa.
-                // _isLoadingLiveData.setValue(false); // Se podría mover aquí si el errorLiveData del repo no lo hace
-
-                if (gameSummaries != null) {
-                    // Si la respuesta del repo es exitosa (incluyendo un 204 que el repo convierte a lista vacía),
-                    // gameSummaries no será null.
-                    _isLoadingLiveData.setValue(false); // Asegurar que el loading se detenga
-                    Log.d(TAG, "Juegos obtenidos exitosamente: " + gameSummaries.size() + " juegos.");
-                    _gamesListLiveData.postValue(gameSummaries);
-                }
-                // Si gameSummaries es null, significa que el repositorio indicó un fallo.
-                // El observador de gameRepository.getGameListErrorLiveData() (en el constructor)
-                // ya debería haber actualizado _errorLiveData y _isLoadingLiveData.
-                else if (_errorLiveData.getValue() == null) { // Solo si el repo no posteó un error específico
-                    _isLoadingLiveData.setValue(false);
-                    _errorLiveData.postValue("Error desconocido al obtener la lista de juegos.");
-                }
+        currentAllGamesApiLiveData = gameRepository.getAllGames();
+        allGamesObserver = gameSummaryDTOs -> {
+            if(currentAllGamesApiLiveData != null) currentAllGamesApiLiveData.removeObserver(allGamesObserver);
+            _isLoadingLiveData.setValue(false);
+            if (gameSummaryDTOs != null) {
+                _allGamesSummaryLiveData.postValue(gameSummaryDTOs);
+                Log.d(TAG, "Juegos (summary) obtenidos exitosamente: " + gameSummaryDTOs.size() + " juegos.");
+            } else if (_errorLiveData.getValue() == null) {
+                _errorLiveData.postValue("No se pudieron cargar todos los juegos.");
             }
         };
-        currentGamesListApiLiveData.observeForever(gamesListApiObserver);
+        currentAllGamesApiLiveData.observeForever(allGamesObserver);
     }
+
+    /**
+     * Obtiene los juegos para el usuario actualmente logueado.
+     */
+    public void fetchCurrentUserGames() {
+        Long currentUserId = tokenManager.getUserId();
+        if (currentUserId == null || currentUserId == 0L) { // 0L como ID inválido
+            Log.e(TAG, "No se pudo obtener el ID del usuario actual para cargar sus juegos.");
+            _errorLiveData.postValue("No se pudo identificar al usuario actual.");
+            _isLoadingLiveData.postValue(false);
+            _gamesListLiveData.postValue(new ArrayList<>()); // Lista vacía
+            return;
+        }
+
+        _isLoadingLiveData.setValue(true);
+        _errorLiveData.setValue(null); // Limpiar error anterior
+
+        if (currentGamesByUserIdApiLiveData != null && gamesByUserIdObserver != null && currentGamesByUserIdApiLiveData.hasObservers()) {
+            currentGamesByUserIdApiLiveData.removeObserver(gamesByUserIdObserver);
+        }
+
+        Log.d(TAG, "Fetching games for user ID: " + currentUserId);
+        currentGamesByUserIdApiLiveData = gameRepository.getGamesByUserId(currentUserId);
+
+        gamesByUserIdObserver = games -> {
+            if (currentGamesByUserIdApiLiveData != null) currentGamesByUserIdApiLiveData.removeObserver(gamesByUserIdObserver);
+            _isLoadingLiveData.setValue(false);
+            if (games != null) {
+                _gamesListLiveData.postValue(games); // Postea List<GameResponseDTO>
+                Log.d(TAG, "Juegos del usuario obtenidos: " + games.size() + " juegos.");
+            } else if (_errorLiveData.getValue() == null) {
+                _errorLiveData.postValue("No se pudieron cargar los juegos del usuario.");
+            }
+        };
+        currentGamesByUserIdApiLiveData.observeForever(gamesByUserIdObserver);
+    }
+
 
     public void clearFetchGamesError() {
         _errorLiveData.setValue(null);
@@ -114,12 +136,17 @@ public class GameListViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        // Limpiar observadores para evitar memory leaks
-        if (currentGamesListApiLiveData != null && gamesListApiObserver != null && currentGamesListApiLiveData.hasObservers()) {
-            currentGamesListApiLiveData.removeObserver(gamesListApiObserver);
+        if (currentGamesByUserIdApiLiveData != null && gamesByUserIdObserver != null) {
+            currentGamesByUserIdApiLiveData.removeObserver(gamesByUserIdObserver);
         }
-        if (gamesListErrorObserver != null && gameRepository.getGameListErrorLiveData().hasObservers()) {
-            gameRepository.getGameListErrorLiveData().removeObserver(gamesListErrorObserver);
+        if (currentAllGamesApiLiveData != null && allGamesObserver != null) {
+            currentAllGamesApiLiveData.removeObserver(allGamesObserver);
+        }
+        if (gamesByUserIdErrorObserver != null) {
+            gameRepository.getFetchGamesByUserIdErrorLiveData().removeObserver(gamesByUserIdErrorObserver);
+        }
+        if (allGamesErrorObserver != null) {
+            gameRepository.getFetchAllGamesErrorLiveData().removeObserver(allGamesErrorObserver);
         }
     }
 }

@@ -65,19 +65,18 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.UserViewHolder
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
-        TextView userNameTextViewVH; // Renombrado para evitar confusión con IDs XML
+        TextView userNameTextViewVH;
         TextView userLocationTextViewVH;
         ImageView userProfileImageViewVH;
         ImageButton viewUserGamesButtonVH;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
-            // --- IDs CORREGIDOS PARA COINCIDIR CON TU ÚLTIMO user_cardview.xml ---
+            // Usar los IDs definidos en user_cardview.xml
             userNameTextViewVH = itemView.findViewById(R.id.userNameTextView);
             userLocationTextViewVH = itemView.findViewById(R.id.userLocationTextView);
             userProfileImageViewVH = itemView.findViewById(R.id.userProfileImageView);
             viewUserGamesButtonVH = itemView.findViewById(R.id.viewUserGamesButton);
-            // -----------------------------------------------------------------
 
             if (userNameTextViewVH == null) Log.e(TAG_ADAPTER, "UserViewHolder: userNameTextViewVH es NULL - verifica ID userNameTextView en XML");
             if (userLocationTextViewVH == null) Log.e(TAG_ADAPTER, "UserViewHolder: userLocationTextViewVH es NULL - verifica ID userLocationTextView en XML");
@@ -116,9 +115,6 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.UserViewHolder
                 }
             });
 
-            // El listener para viewUserGamesButtonVH es opcional si itemView ya maneja onGamesClick.
-            // Si quieres que SOLO el botón active onGamesClick, mueve el listener.onGamesClick(user) aquí
-            // y quítalo del itemView.setOnClickListener.
             if (viewUserGamesButtonVH != null) {
                 viewUserGamesButtonVH.setOnClickListener(v -> {
                     if (listener != null) {

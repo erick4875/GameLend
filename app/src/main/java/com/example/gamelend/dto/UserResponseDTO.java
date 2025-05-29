@@ -1,8 +1,8 @@
 package com.example.gamelend.dto;
 
-
-import java.util.ArrayList;
+// import com.google.gson.annotations.SerializedName; // Solo si el nombre JSON es diferente al del campo
 import java.util.List;
+import java.util.ArrayList;
 
 public class UserResponseDTO {
 
@@ -10,123 +10,74 @@ public class UserResponseDTO {
     private String name;
     private String publicName;
     private String email;
-    private String password;
-    private String registrationDate; // Recibirá el LocalDateTime como String formateado
+    private String registrationDate;
     private String province;
     private String city;
-    private List<GameResponseDTO> games;
-    private List<GameSummaryDTO> gamesLent;
+    private String phone;
+    private String profileImageUrl; // <--- AÑADIDO CAMPO PARA URL DE IMAGEN DE PERFIL
+    private List<GameResponseDTO> games;       // Asume que este DTO existe en Android
+    private List<GameSummaryDTO> gamesLent; // Asume que este DTO existe en Android
     private List<String> roles;
 
-    // Constructor vacío (necesario para Gson/Moshi)
+    // Constructor vacío
     public UserResponseDTO() {
-        // Importante inicializar las listas para evitar NullPointerExceptions
-        // si el JSON no incluye estos campos o los envía como null.
         this.games = new ArrayList<>();
         this.gamesLent = new ArrayList<>();
         this.roles = new ArrayList<>();
     }
 
-    // Constructor con todos los campos
+    // Constructor completo (opcional, pero útil para tests o creación manual)
     public UserResponseDTO(Long id, String name, String publicName, String email, String registrationDate,
-                           String province, String password, String city, List<GameResponseDTO> games,
-                           List<GameSummaryDTO> gamesLent, List<String> roles) {
+                           String province, String city, String phone, String profileImageUrl,
+                           List<GameResponseDTO> games, List<GameSummaryDTO> gamesLent, List<String> roles) {
         this.id = id;
         this.name = name;
         this.publicName = publicName;
         this.email = email;
         this.registrationDate = registrationDate;
         this.province = province;
-        this.password = password;
         this.city = city;
-        this.games = (games != null) ? games : new ArrayList<>(); // Asegurar no nulos
-        this.gamesLent = (gamesLent != null) ? gamesLent : new ArrayList<>(); // Asegurar no nulos
-        this.roles = (roles != null) ? roles : new ArrayList<>(); // Asegurar no nulos
-    }
-
-    // Getters
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() { return name; }
-
-    public String getPublicName() {
-        return publicName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getRegistrationDate() {
-        return registrationDate;
-    }
-
-    public String getProvince() {
-        return province;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public List<GameResponseDTO> getGames() {
-        return games;
-    }
-
-    public List<GameSummaryDTO> getGamesLent() {
-        return gamesLent;
-    }
-
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    // Setters
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) { this.name = name; }
-
-    public void setPublicName(String publicName) {
-        this.publicName = publicName;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setRegistrationDate(String registrationDate) {
-        this.registrationDate = registrationDate;
-    }
-
-    public void setProvince(String province) {
-        this.province = province;
-    }
-
-    public void setPassword(String password) {
-        this.province = password;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public void setGames(List<GameResponseDTO> games) {
+        this.phone = phone;
+        this.profileImageUrl = profileImageUrl; // <--- AÑADIDO AL CONSTRUCTOR
         this.games = (games != null) ? games : new ArrayList<>();
-    }
-
-    public void setGamesLent(List<GameSummaryDTO> gamesLent) {
         this.gamesLent = (gamesLent != null) ? gamesLent : new ArrayList<>();
-    }
-
-    public void setRoles(List<String> roles) {
         this.roles = (roles != null) ? roles : new ArrayList<>();
     }
+
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getPublicName() { return publicName; }
+    public void setPublicName(String publicName) { this.publicName = publicName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getRegistrationDate() { return registrationDate; }
+    public void setRegistrationDate(String registrationDate) { this.registrationDate = registrationDate; }
+
+    public String getProvince() { return province; }
+    public void setProvince(String province) { this.province = province; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getProfileImageUrl() { return profileImageUrl; } // <--- GETTER PARA PROFILE IMAGE URL
+    public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; } // <--- SETTER
+
+    public List<GameResponseDTO> getGames() { return games; }
+    public void setGames(List<GameResponseDTO> games) { this.games = (games != null) ? games : new ArrayList<>(); }
+
+    public List<GameSummaryDTO> getGamesLent() { return gamesLent; }
+    public void setGamesLent(List<GameSummaryDTO> gamesLent) { this.gamesLent = (gamesLent != null) ? gamesLent : new ArrayList<>(); }
+
+    public List<String> getRoles() { return roles; }
+    public void setRoles(List<String> roles) { this.roles = (roles != null) ? roles : new ArrayList<>(); }
 }

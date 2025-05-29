@@ -1,22 +1,28 @@
 package com.example.gamelend.repository;
 
 import android.content.Context;
+// import android.net.Uri; // No se usa directamente en los métodos mostrados
 import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.gamelend.dto.GameDTO; // Para createGame
+import com.example.gamelend.dto.GameDTO;
 import com.example.gamelend.dto.GameResponseDTO;
-import com.example.gamelend.dto.GameSummaryDTO; // Para getAllGames
-import com.example.gamelend.dto.ErrorResponseDTO;
+import com.example.gamelend.dto.GameSummaryDTO;
+import com.example.gamelend.dto.ErrorResponseDTO; // Para parsear errores
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.remote.api.ApiService;
-import com.google.gson.Gson;
+// import com.example.gamelend.utils.FileUtils; // No se usa directamente aquí
 
+import com.google.gson.Gson; // Para parsear errores
+// import java.io.File; // No se usa directamente aquí
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+// import okhttp3.MediaType; // No se usa directamente aquí
+// import okhttp3.MultipartBody; // No se usa directamente aquí
+// import okhttp3.RequestBody; // No se usa directamente aquí
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,173 +30,182 @@ import retrofit2.Response;
 public class GameRepository {
     private static final String TAG = "GameRepository";
     private ApiService apiService;
+    private Context appContext;
 
-    // LiveData para errores de la operación createGame
+    private MutableLiveData<String> fetchAllGamesErrorLiveData = new MutableLiveData<>();
+    private MutableLiveData<String> fetchGamesByUserIdErrorLiveData = new MutableLiveData<>();
     private MutableLiveData<String> createGameErrorLiveData = new MutableLiveData<>();
-    // LiveData para errores de la operación getGameDetails
     private MutableLiveData<String> gameDetailErrorLiveData = new MutableLiveData<>();
-    // LiveData para errores de la operación getAllGames
-    private MutableLiveData<String> gameListErrorLiveData = new MutableLiveData<>();
+    private MutableLiveData<String> updateGameErrorLiveData = new MutableLiveData<>();
+    private MutableLiveData<String> deleteGameErrorLiveData = new MutableLiveData<>();
 
 
     public GameRepository(Context context) {
-        this.apiService = ApiClient.getRetrofitInstance(context.getApplicationContext()).create(ApiService.class);
+        this.appContext = context.getApplicationContext();
+        this.apiService = ApiClient.getRetrofitInstance(appContext).create(ApiService.class);
     }
 
-    // Getters para los LiveData de error
-    public LiveData<String> getCreateGameErrorLiveData() {
-        return createGameErrorLiveData;
-    }
-    public LiveData<String> getGameDetailErrorLiveData() {
-        return gameDetailErrorLiveData;
-    }
-    public LiveData<String> getGameListErrorLiveData() {
-        return gameListErrorLiveData;
+    public LiveData<String> getFetchAllGamesErrorLiveData() { return fetchAllGamesErrorLiveData; }
+    public LiveData<String> getFetchGamesByUserIdErrorLiveData() { return fetchGamesByUserIdErrorLiveData; }
+    public LiveData<String> getCreateGameErrorLiveData() { return createGameErrorLiveData; }
+    public LiveData<String> getGameDetailErrorLiveData() { return gameDetailErrorLiveData; }
+    public LiveData<String> getUpdateGameErrorLiveData() { return updateGameErrorLiveData; }
+    public LiveData<String> getDeleteGameErrorLiveData() { return deleteGameErrorLiveData; }
+
+
+    public LiveData<List<GameSummaryDTO>> getAllGames() {
+        MutableLiveData<List<GameSummaryDTO>> gamesListLiveData = new MutableLiveData<>();
+        fetchAllGamesErrorLiveData.postValue(null);
+        apiService.getAllGames().enqueue(new Callback<List<GameSummaryDTO>>() {
+            @Override
+            public void onResponse(Call<List<GameSummaryDTO>> call, Response<List<GameSummaryDTO>> response) {
+                if (response.isSuccessful()) {
+                    gamesListLiveData.postValue(response.body() != null ? response.body() : new ArrayList<>());
+                } else {
+                    String errorMsg = "Error al cargar todos los juegos (Cód: " + response.code() + ")";
+                    if (response.errorBody() != null) {
+                        try { errorMsg += ": " + response.errorBody().string(); }
+                        catch (IOException e) { Log.e(TAG, "Error al parsear errorBody", e); }
+                    }
+                    fetchAllGamesErrorLiveData.postValue(errorMsg);
+                    gamesListLiveData.postValue(new ArrayList<>());
+                }
+            }
+            @Override
+            public void onFailure(Call<List<GameSummaryDTO>> call, Throwable t) {
+                fetchAllGamesErrorLiveData.postValue("Fallo de red al cargar todos los juegos: " + t.getMessage());
+                gamesListLiveData.postValue(new ArrayList<>());
+            }
+        });
+        return gamesListLiveData;
     }
 
+    public LiveData<List<GameResponseDTO>> getGamesByUserId(Long userId) {
+        MutableLiveData<List<GameResponseDTO>> gamesListLiveData = new MutableLiveData<>();
+        fetchGamesByUserIdErrorLiveData.postValue(null);
+
+        if (userId == null || userId <= 0) { // Mejorar la validación del ID
+            Log.e(TAG, "User ID es null o inválido, no se pueden obtener los juegos.");
+            fetchGamesByUserIdErrorLiveData.postValue("ID de usuario no válido.");
+            gamesListLiveData.postValue(new ArrayList<>());
+            return gamesListLiveData;
+        }
+
+        apiService.getGamesByUserId(userId).enqueue(new Callback<List<GameResponseDTO>>() {
+            @Override
+            public void onResponse(Call<List<GameResponseDTO>> call, Response<List<GameResponseDTO>> response) {
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Juegos por userId obtenidos, código: " + response.code());
+                    gamesListLiveData.postValue(response.body() != null ? response.body() : new ArrayList<>());
+                } else {
+                    String errorMsg = "Error al cargar juegos del usuario (Cód: " + response.code() + ")";
+                    if (response.errorBody() != null) {
+                        try { errorMsg += ": " + response.errorBody().string(); }
+                        catch (IOException e) { Log.e(TAG, "Error al parsear errorBody", e); }
+                    }
+                    Log.e(TAG, errorMsg);
+                    fetchGamesByUserIdErrorLiveData.postValue(errorMsg);
+                    gamesListLiveData.postValue(new ArrayList<>());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<GameResponseDTO>> call, Throwable t) {
+                Log.e(TAG, "Fallo de red al cargar juegos del usuario: " + t.getMessage(), t);
+                fetchGamesByUserIdErrorLiveData.postValue("Fallo de red al cargar juegos del usuario: " + t.getMessage());
+                gamesListLiveData.postValue(new ArrayList<>());
+            }
+        });
+        return gamesListLiveData;
+    }
+
+    /**
+     * Obtiene los detalles de un juego específico por su ID.
+     * @param gameId El ID del juego.
+     * @return LiveData que emitirá GameResponseDTO si la llamada es exitosa,
+     * o null en caso de error (el error específico se posteará a gameDetailErrorLiveData).
+     */
+    public LiveData<GameResponseDTO> getGameDetailsById(Long gameId) { // Esta es la implementación completa
+        MutableLiveData<GameResponseDTO> gameDetailLiveData = new MutableLiveData<>();
+        gameDetailErrorLiveData.postValue(null); // Limpiar error anterior
+
+        if (gameId == null || gameId <= 0) {
+            Log.e(TAG, "ID de juego inválido para getGameDetailsById: " + gameId);
+            gameDetailErrorLiveData.postValue("ID de juego no válido.");
+            gameDetailLiveData.postValue(null);
+            return gameDetailLiveData;
+        }
+
+        Log.d(TAG, "GameRepository: Fetching details for game ID: " + gameId);
+        apiService.getGameDetailsById(gameId).enqueue(new Callback<GameResponseDTO>() {
+            @Override
+            public void onResponse(Call<GameResponseDTO> call, Response<GameResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "GameRepository: Detalles del juego obtenidos para ID " + gameId + ": " + response.body().getTitle());
+                    gameDetailLiveData.postValue(response.body());
+                } else {
+                    String errorMessage = "Error al cargar detalles del juego (Cód: " + response.code() + ")";
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorBodyStr = response.errorBody().string();
+                            Log.e(TAG, "GameRepository: Cuerpo del error de detalles del juego: " + errorBodyStr);
+                            // Aquí podrías intentar parsear ErrorResponseDTO si es relevante
+                            // Gson gson = new Gson();
+                            // ErrorResponseDTO errorResponse = gson.fromJson(errorBodyStr, ErrorResponseDTO.class);
+                            // if (errorResponse != null && errorResponse.getMessage() != null) errorMessage = errorResponse.getMessage();
+                        } catch (IOException e) {
+                            Log.e(TAG, "GameRepository: Error al parsear errorBody de detalles del juego", e);
+                        }
+                    }
+                    gameDetailErrorLiveData.postValue(errorMessage);
+                    gameDetailLiveData.postValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GameResponseDTO> call, Throwable t) {
+                Log.e(TAG, "GameRepository: Fallo de red al cargar detalles del juego ID " + gameId + ": " + t.getMessage(), t);
+                gameDetailErrorLiveData.postValue("Error de conexión al cargar detalles del juego: " + t.getMessage());
+                gameDetailLiveData.postValue(null);
+            }
+        });
+        return gameDetailLiveData;
+    }
 
     public LiveData<GameResponseDTO> createGame(GameDTO gameDTO) {
-        MutableLiveData<GameResponseDTO> creationResultLiveData = new MutableLiveData<>();
-        createGameErrorLiveData.postValue(null); // Limpiar error anterior
+        MutableLiveData<GameResponseDTO> resultLiveData = new MutableLiveData<>();
+        createGameErrorLiveData.postValue(null);
 
         apiService.createGame(gameDTO).enqueue(new Callback<GameResponseDTO>() {
             @Override
             public void onResponse(Call<GameResponseDTO> call, Response<GameResponseDTO> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    creationResultLiveData.postValue(response.body());
+                    resultLiveData.postValue(response.body());
+                    // createGameErrorLiveData.postValue(null); // No es necesario si no hubo error
+                    Log.d(TAG, "Juego creado exitosamente: " + response.body().getTitle());
                 } else {
-                    String errorMessage = "Error al crear juego (Cód: " + response.code() + ")";
+                    String errorMsg = "Error al crear juego (Cód: " + response.code() + ")";
                     if (response.errorBody() != null) {
                         try {
-                            String errorBodyString = response.errorBody().string();
-                            Log.e(TAG, "Cuerpo del error al crear juego: " + errorBodyString);
-                            Gson gson = new Gson();
-                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyString, ErrorResponseDTO.class);
-                            if (errorResponse != null && errorResponse.getDetails() != null && !errorResponse.getDetails().isEmpty()) {
-                                errorMessage = String.join("\n", errorResponse.getDetails());
-                            } else if (errorResponse != null && errorResponse.getMessage() != null) {
-                                errorMessage = errorResponse.getMessage();
-                            }
+                            errorMsg += ": " + response.errorBody().string();
                         } catch (IOException e) {
-                            Log.e(TAG, "Error al parsear errorBody al crear juego", e);
+                            Log.e(TAG, "Error leyendo errorBody al crear juego", e);
                         }
                     }
-                    createGameErrorLiveData.postValue(errorMessage);
-                    creationResultLiveData.postValue(null);
+                    createGameErrorLiveData.postValue(errorMsg);
+                    resultLiveData.postValue(null);
+                    Log.e(TAG, errorMsg);
                 }
             }
 
             @Override
             public void onFailure(Call<GameResponseDTO> call, Throwable t) {
-                Log.e(TAG, "Fallo en conexión al crear juego: " + t.getMessage(), t);
-                createGameErrorLiveData.postValue("Error de conexión al crear juego: " + t.getMessage());
-                creationResultLiveData.postValue(null);
+                String errorMsg = "Fallo de red al crear juego: " + t.getMessage();
+                createGameErrorLiveData.postValue(errorMsg);
+                resultLiveData.postValue(null);
+                Log.e(TAG, errorMsg, t);
             }
         });
-        return creationResultLiveData;
+        return resultLiveData;
     }
-
-    /**
-     * Obtiene los detalles de un juego específico por su ID.
-     * El AuthInterceptor se encarga de añadir el token de acceso si es necesario.
-     * @param gameId El ID del juego a obtener.
-     * @return LiveData que emitirá el GameResponseDTO con los detalles del juego,
-     * o null en caso de error (el error específico se posteará a gameDetailErrorLiveData).
-     */
-    public LiveData<GameResponseDTO> getGameDetails(Long gameId) {
-        MutableLiveData<GameResponseDTO> gameDetailResultLiveData = new MutableLiveData<>();
-        gameDetailErrorLiveData.postValue(null); // Limpiar error anterior
-
-        // Asumimos que ApiService tiene: Call<GameResponseDTO> getGameDetailsById(@Path("id") Long gameId);
-        apiService.getGameDetailsById(gameId).enqueue(new Callback<GameResponseDTO>() {
-            @Override
-            public void onResponse(Call<GameResponseDTO> call, Response<GameResponseDTO> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    gameDetailResultLiveData.postValue(response.body());
-                } else {
-                    String errorMessage = "Error al cargar detalles del juego (Cód: " + response.code() + ")";
-                    if (response.errorBody() != null) {
-                        try {
-                            String errorBodyString = response.errorBody().string();
-                            Log.e(TAG, "Cuerpo del error en detalles juego: " + errorBodyString);
-                            Gson gson = new Gson();
-                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyString, ErrorResponseDTO.class);
-                            if (errorResponse != null && errorResponse.getMessage() != null) {
-                                errorMessage = errorResponse.getMessage();
-                            } else if (errorResponse != null && errorResponse.getDetails() != null && !errorResponse.getDetails().isEmpty()) {
-                                errorMessage = String.join("\n", errorResponse.getDetails());
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error al parsear errorBody en detalles juego", e);
-                        }
-                    }
-                    gameDetailErrorLiveData.postValue(errorMessage);
-                    gameDetailResultLiveData.postValue(null);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<GameResponseDTO> call, Throwable t) {
-                Log.e(TAG, "Fallo en conexión al cargar detalles juego: " + t.getMessage(), t);
-                gameDetailErrorLiveData.postValue("Error de conexión al cargar detalles: " + t.getMessage());
-                gameDetailResultLiveData.postValue(null);
-            }
-        });
-        return gameDetailResultLiveData;
-    }
-
-    /**
-     * Obtiene la lista de todos los juegos (resúmenes) desde la API.
-     * El AuthInterceptor se encarga de añadir el token de acceso si es necesario.
-     * @return LiveData que emitirá List<GameSummaryDTO> si la llamada es exitosa,
-     * o una lista vacía en caso de error (el error específico se posteará a gameListErrorLiveData).
-     */
-    public LiveData<List<GameSummaryDTO>> getAllGames() {
-        MutableLiveData<List<GameSummaryDTO>> gamesListResultLiveData = new MutableLiveData<>();
-        gameListErrorLiveData.postValue(null); // Limpiar error anterior
-
-        // Asumimos que ApiService tiene: Call<List<GameSummaryDTO>> getAllGames();
-        apiService.getAllGames().enqueue(new Callback<List<GameSummaryDTO>>() {
-            @Override
-            public void onResponse(Call<List<GameSummaryDTO>> call, Response<List<GameSummaryDTO>> response) {
-                if (response.isSuccessful()) { // Para GET, un 204 (No Content) también es isSuccessful
-                    if (response.code() == 204 || response.body() == null) {
-                        gamesListResultLiveData.postValue(new ArrayList<>()); // Lista vacía si no hay contenido
-                    } else {
-                        gamesListResultLiveData.postValue(response.body());
-                    }
-                } else {
-                    String errorMessage = "Error al obtener lista de juegos (Cód: " + response.code() + ")";
-                    if (response.errorBody() != null) {
-                        try {
-                            String errorBodyString = response.errorBody().string();
-                            Log.e(TAG, "Cuerpo del error al obtener juegos: " + errorBodyString);
-                            Gson gson = new Gson();
-                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyString, ErrorResponseDTO.class);
-                            if (errorResponse != null && errorResponse.getMessage() != null) {
-                                errorMessage = errorResponse.getMessage();
-                            } else if (errorResponse != null && errorResponse.getDetails() != null && !errorResponse.getDetails().isEmpty()) {
-                                errorMessage = String.join("\n", errorResponse.getDetails());
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error al parsear errorBody al obtener juegos", e);
-                        }
-                    }
-                    gameListErrorLiveData.postValue(errorMessage);
-                    gamesListResultLiveData.postValue(new ArrayList<>()); // Lista vacía en caso de error
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<GameSummaryDTO>> call, Throwable t) {
-                Log.e(TAG, "Fallo en conexión al obtener juegos: " + t.getMessage(), t);
-                gameListErrorLiveData.postValue("Error de conexión al obtener juegos: " + t.getMessage());
-                gamesListResultLiveData.postValue(new ArrayList<>());
-            }
-        });
-        return gamesListResultLiveData;
-    }
-
-    // Aquí irían los métodos para updateGame y deleteGame si los necesitas,
-    // cada uno con su propio LiveData para el resultado y para el error.
 }

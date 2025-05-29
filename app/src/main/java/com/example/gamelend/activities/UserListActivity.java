@@ -1,6 +1,6 @@
 package com.example.gamelend.activities;
 
-import android.content.Intent; // Para la navegación
+import android.content.Intent; // Para la 'navegación'
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem; // Para la Toolbar

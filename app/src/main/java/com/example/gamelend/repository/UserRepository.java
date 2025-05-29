@@ -1,8 +1,8 @@
 package com.example.gamelend.repository;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -14,216 +14,258 @@ import com.example.gamelend.dto.UserDTO;
 import com.example.gamelend.dto.UserResponseDTO;
 import com.example.gamelend.remote.api.ApiClient;
 import com.example.gamelend.remote.api.ApiService;
-import com.google.gson.Gson;
+import com.example.gamelend.utils.FileUtils;
 
+import com.google.gson.Gson;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class UserRepository {
-
+    private static final String TAG = "UserRepository";
     private ApiService apiService;
+    private Context appContext;
+
+    // LiveData para errores
+    private MutableLiveData<String> loginErrorLiveData = new MutableLiveData<>();
     private MutableLiveData<String> registrationErrorLiveData = new MutableLiveData<>();
     private MutableLiveData<String> userProfileErrorLiveData = new MutableLiveData<>();
     private MutableLiveData<String> updateUserErrorLiveData = new MutableLiveData<>();
-
+    private MutableLiveData<String> profileImageUploadErrorLiveData = new MutableLiveData<>();
+    private MutableLiveData<String> userListErrorLiveData = new MutableLiveData<>(); // <-- NUEVO para errores de getAllUsers
 
     public UserRepository(Context context) {
-        this.apiService = ApiClient.getRetrofitInstance(context.getApplicationContext()).create(ApiService.class);
+        this.appContext = context.getApplicationContext();
+        this.apiService = ApiClient.getRetrofitInstance(appContext).create(ApiService.class);
     }
 
-    public LiveData<String> getRegistrationErrorLiveData() {
-        return registrationErrorLiveData;
+    // Getters para LiveData de error
+    public LiveData<String> getLoginErrorLiveData() { return loginErrorLiveData; }
+    public LiveData<String> getRegistrationErrorLiveData() { return registrationErrorLiveData; }
+    public LiveData<String> getUserProfileErrorLiveData() { return userProfileErrorLiveData; }
+    public LiveData<String> getUpdateUserErrorLiveData() { return updateUserErrorLiveData; }
+    public LiveData<String> getProfileImageUploadErrorLiveData() { return profileImageUploadErrorLiveData; }
+    public LiveData<String> getUserListErrorLiveData() { return userListErrorLiveData; } // <-- NUEVO GETTER
+
+    public LiveData<TokenResponseDTO> login(String email, String password) {
+        MutableLiveData<TokenResponseDTO> tokenLiveData = new MutableLiveData<>();
+        loginErrorLiveData.postValue(null);
+        apiService.login(new LoginRequestDTO(email, password)).enqueue(new Callback<TokenResponseDTO>() {
+            @Override
+            public void onResponse(Call<TokenResponseDTO> call, Response<TokenResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    tokenLiveData.postValue(response.body());
+                } else {
+                    String errorMsg = "Error en login (Cód: " + response.code() + ")";
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorBodyStr = response.errorBody().string();
+                            Gson gson = new Gson();
+                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyStr, ErrorResponseDTO.class);
+                            if (errorResponse != null && errorResponse.getMessage() != null) errorMsg = errorResponse.getMessage();
+                        } catch (Exception e) { Log.e(TAG, "Error parseando errorBody login", e); }
+                    }
+                    loginErrorLiveData.postValue(errorMsg);
+                    tokenLiveData.postValue(null);
+                }
+            }
+            @Override
+            public void onFailure(Call<TokenResponseDTO> call, Throwable t) {
+                loginErrorLiveData.postValue("Fallo de red en login: " + t.getMessage());
+                tokenLiveData.postValue(null);
+            }
+        });
+        return tokenLiveData;
     }
 
-    public LiveData<String> getUserProfileErrorLiveData() {
-        return userProfileErrorLiveData;
+    public LiveData<TokenResponseDTO> registerUser(RegisterRequestDTO request) {
+        MutableLiveData<TokenResponseDTO> result = new MutableLiveData<>();
+        registrationErrorLiveData.postValue(null);
+        apiService.register(request).enqueue(new Callback<TokenResponseDTO>() {
+            @Override
+            public void onResponse(Call<TokenResponseDTO> call, Response<TokenResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    result.postValue(response.body());
+                } else {
+                    String errorMessage = "Error en registro (Cód: " + response.code() + ")";
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorBodyStr = response.errorBody().string();
+                            Gson gson = new Gson();
+                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyStr, ErrorResponseDTO.class);
+                            if (errorResponse != null && errorResponse.getMessage() != null) errorMessage = errorResponse.getMessage();
+                        } catch (Exception e) { Log.e(TAG, "Error parseando errorBody registro", e); }
+                    }
+                    registrationErrorLiveData.postValue(errorMessage);
+                    result.postValue(null);
+                }
+            }
+            @Override
+            public void onFailure(Call<TokenResponseDTO> call, Throwable t) {
+                registrationErrorLiveData.postValue("Fallo de red en registro: " + t.getMessage());
+                result.postValue(null);
+            }
+        });
+        return result;
     }
 
-    public LiveData<String> getUpdateUserErrorLiveData() {
-        return updateUserErrorLiveData;
+    public LiveData<UserResponseDTO> getUserProfile(String email) {
+        MutableLiveData<UserResponseDTO> userProfileLiveData = new MutableLiveData<>();
+        userProfileErrorLiveData.postValue(null);
+        apiService.getUserProfile(email).enqueue(new Callback<UserResponseDTO>() {
+            @Override
+            public void onResponse(Call<UserResponseDTO> call, Response<UserResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    userProfileLiveData.postValue(response.body());
+                } else {
+                    String errorMsg = "Error al cargar perfil (Cód: " + response.code() + ")";
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorBodyStr = response.errorBody().string();
+                            Gson gson = new Gson();
+                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyStr, ErrorResponseDTO.class);
+                            if (errorResponse != null && errorResponse.getMessage() != null) errorMsg = errorResponse.getMessage();
+                        } catch (Exception e) {Log.e(TAG, "Error parseando errorBody perfil", e);}
+                    }
+                    userProfileErrorLiveData.postValue(errorMsg);
+                    userProfileLiveData.postValue(null);
+                }
+            }
+            @Override
+            public void onFailure(Call<UserResponseDTO> call, Throwable t) {
+                userProfileErrorLiveData.postValue("Fallo de red al cargar perfil: " + t.getMessage());
+                userProfileLiveData.postValue(null);
+            }
+        });
+        return userProfileLiveData;
     }
 
     public LiveData<UserResponseDTO> updateUser(Long userId, UserDTO userUpdateRequest) {
-        MutableLiveData<UserResponseDTO> updateResultLiveData = new MutableLiveData<>();
-        updateUserErrorLiveData.postValue(null); // Limpiar error anterior
-
+        MutableLiveData<UserResponseDTO> updateResult = new MutableLiveData<>();
+        updateUserErrorLiveData.postValue(null);
         apiService.updateUser(userId, userUpdateRequest).enqueue(new Callback<UserResponseDTO>() {
             @Override
             public void onResponse(Call<UserResponseDTO> call, Response<UserResponseDTO> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    updateResultLiveData.postValue(response.body());
+                    updateResult.postValue(response.body());
                 } else {
-                    String errorMessage = "Error al actualizar perfil (Cód: " + response.code() + ")";
+                    String errorMsg = "Error al actualizar perfil (Cód: " + response.code() + ")";
                     if (response.errorBody() != null) {
                         try {
-                            String errorBodyString = response.errorBody().string();
-                            Log.e("UserRepository", "Cuerpo del error de actualización: " + errorBodyString);
+                            String errorBodyStr = response.errorBody().string();
                             Gson gson = new Gson();
-                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyString, ErrorResponseDTO.class);
-                            if (errorResponse != null && errorResponse.getDetails() != null && !errorResponse.getDetails().isEmpty()) {
-                                errorMessage = String.join("\n", errorResponse.getDetails());
-                            } else if (errorResponse != null && errorResponse.getMessage() != null) {
-                                errorMessage = errorResponse.getMessage();
-                            }
-                        } catch (Exception e) {
-                            Log.e("UserRepository", "Error al parsear errorBody de actualización", e);
-                        }
+                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyStr, ErrorResponseDTO.class);
+                            if (errorResponse != null && errorResponse.getMessage() != null) errorMsg = errorResponse.getMessage();
+                        } catch (Exception e) {Log.e(TAG, "Error parseando errorBody actualización", e);}
                     }
-                    updateUserErrorLiveData.postValue(errorMessage);
-                    updateResultLiveData.postValue(null);
+                    updateUserErrorLiveData.postValue(errorMsg);
+                    updateResult.postValue(null);
                 }
             }
-
             @Override
             public void onFailure(Call<UserResponseDTO> call, Throwable t) {
-                Log.e("UserRepository", "Fallo en conexión al actualizar perfil: " + t.getMessage(), t);
-                updateUserErrorLiveData.postValue("Error de conexión al actualizar perfil: " + t.getMessage());
-                updateResultLiveData.postValue(null);
+                updateUserErrorLiveData.postValue("Fallo de red al actualizar perfil: " + t.getMessage());
+                updateResult.postValue(null);
             }
         });
-        return updateResultLiveData;
+        return updateResult;
     }
 
+    public LiveData<UserResponseDTO> uploadProfileImage(Long userId, Uri imageUri) {
+        MutableLiveData<UserResponseDTO> uploadResultLiveData = new MutableLiveData<>();
+        profileImageUploadErrorLiveData.postValue(null);
 
-    public LiveData<TokenResponseDTO> login(String email, String password) {
-        MutableLiveData<TokenResponseDTO> loginResultLiveData = new MutableLiveData<>();
-        LoginRequestDTO request = new LoginRequestDTO(email, password);
+        File imageFile = FileUtils.getFileFromUri(appContext, imageUri);
+        if (imageFile == null) {
+            profileImageUploadErrorLiveData.postValue("Error al preparar la imagen para subir.");
+            uploadResultLiveData.postValue(null);
+            return uploadResultLiveData;
+        }
+        RequestBody requestFile = RequestBody.create(MediaType.parse(appContext.getContentResolver().getType(imageUri)), imageFile);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("file", imageFile.getName(), requestFile);
 
-        apiService.login(request).enqueue(new Callback<TokenResponseDTO>() {
+        apiService.uploadProfileImage(userId, body).enqueue(new Callback<UserResponseDTO>() {
             @Override
-            public void onResponse(Call<TokenResponseDTO> call, Response<TokenResponseDTO> response) {
+            public void onResponse(Call<UserResponseDTO> call, Response<UserResponseDTO> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    loginResultLiveData.postValue(response.body());
+                    uploadResultLiveData.postValue(response.body());
                 } else {
-                    loginResultLiveData.postValue(null);
-                    Log.e("UserRepository", "Error en login: " + response.code() + " - " + response.message());
+                    String errorMessage = "Error al subir imagen (Cód: " + response.code() + ")";
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorBodyStr = response.errorBody().string();
+                            Gson gson = new Gson();
+                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyStr, ErrorResponseDTO.class);
+                            if (errorResponse != null && errorResponse.getMessage() != null) errorMessage = errorResponse.getMessage();
+                        } catch (IOException e) { Log.e(TAG, "Error parseando errorBody subida imagen", e); }
+                    }
+                    profileImageUploadErrorLiveData.postValue(errorMessage);
+                    uploadResultLiveData.postValue(null);
                 }
             }
-
             @Override
-            public void onFailure(Call<TokenResponseDTO> call, Throwable t) {
-                loginResultLiveData.postValue(null);
-                Log.e("UserRepository", "Fallo en login: " + t.getMessage(), t);
+            public void onFailure(Call<UserResponseDTO> call, Throwable t) {
+                profileImageUploadErrorLiveData.postValue("Error de conexión al subir imagen: " + t.getMessage());
+                uploadResultLiveData.postValue(null);
             }
         });
-        return loginResultLiveData;
+        return uploadResultLiveData;
     }
 
+    /**
+     * Obtiene la lista de todos los usuarios desde la API.
+     * El AuthInterceptor se encarga del token de acceso.
+     * @return LiveData que emitirá List<UserResponseDTO> si la llamada es exitosa,
+     * o una lista vacía en caso de error (el error específico se posteará a userListErrorLiveData).
+     */
     public LiveData<List<UserResponseDTO>> getAllUsers() {
-        MutableLiveData<List<UserResponseDTO>> usersLiveData = new MutableLiveData<>();
+        MutableLiveData<List<UserResponseDTO>> usersListResultLiveData = new MutableLiveData<>();
+        userListErrorLiveData.postValue(null); // Limpiar error anterior
+
         apiService.getAllUsers().enqueue(new Callback<List<UserResponseDTO>>() {
             @Override
             public void onResponse(Call<List<UserResponseDTO>> call, Response<List<UserResponseDTO>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    usersLiveData.postValue(response.body());
+                if (response.isSuccessful()) {
+                    if (response.code() == 204 || response.body() == null) {
+                        usersListResultLiveData.postValue(new ArrayList<>());
+                    } else {
+                        usersListResultLiveData.postValue(response.body());
+                    }
                 } else {
-                    usersLiveData.postValue(null);
-                    Log.e("UserRepository", "Error al obtener usuarios: " + response.code() + " - " + response.message());
+                    String errorMessage = "Error al obtener usuarios (Cód: " + response.code() + ")";
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorBodyString = response.errorBody().string();
+                            Log.e(TAG, "Cuerpo del error al obtener usuarios: " + errorBodyString);
+                            Gson gson = new Gson();
+                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyString, ErrorResponseDTO.class);
+                            if (errorResponse != null && errorResponse.getMessage() != null) {
+                                errorMessage = errorResponse.getMessage();
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error al parsear errorBody al obtener usuarios", e);
+                        }
+                    }
+                    userListErrorLiveData.postValue(errorMessage);
+                    usersListResultLiveData.postValue(new ArrayList<>());
                 }
             }
 
             @Override
             public void onFailure(Call<List<UserResponseDTO>> call, Throwable t) {
-                usersLiveData.postValue(null);
-                Log.e("UserRepository", "Fallo al obtener usuarios: " + t.getMessage(), t);
+                Log.e(TAG, "Fallo en conexión al obtener usuarios: " + t.getMessage(), t);
+                userListErrorLiveData.postValue("Error de conexión al obtener usuarios: " + t.getMessage());
+                usersListResultLiveData.postValue(new ArrayList<>());
             }
         });
-        return usersLiveData;
+        return usersListResultLiveData;
     }
-
-    public LiveData<TokenResponseDTO> registerUser(RegisterRequestDTO registerRequest) {
-        MutableLiveData<TokenResponseDTO> registrationResultLiveData = new MutableLiveData<>();
-        registrationErrorLiveData.postValue(null); // Limpiar error anterior
-
-        apiService.register(registerRequest).enqueue(new Callback<TokenResponseDTO>() {
-            @Override
-            public void onResponse(Call<TokenResponseDTO> call, Response<TokenResponseDTO> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    registrationResultLiveData.postValue(response.body());
-                } else {
-                    String specificErrorMessage = "Error en registro (Cód: " + response.code() + ")";
-                    if (response.errorBody() != null) {
-                        try {
-                            String errorBodyString = response.errorBody().string();
-                            Log.e("UserRepository", "Cuerpo del error de registro: " + errorBodyString);
-                            Gson gson = new Gson();
-                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyString, ErrorResponseDTO.class);
-                            if (errorResponse != null && errorResponse.getDetails() != null && !errorResponse.getDetails().isEmpty()) {
-                                specificErrorMessage = String.join("\n", errorResponse.getDetails());
-                            } else if (errorResponse != null && errorResponse.getMessage() != null) {
-                                specificErrorMessage = errorResponse.getMessage();
-                            }
-                        } catch (Exception e) {
-                            Log.e("UserRepository", "Error al parsear errorBody de registro", e);
-                        }
-                    }
-                    registrationErrorLiveData.postValue(specificErrorMessage);
-                    registrationResultLiveData.postValue(null);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<TokenResponseDTO> call, Throwable t) {
-                Log.e("UserRepository", "Fallo en conexión de registro: " + t.getMessage(), t);
-                registrationErrorLiveData.postValue("Error de conexión: " + t.getMessage());
-                registrationResultLiveData.postValue(null);
-            }
-        });
-        return registrationResultLiveData;
-    }
-
-    // === NUEVO MÉTODO PARA OBTENER EL PERFIL DEL USUARIO ===
-
-    /**
-     * Obtiene el perfil del usuario actualmente autenticado.
-     * El AuthInterceptor se encarga de añadir el token de acceso.
-     *
-     * @return LiveData que emitirá el UserResponseDTO con los datos del perfil,
-     * o null en caso de error.
-     */
-    public LiveData<UserResponseDTO> getUserProfile(String email) {
-        MutableLiveData<UserResponseDTO> userProfileResultLiveData = new MutableLiveData<>();
-        userProfileErrorLiveData.postValue(null); // Limpiar error anterior
-
-        apiService.getUserProfile(email).enqueue(new Callback<UserResponseDTO>() {
-            @Override
-            public void onResponse(Call<UserResponseDTO> call, Response<UserResponseDTO> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    userProfileResultLiveData.postValue(response.body());
-                } else {
-                    String errorMessage = "Error al cargar perfil (Cód: " + response.code() + ")";
-                    if (response.errorBody() != null) {
-                        try {
-                            String errorBodyString = response.errorBody().string();
-                            Log.e("UserRepository", "Cuerpo del error de perfil: " + errorBodyString);
-                            // Podrías parsear un ErrorResponseDTO si tu endpoint de perfil devuelve errores estructurados
-                            Gson gson = new Gson();
-                            ErrorResponseDTO errorResponse = gson.fromJson(errorBodyString, ErrorResponseDTO.class);
-                            if (errorResponse != null && errorResponse.getMessage() != null) {
-                                errorMessage = errorResponse.getMessage();
-                            } else if (errorResponse != null && errorResponse.getDetails() != null && !errorResponse.getDetails().isEmpty()) {
-                                errorMessage = String.join("\n", errorResponse.getDetails());
-                            }
-                        } catch (Exception e) {
-                            Log.e("UserRepository", "Error al parsear errorBody de perfil", e);
-                        }
-                    }
-                    userProfileErrorLiveData.postValue(errorMessage);
-                    userProfileResultLiveData.postValue(null);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<UserResponseDTO> call, Throwable t) {
-                Log.e("UserRepository", "Fallo en conexión al cargar perfil: " + t.getMessage(), t);
-                userProfileErrorLiveData.postValue("Error de conexión al cargar perfil: " + t.getMessage());
-                userProfileResultLiveData.postValue(null);
-            }
-        });
-        return userProfileResultLiveData;
-    }
-
 }

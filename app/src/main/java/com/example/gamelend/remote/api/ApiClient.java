@@ -18,7 +18,7 @@ public class ApiClient {
     //private static final String BASE_URL = "http://10.0.2.2:8080/"; // Localhost
 
     // direccion API
-    public static final String BASE_URL = "http://10.0.2.2:8081/"; // Localhost
+    public static final String BASE_URL = "http://10.0.2.2:8081"; // Localhost
     private static Retrofit retrofit = null;
     private static TokenManager tokenManager = null;
     private static AuthInterceptor authInterceptor = null;
@@ -71,6 +71,11 @@ public class ApiClient {
         initializeAuthComponents(context);
         return tokenManager;
     }
+
+    public static <T> T createService(Context context, Class<T> serviceClass) {
+        return getRetrofitInstance(context).create(serviceClass);
+    }
+
 
 }
 
